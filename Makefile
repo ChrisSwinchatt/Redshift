@@ -23,10 +23,10 @@ IMAGE                := out/$(KERNEL)-$(ARCH).iso
 DEBUG                := out/$(KERNEL)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR).debug
 src/abi/stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 %.o: %.asm
-	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
+	@echo -e "\033[1;37mAssembling `basename $<`... \033[0m"
 	@$(AS) $(AFLAGS)  -o $@ $<
 %.o: %.c
-	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
+	@echo -e "\033[1;37mCompiling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 all: image
 image: $(IMAGE)
@@ -35,28 +35,23 @@ initrd: $(INITRD)
 tools:
 	@$(MAKE) -s -C tools/
 $(IMAGE): redshift
-	@echo "\033[1;37mCreating `basename $@`... \033[0m"
+	@echo -e "\033[1;37mCreating `basename $@`... \033[0m"
 	@grub-mkrescue -o $(IMAGE) out/isofs 2>/dev/null
 $(REDSHIFT): $(OBJECTS)
-	@echo "\033[1;37mLinking `basename $@`... \033[0m"
+	@echo -e "\033[1;37mLinking `basename $@`... \033[0m"
 	@$(CC) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
-	@echo "\033[1;37mGenerating map file... \033[0m"
+	@echo -e "\033[1;37mGenerating map file... \033[0m"
 	@tools/gensymtab "$@" "$(MAP)"
-	@echo "\033[1;37mCreating debug-only file `basename $(DEBUG)`... \033[0m"
+	@echo -e "\033[1;37mCreating debug-only file `basename $(DEBUG)`... \033[0m"
 	@cp "$@" "$(DEBUG)"
-	@echo "\033[1;37mStripping `basename $@`... \033[0m"
+	@echo -e "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
 $(INITRD): tools
-	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
+	@echo -e "\033[1;37mGenerating initial ramdisk... \033[0m"
 	@#tools/mkinitrd "$@" out/initrd/ >/dev/null
 doc:
-	@echo "\033[1;37mGenerating documentation... \033[0m"
+	@echo -e "\033[1;37mGenerating documentation... \033[0m"
 	doxygen Doxyfile
-commit:
-	@git add .
-	@git commit -a
-push:
-	@git push -u github master
 run-qemu:
 	@qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
 debug-qemu:
@@ -67,6 +62,6 @@ statistics:
 analyse:
 	@cppcheck --quiet --enable=all `find src/ -name "*.c"` `find include/ -name "*.h"` `find src/ -name "*.s"`
 clean:
-	@echo "\033[1;37mCleaning redshift... \033[0m"
+	@echo -e "\033[1;37mCleaning redshift... \033[0m"
 	@rm -f $(OBJECTS)
 .PHONY: all image $(IMAGE) $(REDSHIFT) redshift tools doc commit run-qemu debug-qemu statistics analyse

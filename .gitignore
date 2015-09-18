@@ -1,4 +1,4 @@
 *.o
 *.bin
 out/
-doc/
+doc/generated
