@@ -39,9 +39,9 @@
 static void splash(void)
 {
     static const char* splash_text = " ________________________\n"
-                                     "|   ____ |  ______|  ___ \\  _    ___  _ ___\n"
-                                     "|      __|  |_____| |   | ||_ |_| |  |_  |\n"
-                                     "|  |\\  \\ |  |_____| |___| |__|| |_|_ |   |\n"
+                                     "|   ____ |  ______|  ___ \\  __      ___  __ ___\n"
+                                     "|      __|  |_____| |   | | |_  |__|  |  |__  |\n"
+                                     "|  |\\  \\ |  |_____| |___| __| |  | _|_ |    |\n"
                                      "|__| \\__\\|________|______/\n";
     console.screen.foreground = CONSOLE_COLOR_RED;
     console_writestring(splash_text);
@@ -65,8 +65,6 @@ static void init_interrupt_system(void)
 {
     printk("Initialising interrupt system...\n");
     /* Note: gdt_init writes the TSS' GDT entry and loads the GDT, so we create (but don't load) a valid TSS first.
-     * We can only load the TSS after loading the GDT, so, tss_init initialises but doesn't load the TSS. tss_load loads
-     * the TSS after we load the GDT and IDT.
      */
     /*tss_init(); XXX */
     gdt_init();

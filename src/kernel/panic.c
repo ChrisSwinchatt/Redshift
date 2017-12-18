@@ -32,7 +32,7 @@ void __noreturn panic(const char* fmt, ...)
 {
     char buffer[strlen(PRINTK_ERROR) + strlen(fmt) + 1];
     int_disable();
-    memset(buffer, 0, arraysize(buffer));
+    memset(buffer,  0,   arraysize(buffer));
     strncat(buffer, fmt, strlen(fmt));
     printk("Kernel panic - ");
     {

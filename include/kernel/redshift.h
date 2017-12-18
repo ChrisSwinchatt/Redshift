@@ -29,7 +29,7 @@
 
 /**
  * PIT tick rate (Hz).
- * As this is used in calculations (see sleep.c), it should stay within reasonable limits, such as [10,1000).
+ * As this is used in calculations (see sleep.c), it should stay within reasonable limits ([10,1000)).
  */
 #define TICK_RATE 100
 
@@ -62,13 +62,13 @@
 #define __noreturn                  __attribute__((noreturn))
 
 /** Find the number of elements in 'array' if known at compile-time. */
-#define arraysize(array)            (sizeof(array) / sizeof(*(array)))
+#define arraysize(array)            (sizeof(array)/sizeof(*(array)))
 
 /** Check if a flag is present in a bitflags variable. */
 #define test_flag(var, flag)        ((var & flag) == flag)
 
 /** Test the bit at 'pos' in 'var' */
-#define test_bit(var, pos)          ((var)  &  (1 << (pos)))
+#define test_bit(var, pos)          ((var) & (1 << (pos)))
 
 /** Flip the bit at 'pos' in 'var' */
 #define flip_bit(var, pos)          ((var) ^=  (1 << (pos)))

@@ -58,23 +58,39 @@ int memcmp(const void* p1, const void* p2, size_t n)
 
 void* memcpy(void* dst, const void* src, size_t n)
 {
-    char* pdst = dst;
-    const char* psrc = src;
-    while (n-- > 0)
-        *pdst++ = *psrc++;
+    if (dst != src) {
+        char* pdst = dst;
+        const char* psrc = src;
+        while (n-- > 0) {
+            *pdst++ = *psrc++;
+        }
+    }
     return dst;
 }
 
 void* memmove(void* dst, const void* src, size_t n)
 {
+    char* pdst = (char*)dst;
+    const char* psrc = (const char*)src;
+    if (pdst == psrc) {
+        return pdst;
+    }
+    if (pdst < psrc && pdst + n >= psrc) {
+        // Copy backwards.
+        while (n --> 0) {
+            pdst[n] = psrc[n];
+        }
+        return pdst;
+    }
     return memcpy(dst, src, n);
 }
 
 void* memset(void* array, int c, size_t n)
 {
     char* parray = array;
-    while (n-- > 0)
+    while (n-- > 0) {
         *parray++ = c;
+    }
     return array;
 }
 

@@ -176,6 +176,7 @@ struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
     }
     return NULL;
 }
+
 #define HEAP_ADDRESS   0x1000000
 #define HEAP_SIZE_INIT 0x1000
 

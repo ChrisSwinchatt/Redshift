@@ -23,12 +23,12 @@
 #include <string.h>
 
 uintptr_t __stack_chk_guard = (uintptr_t)NULL;
- 
+
 void __stack_chk_guard_setup()
 {
     __stack_chk_guard = 0xCD000AFFUL;
 }
- 
+
 void __noreturn __stack_chk_fail()
 {
     /* Make sure the console is initialised, in case __stack_chk_fail is tripped early in the boot process.
