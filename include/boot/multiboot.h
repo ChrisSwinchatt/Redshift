@@ -1,8 +1,8 @@
 /**
  * \file boot/multiboot.h
  * \brief Multiboot 2 specification header.
- * \author Chris Swinchatt <c.swinchatt1@uni.brighton.ac.uk> 
- * \copyright Copyright (c) 2012-2014 Chris Swinchatt.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the

@@ -41,13 +41,13 @@ void __noreturn panic(const char* fmt, ...)
         vprintk(buffer, ap);
         va_end(ap);
     }
-    printk("\nRegister dump follows.\n");
+    printk("\nRegister dump:\n");
     {
         struct cpu_state state;
         get_cpu_state(&state);
         dump_registers(&state);
     }
-    printk("\nStack trace follows.\n");
+    printk("\nStack trace:\n");
     dump_stack();
     printk("\nSystem will hang.");
     hang();

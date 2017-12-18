@@ -24,8 +24,8 @@ uint32_t hash32_asciz(const char* asciz, size_t size)
 {
     uint32_t a = 33;
     uint32_t h = 5381;
-    size_t   i = 0;
-    for (; i < size && asciz[i] != 0; ++i) {
+    size_t i;
+    for (i = 0; i < size && asciz[i] != 0; ++i) {
         h = asciz[i] + h*a;
     }
     return h;

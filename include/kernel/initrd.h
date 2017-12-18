@@ -1,7 +1,7 @@
 /**
- * \file kernel/sleep.c
- * \brief Put the calling CPU to sleep.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \file kernel/initrd.h
+ * \brief Initial ramdisk.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -17,30 +17,32 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <kernel/sleep.h>
+#ifndef REDSHIFT_KERNEL_INITRD_H
+#define REDSHIFT_KERNEL_INITRD_H
 
-void sleep(uint32_t sec)
-{
-    msleep((uint64_t)sec * 1000ULL);
-}
+#include <redshift/util/tar.h>
 
-void msleep(uint64_t msec)
-{
-    usleep(msec * 1000ULL);
-}
+/** Maximum number of files in initrd. */
+#define INITRD_MAX_FILES    127
 
-void usleep(uint64_t usec)
-{
-    uint64_t ticks;
-    for (ticks = usec * (uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
-        int_enable();
-        int_wait();
-        int_disable();
-        if (ticks > 0ULL && ticks < 1000000ULL) {
-            /* Prevent ticks underflowing.
-             */
-            ticks = 1000000ULL;
-        }
-    }
-}
+/** Maximum length of initrd filename. */
+#define INITRD_FILENAME_MAX TAR_FILENAME_MAX
+
+/** Initrd file structure (`struct initrd_file`) */
+#define initrd_file tar_file
+
+/**
+ * Initialise initial ramdisk.
+ * \param initrd A pointer to the initial ramdisk in memory.
+ * \param size The size of the initial ramdisk.
+ */
+void initrd_init(const char* initrd, size_t size);
+
+/**
+ * Get a read-only pointer to an initial ramdisk file.
+ * \param path The path to the file to find.
+ * \return A read-only pointer to the file if it exists, otherwise NULL.
+ */
+const struct initrd_file* initrd_get_file_by_name(const char* path);
+
+#endif // ! REDSHIFT_KERNEL_INITRD_H

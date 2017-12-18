@@ -1,8 +1,8 @@
 /**
  * \file util/tar.c
  * \brief TAR archive reader.
- * \author Chris Swinchatt <c.swinchatt1@uni.brighton.ac.uk>
- * \copyright Copyright (c) 2012-2014 Chris Swinchatt.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
+ * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,6 +18,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <kernel/redshift.h>
+#include <util/hash.h>
+#include <util/tar.h>
 #include <string.h>
 
 #define TAR_HEADER_SIZE 512 /* TAR headers are padded to 512 bytes. */
@@ -71,6 +73,7 @@ size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive
         /* Copy fields.
          */
         strncpy(files[i].filename, header->filename, TAR_FILENAME_MAX);
+        file->hash     = hash32_asciz(files[i].filename, TAR_FILENAME_MAX);
         file->mode     = tar_get_mode(header);
         file->size     = tar_get_size(header);
         file->checksum = tar_get_checksum(header);

@@ -1,8 +1,8 @@
 /**
  * \file util/tar.h
  * \brief TAR archive reader.
- * \author Chris Swinchatt <c.swinchatt1@uni.brighton.ac.uk>
- * \copyright Copyright (c) 2012-2014 Chris Swinchatt.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
+ * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -26,10 +26,11 @@
  * A file in a TAR archive.
  */
 struct tar_file {
-    char     filename[TAR_FILENAME_MAX]; /**  */
-    uint32_t mode;                       /**  */
-    uint32_t size;                       /**  */
-    uint32_t checksum;                   /**  */
+    char     filename[TAR_FILENAME_MAX];
+    uint32_t hash;
+    uint32_t mode;
+    uint32_t size;
+    uint32_t checksum;
 };
 
 /**

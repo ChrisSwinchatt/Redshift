@@ -1,7 +1,7 @@
 /**
- * \file kernel/sleep.c
- * \brief Put the calling CPU to sleep.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \file kernel/initrd.c
+ * \brief Initial ramdisk.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -17,30 +17,24 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <kernel/sleep.h>
+#include <redshift/kernel/initrd.h>
+#include <redshift/util/tar.h>
+#include <redshift/util/hash.h>
 
-void sleep(uint32_t sec)
+static struct initrd_file initrd_files[INITRD_MAX_FILES];
+
+void initrd_init(const char* initrd, size_t size)
 {
-    msleep((uint64_t)sec * 1000ULL);
+    tar_extract(&initrd_files, INITRD_MAX_FILES, initrd, size);
 }
 
-void msleep(uint64_t msec)
+const struct initrd_file* initrd_get_file_by_name(const char* path)
 {
-    usleep(msec * 1000ULL);
-}
-
-void usleep(uint64_t usec)
-{
-    uint64_t ticks;
-    for (ticks = usec * (uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
-        int_enable();
-        int_wait();
-        int_disable();
-        if (ticks > 0ULL && ticks < 1000000ULL) {
-            /* Prevent ticks underflowing.
-             */
-            ticks = 1000000ULL;
+    uint32_t hash = hash32_asciz(path, INITRD_FILENAME_MAX);
+    for (size_t i = 0; i < INITRD_MAX_FILES; ++i) {
+        if (initrd_files[i].hash == hash) {
+            return initrd_files[i];
         }
     }
+    return NULL;
 }
