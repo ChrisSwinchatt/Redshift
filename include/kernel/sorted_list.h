@@ -43,6 +43,6 @@ void* sorted_list_get(const struct sorted_list* list, size_t index);
 
 void sorted_list_remove(struct sorted_list* list, size_t index);
 
-uint32_t sorted_list_count(const struct sorted_list* list);
+size_t sorted_list_count(const struct sorted_list* list);
 
 #endif /* ! REDSHIFT_KERNEL_SORTED_LIST_H */

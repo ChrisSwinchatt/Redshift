@@ -35,6 +35,7 @@
 #include <mem/heap.h>
 #include <mem/paging.h>
 #include <mem/static.h>
+#include <sched/process.h>
 
 static void splash(void)
 {
@@ -130,6 +131,13 @@ static void enable_interrupts(void)
     printk(PRINTK_DEBUG " * Enabled interrupts\n");
 }
 
+static void __noreturn handle_events(void)
+{
+    while (true) {
+        ;
+    }
+}
+
 void boot(uint32_t magic, uint32_t tags)
 {
     int_disable();
@@ -142,8 +150,7 @@ void boot(uint32_t magic, uint32_t tags)
     get_sysinfo_2((struct multiboot_tag*)tags);
     init_memory_2();
     init_devices();
-    //start_scheduler();
+    start_scheduler();
     enable_interrupts();
-    while (true)
-        ;
+    handle_events();
 }

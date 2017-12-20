@@ -21,6 +21,8 @@
 #ifndef REDSHIFT_KERNEL_TIMER_H
 #define REDSHIFT_KERNEL_TIMER_H
 
+#include <kernel/redshift.h>
+
 /**
  * \brief Calls a function periodically.
  * \param period The period of time to allow in between function calls (ms).

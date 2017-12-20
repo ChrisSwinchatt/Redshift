@@ -8,13 +8,17 @@ VERSION              := $(VERSION_MAJOR).$(VERSION_MINOR)
 AS                   := nasm
 AFLAGS               := -felf32 -g
 CC                   := $(PREFIX)-gcc
-CFLAGS               := -Wall -Wextra -std=gnu11 -g -g3 -O0 -ffreestanding -fstack-protector-all\
+CFLAGS               := -Wall -Wextra -std=gnu11 -g -O0 -ffreestanding -fstack-protector-all\
                         -fno-omit-frame-pointer -Iinclude/ -Iinclude/libc\
                         -DKERNEL="$(KERNEL)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
                         -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
 LD                   := $(PREFIX)-ld
 LDFLAGS              := -Ttools/redshift.ld -nostdlib -g
 SOURCES              := $(shell find src/ -name "*.asm") $(shell find src/ -name "*.c")
+CRTI				 := src/abi/crti.o
+CRTBEGIN             := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND				 := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTN				 := src/abi/crtn.o
 OBJECTS              := $(subst .asm,.o,$(subst .c,.o,$(SOURCES)))
 REDSHIFT             := out/isofs/boot/$(KERNEL)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR)
 INITRD               := out/isofs/boot/$(KERNEL)-initrd-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR)
@@ -22,6 +26,9 @@ MAP                  := out/initrd/boot/$(KERNEL).map
 IMAGE                := out/$(KERNEL)-$(ARCH).iso
 DEBUG                := out/$(KERNEL)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR).debug
 src/abi/stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
+%.o: %.S
+	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
+	@$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.asm
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
 	@$(AS) $(AFLAGS)  -o $@ $<
@@ -35,7 +42,7 @@ initrd: $(INITRD)
 $(IMAGE): redshift
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
-$(REDSHIFT): $(OBJECTS)
+$(REDSHIFT): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37mLinking `basename $@`... \033[0m"
 	@$(CC) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 	@echo "\033[1;37mGenerating map file... \033[0m"
@@ -59,6 +66,7 @@ statistics:
 	@tools/kstats
 analyse:
 	@cppcheck --quiet --enable=all -I include/ -I include/libc `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1 | grep -v "never used"
+	@clang -analyze -I include/ -I include/libc -Xanalyzer -analyzer-output=text `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1
 xgcc:
 	@tools/build-xgcc $(ARGS) $(TARGET)
 clean:

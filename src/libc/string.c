@@ -35,12 +35,12 @@ char* itos(long i, int base, char* buf, size_t n)
     return strreverse(buf);
 }
 
-const void* memchr(const void* array, int c, size_t n)
+void* memchr(const void* array, int c, size_t n)
 {
     const char* p = array;
     while (n-- > 0) {
         if (*p++ == c)
-            return p;
+            return (void*)p;
     }
     return NULL;
 }
@@ -76,12 +76,15 @@ void* memmove(void* dst, const void* src, size_t n)
         return pdst;
     }
     if (pdst < psrc && pdst + n >= psrc) {
-        // Copy backwards.
+        /* Copy backwards.
+         */
         while (n --> 0) {
             pdst[n] = psrc[n];
         }
         return pdst;
     }
+    /* Use memcpy to copy forwards.
+     */
     return memcpy(dst, src, n);
 }
 

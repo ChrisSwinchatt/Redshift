@@ -39,7 +39,6 @@ static int call_interrupt_handler(const struct cpu_state* regs)
 {
     isr_handler_t handler = isr_handlers[regs->interrupt];
     if (handler) {
-        printk(PRINTK_DEBUG "Calling handler at %p for interrupt 0x%02lX\n", handler, regs->interrupt);
         handler(regs);
         return 1;
     } else {

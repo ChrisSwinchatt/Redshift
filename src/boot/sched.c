@@ -32,7 +32,7 @@ int sched_init(void)
     /* Spawn the process.
      */
     if (process_spawn((uint32_t)idle, page_dir, 0) < 0) {
-        panic("Unable to spawn idle process");
+        panic("unable to spawn idle process");
     }
     add_timer_event(SCHED_PERIOD, process_switch, NULL);
     return 0;

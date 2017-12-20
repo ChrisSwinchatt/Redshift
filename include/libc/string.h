@@ -1,5 +1,5 @@
 /* Copyright (c) 2012 Chris Swinchatt.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -42,7 +42,7 @@ char* itos(long i, int base, char* buf, size_t n);
  * \return A pointer to 'c' in 'array' is returned if 'c' is found, NULL is
  * returned if 'c' is not found.
  */
-const void* memchr(const void* array, int c, size_t n);
+void* memchr(const void* array, int c, size_t n);
 
 /**
  * \brief Compare 'p1' with 'p2'.
@@ -94,7 +94,7 @@ char* strcat(char* dst, const char* src);
  * \param s String to search.
  * \param c Character to search for.
  * \return A pointer to the first occurrence of 'c' in 's' or NULL if 'c' is not
- * found in 's' 
+ * found in 's'
  */
 char* strchr(const char* s, int c);
 

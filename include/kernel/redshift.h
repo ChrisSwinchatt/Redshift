@@ -52,18 +52,23 @@
 #define REDSHIFT_UNREACHABLE(msg, ...) panic(__FILE__ ":%d: in %s: ", __LINE__, #msg, __func__, __VA_ARGS__)
 
 /** Mark a structure as having packed storage. */
+#undef  __packed
 #define __packed                    __attribute__((packed))
 
 /** Mark a function as using printf-like formatting. */
+#undef  __printf
 #define __printf(FMT, ARGS)         __attribute__((format(printf,FMT,ARGS)))
 
 /** Mark a function as "always inline". */
+#undef  __always_inline
 #define __always_inline             __attribute__((always_inline))
 
 /** Mark a function as "no inline". */
+#undef  __noinline
 #define __noinline                  __attribute__((noinline))
 
 /** Mark a function as "no return". */
+#undef  __noreturn
 #define __noreturn                  __attribute__((noreturn))
 
 /** Find the number of elements in 'array' if known at compile-time. */

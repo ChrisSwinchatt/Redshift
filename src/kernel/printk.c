@@ -42,8 +42,8 @@ typedef enum {
 static loglevel handle_printk_level(const char** pfmt)
 {
     const char* fmt = (*pfmt);
-    loglevel level = 1;
-    if (strlen(fmt) > 3 && fmt[0] == '<' && isdigit(fmt[1]) && fmt[2] == '>') {
+    loglevel level  = 1;
+    if (strlen(fmt) >= 3 && fmt[0] == '<' && isdigit(fmt[1]) && fmt[2] == '>') {
         level = fmt[1] - '0';
         *pfmt += 3;
     }

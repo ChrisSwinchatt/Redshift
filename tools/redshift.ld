@@ -2,7 +2,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-    . = 0x00100000;
+    . = 1M;
 	.text BLOCK(4K) : ALIGN(4K) {
         *(.multiboot)
         *(.init)
@@ -17,7 +17,7 @@ SECTIONS
         *(.dtors)
         *(.jcr)
 	}
-	.rodata BLOCK(4K) : ALIGN(4K) {   
+	.rodata BLOCK(4K) : ALIGN(4K) {
 		*(.rodata*)
 		*(.gnu.linkonce.r*)
 		*(.common)
@@ -43,4 +43,4 @@ SECTIONS
 	/DISCARD/ : {
 	    *(.comment)
 	}
-} 
+}

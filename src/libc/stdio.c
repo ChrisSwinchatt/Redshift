@@ -23,8 +23,6 @@
 #include <string.h>
 #include <ctype.h>
 
-typedef uint32_t size_t;
-
 
 /* NB: The rest of this file was taken from: http://www.castaglia.org/proftpd/doc/devel-guide/src/lib/vsnprintf.c.html
  * with minor modifications. The license there applies to the rest of this file *only*.

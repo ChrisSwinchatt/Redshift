@@ -134,7 +134,7 @@ static void page_fault_handler(const struct cpu_state* registers)
     }
     printk("\n");
     if (current_directory == kernel_directory) {
-        panic("Kernel bug: page fault in kernel code.");
+        panic("bug: page fault in kernel code.");
     }
 }
 
@@ -158,7 +158,6 @@ void page_directory_load(struct page_directory* dir)
 {
     current_directory = dir;
     asm volatile("mov %0, %%cr3"::"r"(&dir->physical_tables));
-    page_enable();
 }
 
 struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
@@ -205,5 +204,6 @@ int paging_init(uint32_t mem_size)
      */
     set_interrupt_handler(14, page_fault_handler);
     page_directory_load(kernel_directory);
+    page_enable();
     return 0;
 }

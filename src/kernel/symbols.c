@@ -22,7 +22,7 @@
 #include <string.h>
 
 static struct symbol {
-    char* name;
+    char*      name;
     uint32_t   address;
 } __symbols__;
 

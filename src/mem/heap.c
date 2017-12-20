@@ -42,15 +42,13 @@ struct blockfooter {
 };
 
 struct heap {
-    struct sorted_list* blocklist;
+    struct   sorted_list* blocklist;
     uint32_t start;
     uint32_t end;
     size_t   max;
     uint8_t  supervisor;
     uint8_t  readonly;
 } * __kernel_heap__;
-
-struct heap* __kernel_heap__;
 
 enum {
     HEAP_SIZE_INIT = 0x00100000UL
@@ -90,8 +88,9 @@ static int32_t get_smallest_hole(struct heap* heap, size_t size, bool aligned)
         if (aligned) {
             uint32_t address = (uint32_t)header;
             int32_t offset = 0;
-            if (((address + sizeof(*header)) & 0xfffff000) != 0)
+            if (((address + sizeof(*header)) & 0xfffff000) != 0) {
                 offset = 0x1000 - (address + sizeof(*header)) % 0x1000;
+            }
             int32_t hole_size = (int32_t)header->size - offset;
             if (hole_size >= (int32_t)size) {
                 return i;
@@ -175,7 +174,7 @@ static struct blockfooter* place_footer(uint32_t addr, struct blockheader* heade
 
 void* heap_alloc(struct heap* heap, size_t size, bool align)
 {
-    DEBUG_ASSERT(heap);
+    DEBUG_ASSERT(heap != NULL);
     uint32_t new_size = size + sizeof(struct blockheader) + sizeof(struct blockfooter);
     int32_t hole = get_smallest_hole(heap, new_size, align);
     if (hole < 0) {

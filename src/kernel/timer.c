@@ -27,7 +27,6 @@ static struct timer_event {
     uint32_t elapsed_time; /* Time elapsed since event last raised. */
     void(*   callback)(void*);
     void*    arg;
-    struct timer_event* prev;
     struct timer_event* next;
 } * events;
 
@@ -37,20 +36,21 @@ void add_timer_event(uint32_t period, void(* callback)(void*), void* arg)
         return;
     }
     struct timer_event* event = kmalloc(sizeof(*events));
-    event->period = period;
+    if (event == NULL) {
+        panic("can't allocate memory");
+    }
+    event->period       = period;
     event->elapsed_time = 0;
-    event->callback = callback;
-    event->arg = arg;
-    event->prev = NULL;
-    event->next = NULL;
+    event->callback     = callback;
+    event->arg          = arg;
+    event->next         = NULL;
     if (events) {
-        /* Add the event to the end of the list.
+        /* Append the event handler.
          */
         while (events->next) {
             events = events->next;
         }
         events->next = event;
-        event->prev = events;
     } else {
         /* Initialise the list.
          */
@@ -60,26 +60,25 @@ void add_timer_event(uint32_t period, void(* callback)(void*), void* arg)
 
 void process_timer_queue(uint32_t elapsed_time)
 {
-    /* Rewind list.
-     */
-    while (events->prev) {
-        events = events->prev;
-    }
+    struct timer_event* queue = events;
     /* Process queue.
      */
-    while (events) {
-        if (events->elapsed_time + elapsed_time >= events->period) {
+    int i = 0;
+    while (queue) {
+        printk("1234567890123 %d\n", i);
+        ++i;
+        if (queue->elapsed_time + elapsed_time >= queue->period) {
             /* Call event.
              */
-            printk("Skipping event (0x%p)\n", events->callback);
-            if (events->callback) {
-                printk("Event raised (0x%p)\n", events->callback);
-                events->callback(events->arg);
+            printk("Processing event (0x%p)\n", queue->callback);
+            if (queue->callback) {
+                printk("Event raised (0x%p)\n", queue->callback);
+                queue->callback(queue->arg);
             }
-            events->elapsed_time = 0;
+            queue->elapsed_time = 0;
         } else {
-            events->elapsed_time += elapsed_time;
+            queue->elapsed_time += elapsed_time;
         }
-        events = events->next;
+        queue = queue->next;
     }
 }
