@@ -1,7 +1,7 @@
 /*
  * redshift/include/common/libc/ctype.h - C ctype library
  *
- * Copyright (c) 2012 Chris Swinchatt.
+ * Copyright (c) 2012-2018 Chris Swinchatt.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

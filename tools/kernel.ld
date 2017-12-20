@@ -34,13 +34,12 @@ SECTIONS
 	__end__ = .;
 	.debug BLOCK(4K) : ALIGN(4K) {
 	    *(.debug*)
-	    *(.stabs*)
+	    *(.stab*)
 	    *(.line*)
 	    *(.dwarf*)
 	    *(.gnu.linkonce.d*)
 	    *(.gnu_debuglink)
-	}
-	/DISCARD/ : {
-	    *(.comment)
+        *(.debug_str)
+        *(.comment)
 	}
 }

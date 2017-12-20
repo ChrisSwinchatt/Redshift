@@ -8,12 +8,12 @@ VERSION              := $(VERSION_MAJOR).$(VERSION_MINOR)
 AS                   := nasm
 AFLAGS               := -felf32 -g
 CC                   := $(PREFIX)-gcc
-CFLAGS               := -Wall -Wextra -std=gnu11 -g -O0 -ffreestanding -fstack-protector-all\
+CFLAGS               := -Wall -Wextra -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all\
                         -fno-omit-frame-pointer -Iinclude/ -Iinclude/libc\
                         -DKERNEL="$(KERNEL)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
                         -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
 LD                   := $(PREFIX)-ld
-LDFLAGS              := -Ttools/redshift.ld -nostdlib -g
+LDFLAGS              := -Ttools/kernel.ld -nostdlib -g
 SOURCES              := $(shell find src/ -name "*.asm") $(shell find src/ -name "*.c")
 CRTI				 := src/abi/crti.o
 CRTBEGIN             := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
@@ -61,7 +61,7 @@ run-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
 debug-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb "$(DEBUG)" -ex "target remote localhost:1234"
+	@gdb -s "$(DEBUG)" -ex "target remote localhost:1234"
 statistics:
 	@tools/kstats
 analyse:

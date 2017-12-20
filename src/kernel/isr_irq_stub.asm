@@ -1,4 +1,4 @@
-;; Copyright (c) 2012 Chris Swinchatt.
+;; Copyright (c) 2012-2018 Chris Swinchatt.
  ;
  ; Permission is hereby granted, free of charge, to any person obtaining a copy
  ; of this software and associated documentation files (the "Software"), to deal
@@ -18,71 +18,30 @@
  ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  ; SOFTWARE.
 ;;
-%macro call_handler 1
-    ; Save all the registers on the stack, excepting those that were pushed automatically by the CPU
-    ; and the stubs above. The order here must *exactly* match, in reverse, the order in struct
-    ; cpu_state in cpu_state.h.
-    pushad                          ; Push EAX, ECX, EBX, ESP, EBP, ESI, EDI
-    push  ds                        ; Push DS
-    push  es                        ; Push ES
-    push  fs                        ; Push FS
-    push  gs                        ; Push GS
-    mov   eax, cr0                  ; Push CR0
-    push  eax
-    mov   eax, cr2                  ; Push CR2
-    push  eax
-    mov   eax, cr3                  ; Push CR3
-    push  eax
-    mov   eax, cr4                  ; Push CR4
-    push  eax
-    ; Set the kernel's segment selector.
-    mov   ax,  0x10
-    mov   ds,  ax
-    mov   es,  ax
-    mov   fs,  ax
-    mov   gs,  ax
-    ; Call handler.
-    push  esp                       ; Pass pointer to registers struct.
-    cld
-    [extern %1]
-    call %1
-    pop  esp
-    ; Restore registers.
-    add   esp, 16                   ; Remove CR4/3/2/0.
-    pop   gs                        ; Restore GS.
-    pop   fs                        ; Restore FS.
-    pop   es                        ; Restore ES.
-    pop   ds                        ; Restore DS.
-    popad                           ; Restore GP registers.
-    add   esp, 8                    ; Remove the error code and the ISR number.
-    ; Return.
-    iret                            ; Restore SS, ESP, EFLAGS, CS and EIP.
-%endmacro
-
 ; ISR stub (no error code).
 %macro ISR 1
     [global isr%1]
     isr%1:
-        push byte    0              ; Push dummy error code. CPU has pushed SS, ESP, EFLAGS, CS and EIP.
-        push byte    %1             ; Push ISR number.
-        call_handler isr_handler    ; Jump to pre-handler.
+        push dword 0                ; Push dummy error code. CPU has pushed SS, ESP, EFLAGS, CS and EIP.
+        push dword %1               ; Push ISR number.
+        jmp        isr_stub        ; Jump to ISR stub.
 %endmacro
 
 ; ISR stub (error code).
 %macro ISR_E 1
     [global isr%1]
     isr%1:
-        push byte    %1
-        call_handler isr_handler
+        push dword %1
+        jmp        isr_stub
 %endmacro
 
 ; IRQ stub.
 %macro IRQ 2
     [global irq%1]
     irq%1:
-        push byte    0              ; Push dummy error code.
-        push byte    %2             ; Push IRQ's ISR number.
-        call_handler irq_handler
+        push dword 0                ; Push dummy error code.
+        push dword %2               ; Push IRQ's ISR number.
+        jmp        irq_stub         ; Jump to IRQ stub.
 %endmacro
 
 ; ISR and IRQ stubs.
@@ -116,7 +75,7 @@ ISR     26
 ISR     27
 ISR     28
 ISR     29
-ISR_E   30
+ISR     30
 ISR     31
 IRQ  0, 32
 IRQ  1, 33
@@ -134,3 +93,60 @@ IRQ 12, 44
 IRQ 13, 45
 IRQ 14, 46
 IRQ 15, 47
+
+%macro prologue 0
+    ; Save all the registers on the stack, excepting those that were pushed automatically by the CPU
+    ; and the stubs above. The order here must *exactly* match, in reverse, the order in struct
+    ; cpu_state in cpu_state.h.
+    pushad                          ; Push EAX, ECX, EBX, ESP, EBP, ESI, EDI
+    push  ds                        ; Push DS
+    push  es                        ; Push ES
+    push  fs                        ; Push FS
+    push  gs                        ; Push GS
+    mov   eax, cr0                  ; Push CR0
+    push  eax
+    mov   eax, cr2                  ; Push CR2
+    push  eax
+    mov   eax, cr3                  ; Push CR3
+    push  eax
+    mov   eax, cr4                  ; Push CR4
+    push  eax
+    ; Set the kernel's segment selector.
+    mov   ax,  0x10
+    mov   ds,  ax
+    mov   es,  ax
+    mov   fs,  ax
+    mov   gs,  ax
+%endmacro
+
+%macro call_handler 1
+    ; Call handler.
+    push esp                        ; Pass pointer to registers struct.
+    cld
+    [extern %1]
+    call %1
+    pop  esp
+%endmacro
+
+%macro epilogue 0
+    ; Restore registers.
+    add   esp, 16                   ; Remove CR4/3/2/0.
+    pop   gs                        ; Restore GS.
+    pop   fs                        ; Restore FS.
+    pop   es                        ; Restore ES.
+    pop   ds                        ; Restore DS.
+    popad                           ; Restore GP registers.
+    add   esp, 8                    ; Remove the error code and the ISR number.
+    ; Return.
+    iret                            ; Restore SS, ESP, EFLAGS, CS and EIP.
+%endmacro
+
+isr_stub:
+    prologue
+    call_handler isr_handler
+    epilogue
+
+irq_stub:
+    prologue
+    call_handler irq_handler
+    epilogue
