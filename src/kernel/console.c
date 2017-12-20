@@ -1,7 +1,7 @@
 /**
  * \file kernel/console.c
  * \brief Simple console output.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -85,7 +85,7 @@ void console_writechar(int c)
             ++console.cursor.x;
             break;
     }
-    if (console.cursor.x > console.screen.columns) {
+    if (console.cursor.x >= console.screen.columns) {
         console.cursor.x = 0;
         ++console.cursor.y;
     }

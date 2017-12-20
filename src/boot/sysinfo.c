@@ -110,13 +110,13 @@ void sysinfo_init_2(struct sysinfo* info, struct multiboot_tag* tags)
                         /* Initialise the list.
                          */
                         info->memmap = static_alloc(sizeof(*info->memmap));
-                        RUNTIME_ASSERT(info->memmap != NULL);
+                        RUNTIME_CHECK(info->memmap != NULL);
                         memmap = info->memmap;
                     } else {
                         /* Add a new node to the list.
                          */
                         memmap->next = static_alloc(sizeof(*memmap));
-                        RUNTIME_ASSERT(memmap->next != NULL);
+                        RUNTIME_CHECK(memmap->next != NULL);
                         memmap = memmap->next;
                     }
                     memmap->type  = mmap->type;

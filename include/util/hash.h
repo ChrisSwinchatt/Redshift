@@ -20,6 +20,8 @@
 #ifndef REDSHIFT_UTIL_HASH_H
 #define REDSHIFT_UTIL_HASH_H
 
+#include <kernel/redshift.h>
+
 /**
  * Compute the 32-bit hash of a zero-terminated ASCII string
  * \param asciz The zero-terminated ASCII string.

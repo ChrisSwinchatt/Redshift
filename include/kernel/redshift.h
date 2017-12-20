@@ -33,7 +33,7 @@
  */
 #define TICK_RATE 100
 
-#define RUNTIME_ASSERT(X)\
+#define RUNTIME_CHECK(X)\
     do {\
         if (!(X))\
             panic("failed assertion \"%s\" at %s:%d in %s\n", #X, __FILE__, __LINE__, __func__);\
@@ -41,10 +41,15 @@
 
 #ifndef NDEBUG
 /** Make a debug assertion. */
-# define DEBUG_ASSERT(X) RUNTIME_ASSERT(X)
+# define DEBUG_ASSERT(X) RUNTIME_CHECK(X)
 #else
 # define DEBUG_ASSERT(X) ((void)x)
 #endif /* ! NDEBUG */
+
+/**
+ * Report error caused by code that should be unreachable e.g. switch-case statements.
+ */
+#define REDSHIFT_UNREACHABLE(msg, ...) panic(__FILE__ ":%d: in %s: ", __LINE__, #msg, __func__, __VA_ARGS__)
 
 /** Mark a structure as having packed storage. */
 #define __packed                    __attribute__((packed))
@@ -62,7 +67,7 @@
 #define __noreturn                  __attribute__((noreturn))
 
 /** Find the number of elements in 'array' if known at compile-time. */
-#define arraysize(array)            (sizeof(array)/sizeof(*(array)))
+#define ARRAY_SIZE(array)            (sizeof(array)/sizeof(*(array)))
 
 /** Check if a flag is present in a bitflags variable. */
 #define test_flag(var, flag)        ((var & flag) == flag)

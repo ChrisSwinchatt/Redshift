@@ -20,7 +20,9 @@
 #ifndef REDSHIFT_UTIL_TAR_H
 #define REDSHIFT_UTIL_TAR_H
 
-#define TAR_FILENAME_MAX
+#include <kernel/redshift.h>
+
+#define TAR_FILENAME_MAX 100
 
 /**
  * A file in a TAR archive.

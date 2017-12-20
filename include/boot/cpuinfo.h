@@ -83,21 +83,21 @@ enum {
 
 /**  CPU info structure, stores details about the CPU */
 struct cpuinfo {
-    char vendor[24 + 1];        /**< Vendor.                    */
-    char vendor_string[12 + 1]; /**< Vendor string.             */
-    char brand_string[48];      /**< Brand string.              */
-    uint32_t features_1;             /**< Feature flags.             */
-    uint32_t features_2;             /**< Feature flags.             */
-    unsigned stepping : 4;      /**< CPU stepping.              */
-    unsigned model    : 4;      /**< CPU model.                 */
-    unsigned family   : 4;      /**< CPU family.                */
-    unsigned type     : 1;      /**< CPU type.                  */
-    uint32_t l1_cache;               /**< L1 cache size.             */
-    uint32_t l2_cache;               /**< L2 cache size.             */
-    uint32_t l3_cache;               /**< L3 cache size.             */
-    uint64_t frequency;              /**< Clock frequency (Hz).      */
-    uint32_t logical_cores;          /**< Number of logical cores.   */
-    uint32_t physical_cores;         /**< Number of physical cores.  */
+    char     vendor[24 + 1];        /**< Vendor.                    */
+    char     vendor_string[12 + 1]; /**< Vendor string.             */
+    char     brand_string[48];      /**< Brand string.              */
+    uint32_t features_1;            /**< Feature flags.             */
+    uint32_t features_2;            /**< Feature flags.             */
+    unsigned stepping : 4;          /**< CPU stepping.              */
+    unsigned model    : 4;          /**< CPU model.                 */
+    unsigned family   : 4;          /**< CPU family.                */
+    unsigned type     : 1;          /**< CPU type.                  */
+    uint32_t l1_cache;              /**< L1 cache size.             */
+    uint32_t l2_cache;              /**< L2 cache size.             */
+    uint32_t l3_cache;              /**< L3 cache size.             */
+    uint64_t frequency;             /**< Clock frequency (Hz).      */
+    uint32_t logical_cores;         /**< Number of logical cores.   */
+    uint32_t physical_cores;        /**< Number of physical cores.  */
 };
 
 /**

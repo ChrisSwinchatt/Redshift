@@ -22,12 +22,13 @@
 #define REDSHIFT_KERNEL_CPU_STATE_H
 
 #include <kernel/redshift.h>
+#include <string.h>
 
 /**
  * CPU registers state.
  *
  * NB: This ordering is significant. It has to *exactly match* (in reverse) the order that registers are pushed in
- * the ISR and IRQ handlers (isr.asm and irq.asm respectively). Namely, the CPU first pushes SS, usermode ESP,
+ * the ISR and IRQ handlers (isr_irq_stub.asm). Namely, the CPU first pushes SS, usermode ESP,
  * EFLAGS, CS and EIP, including an error code for some interrupts. For IRQs and ISRs without an error code, the ISR
  * and IRQ handlers push a dummy error code. The handlers for all ISRs and IRQs then push their own interrupt number
  * (e.g. 32 for IRQ 0), followed by EAX, ECX, EDX, EBX, kernel mode ESP (which is called 'reserved' because it's
@@ -47,12 +48,11 @@ struct cpu_state {
     uint32_t edi;       /**< Destination index.                           */
     uint32_t esi;       /**< Source index.                                */
     uint32_t ebp;       /**< Base pointer.                                */
-    uint32_t reserved1; /**< Kernel mode ESP.                             */
+    uint32_t reserved;  /**< Kernel mode ESP.                             */
     uint32_t ebx;       /**< Base register.                               */
     uint32_t edx;       /**< Divisor register.                            */
     uint32_t ecx;       /**< Counter register.                            */
     uint32_t eax;       /**< Accumulator register.                        */
-    uint32_t reserved2; /**< Kernel-mode EBP.                             */
     uint32_t interrupt; /**< Interrupt number when handling an interrupt. */
     uint32_t errorcode; /**< Error code when handling exceptions.         */
     uint32_t eip;       /**< Return address when handling an interrupt.   */
@@ -60,7 +60,7 @@ struct cpu_state {
     uint32_t eflags;    /**< Flags.                                       */
     uint32_t esp;       /**< Stack pointer.                               */
     uint32_t ss;        /**< Stack segment.                               */
-};
+} __packed;
 
 /**
  * Get the CPU state.
@@ -68,10 +68,7 @@ struct cpu_state {
  */
 static inline void __always_inline get_cpu_state(struct cpu_state* state)
 {
-    state->interrupt = 0;
-    state->errorcode = 0;
-    state->reserved1 = 0;
-    state->reserved2 = 0;
+    memset(state, 0, sizeof(*state));
     asm volatile(
         "mov %%eax, %0\n"
         "mov %%ebx, %1\n"

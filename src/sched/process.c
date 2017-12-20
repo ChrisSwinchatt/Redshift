@@ -25,10 +25,10 @@
 #include <string.h>
 
 static struct process {
-    int                           id;
-    uint32_t                          eip;
-    struct page_directory*  page_dir;
-    struct process*             next;
+    int                    id;
+    uint32_t               eip;
+    struct page_directory* page_dir;
+    struct process*        next;
 } * processes[MAX_PROCESS_PRIORITY + 1];
 
 static uint32_t num_processes;

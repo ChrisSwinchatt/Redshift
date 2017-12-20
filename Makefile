@@ -6,14 +6,14 @@ PREFIX               := $(TARGET)
 KERNEL               := redshift
 VERSION              := $(VERSION_MAJOR).$(VERSION_MINOR)
 AS                   := nasm
-AFLAGS               := -felf32 -ggdb
+AFLAGS               := -felf32 -g
 CC                   := $(PREFIX)-gcc
-CFLAGS               := -Wall -Wextra -std=gnu11 -ggdb -g3 -O0 -ffreestanding -fstack-protector-all\
+CFLAGS               := -Wall -Wextra -std=gnu11 -g -g3 -O0 -ffreestanding -fstack-protector-all\
                         -fno-omit-frame-pointer -Iinclude/ -Iinclude/libc\
                         -DKERNEL="$(KERNEL)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
                         -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
 LD                   := $(PREFIX)-ld
-LDFLAGS              := -Ttools/redshift.ld -nostdlib
+LDFLAGS              := -Ttools/redshift.ld -nostdlib -g
 SOURCES              := $(shell find src/ -name "*.asm") $(shell find src/ -name "*.c")
 OBJECTS              := $(subst .asm,.o,$(subst .c,.o,$(SOURCES)))
 REDSHIFT             := out/isofs/boot/$(KERNEL)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR)
@@ -40,7 +40,7 @@ $(REDSHIFT): $(OBJECTS)
 	@$(CC) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 	@echo "\033[1;37mGenerating map file... \033[0m"
 	@tools/gensymtab "$@" "$(MAP)"
-	@echo "\033[1;37mCreating debug-only file `basename $(DEBUG)`... \033[0m"
+	@echo "\033[1;37mCreating debug file `basename $(DEBUG)`... \033[0m"
 	@cp "$@" "$(DEBUG)"
 	@echo "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
@@ -51,14 +51,14 @@ doc:
 	@echo "\033[1;37mGenerating documentation... \033[0m"
 	doxygen Doxyfile
 run-qemu:
-	@qemu-system-i386 -curses -cdrom "$(IMAGE)" -boot d -monitor stdio
+	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
 debug-qemu:
-	@qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb "$(DEBUG)"
+	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
+	@gdb "$(DEBUG)" -ex "target remote localhost:1234"
 statistics:
 	@tools/kstats
 analyse:
-	@cppcheck --quiet --enable=all -I include/ `find src/ -name "*.c"` `find include/ -name "*.h"`
+	@cppcheck --quiet --enable=all -I include/ -I include/libc `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1 | grep -v "never used"
 xgcc:
 	@tools/build-xgcc $(ARGS) $(TARGET)
 clean:

@@ -39,9 +39,9 @@
 static void splash(void)
 {
     static const char* splash_text = " ________________________\n"
-                                     "|   ____ |  ______|  ___ \\  __      ___  __ ___\n"
+                                     "|   ____ |  ______|  ___ \\   __      ___  __ ___\n"
                                      "|      __|  |_____| |   | | |_  |__|  |  |__  |\n"
-                                     "|  |\\  \\ |  |_____| |___| __| |  | _|_ |    |\n"
+                                     "|  |\\  \\ |  |_____| |___| | __| |  | _|_ |    |\n"
                                      "|__| \\__\\|________|______/\n";
     console.screen.foreground = CONSOLE_COLOR_RED;
     console_writestring(splash_text);
@@ -122,6 +122,10 @@ static void start_scheduler(void)
     printk("Starting scheduler...\n");
     sched_init();
     printk(PRINTK_DEBUG " * Started scheduler\n");
+}
+
+static void enable_interrupts(void)
+{
     int_enable();
     printk(PRINTK_DEBUG " * Enabled interrupts\n");
 }
@@ -138,5 +142,8 @@ void boot(uint32_t magic, uint32_t tags)
     get_sysinfo_2((struct multiboot_tag*)tags);
     init_memory_2();
     init_devices();
-    start_scheduler();
+    //start_scheduler();
+    enable_interrupts();
+    while (true)
+        ;
 }

@@ -20,7 +20,7 @@
 #ifndef REDSHIFT_KERNEL_INITRD_H
 #define REDSHIFT_KERNEL_INITRD_H
 
-#include <redshift/util/tar.h>
+#include <util/tar.h>
 
 /** Maximum number of files in initrd. */
 #define INITRD_MAX_FILES    127

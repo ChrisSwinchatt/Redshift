@@ -52,13 +52,29 @@ static loglevel handle_printk_level(const char** pfmt)
 
 int vprintk(const char* fmt, va_list ap)
 {
+    /* Print format string.
+     */
     static char buffer[VPRINTK_BUFFER_SIZE];
-    int ret;
-    if (handle_printk_level(&fmt) < MINIMUM_LOG_LEVEL) {
+    int ret   = 0;
+    int level = 0;
+    if ((level = handle_printk_level(&fmt)) < MINIMUM_LOG_LEVEL) {
         return 0;
     }
     ret = vsnprintf(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
-    console_writestring(buffer);
+    /* Print coloured output.
+     */
+    {
+        const uint8_t foreground = console.screen.foreground;
+        switch (level) {
+            case LOGLEVEL_DEBUG:   console.screen.foreground = CONSOLE_COLOR_LIGHT_GRAY; break;
+            case LOGLEVEL_INFO:    console.screen.foreground = CONSOLE_COLOR_WHITE;      break;
+            case LOGLEVEL_WARNING: console.screen.foreground = CONSOLE_COLOR_RED;        break;
+            case LOGLEVEL_ERROR:   console.screen.foreground = CONSOLE_COLOR_LIGHT_RED;  break;
+            default:               REDSHIFT_UNREACHABLE("no switch case for level %d", level);
+        }
+        console_writestring(buffer);
+        console.screen.foreground = foreground;
+    }
     return ret;
 }
 

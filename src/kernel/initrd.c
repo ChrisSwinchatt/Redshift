@@ -17,15 +17,15 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <redshift/kernel/initrd.h>
-#include <redshift/util/tar.h>
-#include <redshift/util/hash.h>
+#include <kernel/initrd.h>
+#include <util/tar.h>
+#include <util/hash.h>
 
 static struct initrd_file initrd_files[INITRD_MAX_FILES];
 
 void initrd_init(const char* initrd, size_t size)
 {
-    tar_extract(&initrd_files, INITRD_MAX_FILES, initrd, size);
+    tar_extract(initrd_files, INITRD_MAX_FILES, initrd, size);
 }
 
 const struct initrd_file* initrd_get_file_by_name(const char* path)
@@ -33,7 +33,7 @@ const struct initrd_file* initrd_get_file_by_name(const char* path)
     uint32_t hash = hash32_asciz(path, INITRD_FILENAME_MAX);
     for (size_t i = 0; i < INITRD_MAX_FILES; ++i) {
         if (initrd_files[i].hash == hash) {
-            return initrd_files[i];
+            return initrd_files + i;
         }
     }
     return NULL;

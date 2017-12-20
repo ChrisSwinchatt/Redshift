@@ -48,17 +48,17 @@ static uint32_t tar_oct2dec(const char* s, size_t n)
 
 static uint32_t tar_get_mode(struct tar_header* header)
 {
-    return tar_oct2dec(header->mode, arraysize(mode));
+    return tar_oct2dec(header->mode, ARRAY_SIZE(header->mode));
 }
 
 static uint32_t tar_get_size(struct tar_header* header)
 {
-    return tar_oct2dec(header->size, arraysize(size));
+    return tar_oct2dec(header->size, ARRAY_SIZE(header->size));
 }
 
 static uint32_t tar_get_checksum(struct tar_header* header)
 {
-    return tar_oct2dec(header->checksum, arraysize(checksum));
+    return tar_oct2dec(header->checksum, ARRAY_SIZE(header->checksum));
 }
 
 size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive, size_t size)
@@ -69,17 +69,17 @@ size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive
      * a header filled with zeros.
      */
     for (; index < max_files && offset < size && archive[offset] != 0; ++index) {
-        struct tar_header* header = (struct tar_header*)(archive + offset);)
+        struct tar_header* header = (struct tar_header*)(archive + offset);
         /* Copy fields.
          */
-        strncpy(files[i].filename, header->filename, TAR_FILENAME_MAX);
-        file->hash     = hash32_asciz(files[i].filename, TAR_FILENAME_MAX);
-        file->mode     = tar_get_mode(header);
-        file->size     = tar_get_size(header);
-        file->checksum = tar_get_checksum(header);
+        strncpy(files[index].filename, header->filename, TAR_FILENAME_MAX);
+        files[index].hash     = hash32_asciz(files[index].filename, TAR_FILENAME_MAX);
+        files[index].mode     = tar_get_mode(header);
+        files[index].size     = tar_get_size(header);
+        files[index].checksum = tar_get_checksum(header);
         /* Advance offset to include the header, padding and file.
          */
-        offset = offset + TAR_HEADER_SIZE + file->size;
+        offset = offset + TAR_HEADER_SIZE + files[index].size;
     }
     return index;
 }

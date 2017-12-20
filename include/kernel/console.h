@@ -1,7 +1,7 @@
 /**
  * \file kernel/console.h
  * \brief Simple console output.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -64,15 +64,15 @@ enum {
 /**  Console structure. */
 extern struct console {
     struct {
-        uint32_t columns;   /**< The number of columns. */
-        uint32_t rows;      /**< The number of rows.    */
-        uint8_t background; /**< The background colour. */
-        uint8_t foreground; /**< The foreground colour. */
+        uint32_t columns;    /**< The number of columns. */
+        uint32_t rows;       /**< The number of rows.    */
+        uint8_t  background; /**< The background colour. */
+        uint8_t  foreground; /**< The foreground colour. */
     } screen;
     struct {
-        uint32_t x;         /**< The x co-ordinate.     */
-        uint32_t y;         /**< The y co-ordinate.     */
-        uint32_t flags;     /**< The cursor flags.      */
+        uint32_t x;          /**< The x co-ordinate.     */
+        uint32_t y;          /**< The y co-ordinate.     */
+        uint32_t flags;      /**< The cursor flags.      */
     } cursor;
 } console; /* console.c */
 

@@ -30,25 +30,21 @@
 
 void __noreturn panic(const char* fmt, ...)
 {
+    struct cpu_state state;
+    get_cpu_state(&state);
     char buffer[strlen(PRINTK_ERROR) + strlen(fmt) + 1];
     int_disable();
-    memset(buffer,  0,   arraysize(buffer));
+    memset(buffer,  0,   ARRAY_SIZE(buffer));
     strncat(buffer, fmt, strlen(fmt));
-    printk("Kernel panic - ");
+    printk(PRINTK_ERROR "Kernel panic - ");
     {
         va_list ap;
         va_start(ap, fmt);
         vprintk(buffer, ap);
         va_end(ap);
     }
-    printk("\nRegister dump:\n");
-    {
-        struct cpu_state state;
-        get_cpu_state(&state);
-        dump_registers(&state);
-    }
-    printk("\nStack trace:\n");
+    printk(PRINTK_ERROR "\nStack trace:\n");
     dump_stack();
-    printk("\nSystem will hang.");
+    printk(PRINTK_ERROR "\nSystem will hang.");
     hang();
 }

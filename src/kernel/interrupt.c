@@ -19,6 +19,7 @@
  * SOFTWARE.
  */
 #include <debug/dump_hex.h>
+#include <debug/dump_registers.h>
 #include <kernel/asm.h>
 #include <kernel/console.h>
 #include <kernel/cpu_state.h>
@@ -41,10 +42,9 @@ static int call_interrupt_handler(const struct cpu_state* regs)
         printk(PRINTK_DEBUG "Calling handler at %p for interrupt 0x%02lX\n", handler, regs->interrupt);
         handler(regs);
         return 1;
-    } else if (regs->interrupt < 32) { /* Exception. */
-        printk(PRINTK_WARNING "Warning: No interrupt handler for exception 0x%02lX\n", regs->interrupt);
+    } else {
+        printk(PRINTK_DEBUG "No handler for interrupt 0x%02lX\n", regs->interrupt);
     }
-    printk(PRINTK_DEBUG "No handler for interrupt 0x%02lX\n", regs->interrupt);
     return 0;
 }
 
@@ -57,9 +57,9 @@ typedef enum {
 } isr_type_t;
 
 static struct isr_info {
-    isr_type_t type;
-    bool has_error_code;
-    const char* str;
+    isr_type_t  type;
+    bool        has_error_code;
+    const char* message;
 } isr_info[] = {
     { ISR_TYPE_FAULT,     false,                "divide-by-zero" },
     { ISR_TYPE_FAULT,     false,                         "debug" },
@@ -91,7 +91,7 @@ static struct isr_info {
     { ISR_TYPE_RESERVED,  false,                              "" },
     { ISR_TYPE_RESERVED,  false,                              "" },
     { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_FAULT,     false,            "security exception" },
+    { ISR_TYPE_FAULT,     true,             "security exception" },
     { ISR_TYPE_RESERVED,  false,                              "" },
     { ISR_TYPE_FAULT,     false,                  "triple fault" }, /* For completeness - can't actually be reported. */
     { ISR_TYPE_INTERRUPT, false,                     "FPU error" }
@@ -100,43 +100,29 @@ static struct isr_info {
 void isr_handler(const struct cpu_state* regs)
 {
     static int counter = 0;
-    struct isr_info info;
-    if ((regs->interrupt > arraysize(isr_info)) || ((info = isr_info[regs->interrupt]).type == ISR_TYPE_INTERRUPT)) {
+    if (regs->interrupt >= ARRAY_SIZE(isr_info)) {
         counter = 0;
         call_interrupt_handler(regs);
         return;
     }
-    switch (info.type) {
-        case ISR_TYPE_ABORT:
-            if (info.has_error_code) {
-                panic("%s (error code = %bb; eip = 0x%08lX)\n", info.str, regs->errorcode, regs->eip);
-            } else {
-                panic("%s (eip = 0x%08lX)\n", info.str, regs->eip);
-            }
-            break;
-        case ISR_TYPE_FAULT:
-            if (!(call_interrupt_handler(regs))) {
-                printk(PRINTK_WARNING "Error: %s ", info.str);
-            }
-            break;
-        case ISR_TYPE_TRAP:
-            printk(PRINTK_ERROR "Error: %s ", info.str);
-            break;
-        default:
-          break;
-    }
-    if (info.has_error_code) {
-        printk(PRINTK_DEBUG "(error code = %08bb, ", regs->errorcode);
-    } else {
-        printk(PRINTK_DEBUG "(");
-    }
-    printk(PRINTK_DEBUG "eip = 0x%08lX)\n", regs->eip);
-    if (counter > 1) {
-        printk("Hex dump follows.\n");
-        dump_hex(regs->eip - 32, 80);
-        panic("too many errors.\n");
-    }
-    ++counter;
+    /* Exception.
+     */
+     struct isr_info info = isr_info[regs->interrupt];
+     printk(PRINTK_ERROR "Interrupt 0x%02X - %s: ", regs->interrupt, info.message);
+     if (info.has_error_code) {
+         printk(PRINTK_DEBUG "(error code = %08bb, ", regs->errorcode);
+     } else {
+         printk(PRINTK_DEBUG "(");
+     }
+     printk(PRINTK_DEBUG "eip = 0x%08lX)\n", regs->eip);
+     printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
+     dump_registers(regs);
+     while (true)
+        ;
+     if (counter > 1) {
+         panic("too many errors.\n");
+     }
+     ++counter;
 }
 
 void irq_handler(const struct cpu_state* regs)

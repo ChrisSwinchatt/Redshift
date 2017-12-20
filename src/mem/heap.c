@@ -60,7 +60,7 @@ enum {
 static uint32_t get_heap_region(uint64_t size)
 {
     DEBUG_ASSERT(size != 0);
-    RUNTIME_ASSERT(__sysinfo__.nb_mmap > 0 && __sysinfo__.memmap != NULL);
+    RUNTIME_CHECK(__sysinfo__.nb_mmap > 0 && __sysinfo__.memmap != NULL);
     struct memmap* memmap = __sysinfo__.memmap;
     do {
         const uint64_t region_size = memmap->end - memmap->start;

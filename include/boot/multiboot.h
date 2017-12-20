@@ -1,7 +1,7 @@
 /**
  * \file boot/multiboot.h
  * \brief Multiboot 2 specification header.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -133,49 +133,49 @@ enum {
 struct multiboot_tag_framebuffer {
     struct {
         struct multiboot_tag tag;
-        uint64_t                        addr;
-        uint32_t                        pitch;
-        uint32_t                        width;
-        uint32_t                        height;
-        uint8_t                         bpp;
-        uint8_t                         type;
-        uint16_t                        reserved;
+        uint64_t                   addr;
+        uint32_t                   pitch;
+        uint32_t                   width;
+        uint32_t                   height;
+        uint8_t                    bpp;
+        uint8_t                    type;
+        uint16_t                   reserved;
     } common;
     union {
         struct {
-            uint16_t                    nb_colors;
+            uint16_t               nb_colors;
             struct multiboot_color pallete[];
         };
         struct {
-            uint8_t                     red_field_position;
-            uint8_t                     red_mask_size;
-            uint8_t                     green_field_position;
-            uint8_t                     green_mask_size;
-            uint8_t                     blue_field_position;
-            uint8_t                     blue_mask_size;
+            uint8_t                red_field_position;
+            uint8_t                red_mask_size;
+            uint8_t                green_field_position;
+            uint8_t                green_mask_size;
+            uint8_t                blue_field_position;
+            uint8_t                blue_mask_size;
         };
     };
 };
 
 struct multiboot_tag_elf_sections {
     struct multiboot_tag tag;
-    uint32_t                  count;
-    uint32_t                  entsize;
-    uint32_t                  shndex;
+    uint32_t             count;
+    uint32_t             entsize;
+    uint32_t             shndex;
     char                 sections[];
 };
 
 struct multiboot_tag_apm {
     struct multiboot_tag tag;
-    uint16_t                  version;
-    uint16_t                  cseg;
-    uint32_t                  offset;
-    uint16_t                  cseg_16;
-    uint16_t                  dseg;
-    uint16_t                  flags;
-    uint16_t                  cseg_len;
-    uint16_t                  cseg_16_len;
-    uint16_t                  dseg_len;
+    uint16_t             version;
+    uint16_t             cseg;
+    uint32_t             offset;
+    uint16_t             cseg_16;
+    uint16_t             dseg;
+    uint16_t             flags;
+    uint16_t             cseg_len;
+    uint16_t             cseg_16_len;
+    uint16_t             dseg_len;
 };
 
 #endif /* ! REDSHIFT_BOOT_MULTIBOOT_H */

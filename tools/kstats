@@ -26,7 +26,7 @@
 
 
 if [[ -x $(which cloc) ]]; then
-    cloc $(find -name "*.c") $(find -name "*.h") $(find -name "*.s")
+    cloc $(find -name "*.c") $(find -name "*.h") $(find -name "*.asm")
 else
-    wc -l $(find -name "*.c") $(find -name "*.h") $(find -name "*.s") | grep "total"
+    wc -l $(find -name "*.c") $(find -name "*.h") $(find -name "*.asm") | grep "total"
 fi 2>/dev/null

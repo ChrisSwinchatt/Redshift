@@ -25,8 +25,8 @@
 static struct timer_event {
     uint32_t period;
     uint32_t elapsed_time; /* Time elapsed since event last raised. */
-    void(* callback)(void*);
-    void* arg;
+    void(*   callback)(void*);
+    void*    arg;
     struct timer_event* prev;
     struct timer_event* next;
 } * events;
@@ -67,18 +67,19 @@ void process_timer_queue(uint32_t elapsed_time)
     }
     /* Process queue.
      */
-    do {
+    while (events) {
         if (events->elapsed_time + elapsed_time >= events->period) {
             /* Call event.
              */
-            printk("Skipping event (%p)\n", events->callback);
+            printk("Skipping event (0x%p)\n", events->callback);
             if (events->callback) {
-                printk("Event raised (%p)\n", events->callback);
+                printk("Event raised (0x%p)\n", events->callback);
                 events->callback(events->arg);
             }
             events->elapsed_time = 0;
         } else {
             events->elapsed_time += elapsed_time;
         }
-    } while ((events = events->next));
+        events = events->next;
+    }
 }
