@@ -32,13 +32,13 @@ enum {
 
 struct blockheader {
     uint32_t magic;
-    uint8_t is_hole;
-    size_t size;
+    uint8_t  is_hole;
+    size_t   size;
 };
 
 struct blockfooter {
     uint32_t magic;
-    struct blockheader* header;
+    struct   blockheader* header;
 };
 
 struct heap {
@@ -80,8 +80,8 @@ int heap_init()
 
 static int32_t get_smallest_hole(struct heap* heap, size_t size, bool aligned)
 {
-  DEBUG_ASSERT(heap != NULL);
-  DEBUG_ASSERT(size != 0);
+    DEBUG_ASSERT(heap != NULL);
+    DEBUG_ASSERT(size != 0);
     uint32_t i, j;
     for (i = 0, j = sorted_list_count(heap->blocklist); i < j; ++i) {
         struct blockheader* header = (struct blockheader*)sorted_list_get(heap->blocklist, i);

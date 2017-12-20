@@ -66,7 +66,7 @@ static struct isr_info {
     { ISR_TYPE_TRAP,      false,                    "breakpoint" },
     { ISR_TYPE_TRAP,      false,                      "overflow" },
     { ISR_TYPE_FAULT,     false,          "bound-range exceeded" },
-    { ISR_TYPE_FAULT,     false,                "invalid Opcode" },
+    { ISR_TYPE_FAULT,     false,                "invalid opcode" },
     { ISR_TYPE_FAULT,     false,          "device not available" },
     { ISR_TYPE_ABORT,      true,                  "double fault" },
     { ISR_TYPE_FAULT,     false,   "coprocessor segment overrun" },
@@ -109,11 +109,11 @@ void isr_handler(const struct cpu_state* regs)
      struct isr_info info = isr_info[regs->interrupt];
      printk(PRINTK_ERROR "Interrupt 0x%02X - %s: ", regs->interrupt, info.message);
      if (info.has_error_code) {
-         printk(PRINTK_DEBUG "(error code = %08bb, ", regs->errorcode);
+         printk(PRINTK_ERROR "(error code = %08bb, ", regs->errorcode);
      } else {
-         printk(PRINTK_DEBUG "(");
+         printk(PRINTK_ERROR "(");
      }
-     printk(PRINTK_DEBUG "eip = 0x%08lX)\n", regs->eip);
+     printk(PRINTK_ERROR "eip = 0x%08lX)\n", regs->eip);
      printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
      dump_registers(regs);
      while (true)

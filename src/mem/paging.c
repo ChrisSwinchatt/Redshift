@@ -47,11 +47,11 @@ struct page_directory {
     uint32_t physical_address;
 };
 
-extern uint32_t heap_addr;
-struct page_directory* kernel_directory;
+extern uint32_t               heap_addr;
+struct page_directory*        kernel_directory;
 static struct page_directory* current_directory;
-static uint32_t* frames;
-static uint32_t frames_count;
+static uint32_t*              frames;
+static uint32_t               frames_count;
 
 static void frame_set(uint32_t addr)
 {
@@ -77,8 +77,9 @@ static uint32_t frame_get_first_free()
     for (i = 0; i < BIT_INDEX(frames_count); ++i) {
         if (frames[i] != 0xFFFFFFFF) {
             for (j = 0; j < 32; ++j) {
-                if (!(test_bit(frames[i], j)))
+                if (!(test_bit(frames[i], j))) {
                     return i * 4 * 8 + j;
+                }
             }
         }
     }
@@ -87,16 +88,18 @@ static uint32_t frame_get_first_free()
 
 void frame_alloc(struct page* page, bool mode, bool write)
 {
-    if (page->frame)
+    if (page->frame) {
         return; /* Already allocated. */
+    }
     uint32_t i = frame_get_first_free();
-    if (i >= ((uint32_t)-1))
-        panic("Out of memory");
+    if (i >= ((uint32_t)-1)) {
+        panic("out of memory");
+    }
     frame_set(i * 0x1000);
     page->present = 1;
-    page->rw = (write) ? 1 : 0;
-    page->user = (mode) ? 0 : 1;
-    page->frame = i;
+    page->rw      = (write) ? 1 : 0;
+    page->user    = (mode) ? 0 : 1;
+    page->frame   = i;
 }
 
 void frame_free(struct page* page)
@@ -125,7 +128,7 @@ static void page_fault_handler(const struct cpu_state* registers)
         printk(PRINTK_ERROR "when reading ");
     }
     if (!(test_bit(registers->errorcode, 0))) {
-        printk(PRINTK_ERROR "because the page was not present ");
+        printk(PRINTK_ERROR "because the page was not marked present ");
     } else if (test_bit(registers->errorcode, 3)) {
         printk(PRINTK_ERROR "because of an invalid write ");
     }

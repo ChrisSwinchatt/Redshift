@@ -65,14 +65,12 @@ void process_timer_queue(uint32_t elapsed_time)
      */
     int i = 0;
     while (queue) {
-        printk("1234567890123 %d\n", i);
         ++i;
         if (queue->elapsed_time + elapsed_time >= queue->period) {
             /* Call event.
              */
-            printk("Processing event (0x%p)\n", queue->callback);
             if (queue->callback) {
-                printk("Event raised (0x%p)\n", queue->callback);
+                printk(PRINTK_DEBUG "Event raised (0x%p)\n", queue->callback);
                 queue->callback(queue->arg);
             }
             queue->elapsed_time = 0;

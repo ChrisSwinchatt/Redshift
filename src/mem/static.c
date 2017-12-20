@@ -1,6 +1,6 @@
 /**
  * \file mem/static.c
- * \brief Static heap allocator. Allocates memory statically.
+ * \brief Static memory allocator.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -21,7 +21,7 @@
 #include <kernel/redshift.h>
 #include <mem/static.h>
 
-extern const symbol_t __end__; /* Defined in linker script. Ends after the .bss section and stack. */
+extern const symbol_t __end__; /* Defined in linker script. Points after .bss and stack. */
 uint32_t heap_addr;
 
 void static_init(void)
