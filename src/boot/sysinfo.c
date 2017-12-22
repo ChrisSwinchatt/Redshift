@@ -23,8 +23,6 @@
 #include <mem/static.h>
 #include <string.h>
 
-struct sysinfo __sysinfo__;
-
 void sysinfo_init_1(struct sysinfo* info, struct multiboot_tag* tags)
 {
     DEBUG_ASSERT(info != NULL);
@@ -54,30 +52,6 @@ void sysinfo_init_1(struct sysinfo* info, struct multiboot_tag* tags)
                        info->device,
                        info->slice,
                        info->partition);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-/* TODO: store modules.
- */
-void sysinfo_init_2(struct sysinfo* info, struct multiboot_tag* tags)
-{
-    DEBUG_ASSERT(info != NULL);
-    DEBUG_ASSERT(tags != NULL);
-    struct multiboot_mmap_entry* mmap;
-    struct memmap* memmap = NULL;
-    for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)tags + 8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
-        switch (tag->type) {
-            case MULTIBOOT_TAG_TYPE_MODULE:
-                printk(PRINTK_DEBUG " * Module at 0x%08lX to 0x%08lX: \"%s\"\n",
-                       ((struct multiboot_tag_module*)tag)->start,
-                       ((struct multiboot_tag_module*)tag)->end,
-                       ((struct multiboot_tag_module*)tag)->cmdline);
                 break;
             default:
                 break;

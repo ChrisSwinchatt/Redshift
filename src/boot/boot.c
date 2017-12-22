@@ -17,18 +17,19 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include <boot/boot_module.h>
 #include <boot/gdt.h>
 #include <boot/idt.h>
 #include <boot/multiboot.h>
 #include <boot/pic.h>
 #include <boot/pit.h>
 #include <boot/sched.h>
-#include <boot/sysinfo.h>
 #include <boot/tss.h>
 #include <hal/cpu.h>
 #include <hal/memory.h>
 #include <kernel/asm.h>
 #include <kernel/console.h>
+#include <kernel/initrd.h>
 #include <kernel/redshift.h>
 #include <kernel/sleep.h>
 #include <kernel/symbols.h>
@@ -81,11 +82,17 @@ static void init_interrupt_system(void)
     printk(PRINTK_DEBUG " * Initialised PIT\n");
 }
 
+static void init_boot_modules_1(struct multiboot_tag* tags)
+{
+    printk(PRINTK_DEBUG "Discovering boot modules...\n");
+    discover_boot_modules(tags);
+}
+
 static void init_hal(struct multiboot_tag* tags)
 {
     printk(PRINTK_DEBUG "Initialising hardware abstraction layer\n");
     cpu_init();
-    printk(PRINTK_DEBUG " * Initialised CPU");
+    printk(PRINTK_DEBUG " * Initialised CPU\n");
     memory_init(tags);
 }
 
@@ -101,6 +108,22 @@ static void init_memory(struct multiboot_tag* tags)
     printk(PRINTK_DEBUG " * Parsed memory map\n");
     heap_init();
     printk(PRINTK_DEBUG " * Intialised heap allocator\n");
+}
+
+static void init_boot_modules_2(struct multiboot_tag* tags)
+{
+    printk(PRINTK_DEBUG "Processing boot modules...\n");
+    save_boot_modules(tags);
+}
+
+static void load_initrd(void)
+{
+    /* Initial ramdisk should always be the first boot module.
+     */
+    printk(PRINTK_DEBUG "Loading initial ramdisk...\n");
+    const struct boot_module* module = boot_modules_head();
+    initrd_init((const char*)module->start, module->end - module->start);
+    printk(PRINTK_DEBUG " * Loaded initial ramdisk\n");
 }
 
 static void init_devices(void)
@@ -131,13 +154,17 @@ static void __noreturn handle_events(void)
 
 void boot(uint32_t magic, uint32_t tags)
 {
+    struct multiboot_tag* mb_tags = (struct multiboot_tag*)tags;
     int_disable();
     console_init();
     splash();
     check_boot_env(magic, tags);
     init_interrupt_system();
-    init_hal((struct multiboot_tag*)tags);
-    init_memory((struct multiboot_tag*)tags);
+    init_hal(mb_tags);
+    init_boot_modules_1(mb_tags);
+    init_memory(mb_tags);
+    init_boot_modules_2(mb_tags);
+    load_initrd();
     init_devices();
     start_scheduler();
     enable_interrupts();

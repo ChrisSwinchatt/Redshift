@@ -25,14 +25,6 @@
 #include <hal/cpu.h>
 #include <hal/cpu/cpuid.h>
 
-/**
- * System module.
- */
-struct module {
-    const char* cmdline; /**< Module command-line. */
-    uint32_t    start;   /**< Module start.        */
-    uint32_t    end;     /**< Module end.          */
-};
 
 /**
  * System info.
@@ -48,8 +40,6 @@ struct sysinfo {
     uint32_t       device;      /**< BIOS boot device.         */
     uint32_t       slice;       /**< Boot device slice.        */
     uint32_t       partition;   /**< Boot device partition.    */
-    uint32_t       mem_lower;   /**< Low memory (kiB).         */
-    uint32_t       mem_upper;   /**< High memory (kiB).        */
     uint32_t       modules_end; /**< End of the last module.   */
 };
 

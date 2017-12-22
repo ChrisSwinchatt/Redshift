@@ -27,8 +27,9 @@ uint32_t heap_addr;
 void static_init(void)
 {
     uint32_t end = (uint32_t)__end__;
-    if (__sysinfo__.modules_end > end) {
-        end = __sysinfo__.modules_end;
+    uintptr_t modules_end = boot_modules_end();
+    if (modules_end > end) {
+        end = modules_end;
     }
     heap_addr = (end & 0xFFFFF000) + 0x1000;
 }

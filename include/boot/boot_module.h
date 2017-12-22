@@ -18,37 +18,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_KERNEL_INTERRUPT_H
-#define REDSHIFT_KERNEL_INTERRUPT_H
+#ifndef REDSHIFT_BOOT_MODULE_H
+#define REDSHIFT_BOOT_MODULE_H
 
-#include <hal/cpu.h>
-#include <kernel/redshift.h>
-
-#define IRQ0  32
-#define IRQ1  33
-#define IRQ2  34
-#define IRQ3  35
-#define IRQ4  36
-#define IRQ5  37
-#define IRQ6  38
-#define IRQ7  39
-#define IRQ8  40
-#define IRQ9  41
-#define IRQ10 42
-#define IRQ11 43
-#define IRQ12 44
-#define IRQ13 45
-#define IRQ14 46
-#define IRQ15 47
-
-/** ISR handler function */
-typedef void(* isr_handler_t)(const struct cpu_state*);
+#include <boot/multiboot.h>
 
 /**
- * \brief Create an ISR handler
- * \param n ISR number
- * \param fp Function pointer
+ * Boot module linked list.
  */
-void set_interrupt_handler(uint8_t n, isr_handler_t fp);
+struct boot_module {
+    const char*               cmdline; /**< Module command-line. */
+    uintptr_t                 start;   /**< Module start.        */
+    uintptr_t                 end;     /**< Module end.          */
+    const struct boot_module* next;
+};
 
-#endif /* ! REDSHIFT_KERNEL_INTERRUPT_H */
+/**
+ * Discover boot modules.
+ */
+void discover_boot_modules(struct multiboot_tag* mb_tags);
+
+/**
+ * Save boot modules.
+ */
+void save_boot_modules(struct multiboot_tag* mb_tags);
+
+/**
+ * Get a readonly pointer to the head of the boot modules list.
+ * \return A readonly pointer to the boot modules list.
+ */
+const struct boot_module* boot_modules_head(void);
+
+/**
+ * Get the number of boot modules loaded.
+ * \return The number of boot modules loaded.
+ */
+size_t boot_modules_count(void);
+
+/**
+ * Get the address of the end of the last boot module in memory. This is the first usable memory location.
+ * \return The address of the end of the last boot module in memory.
+ */
+uintptr_t boot_modules_end(void);
+
+#endif /* ! REDSHIFT_BOOT_MODULE_H */

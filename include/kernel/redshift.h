@@ -36,7 +36,7 @@
 #define RUNTIME_CHECK(X)\
     do {\
         if (!(X))\
-            panic("failed assertion \"%s\" at %s:%d in %s\n", #X, __FILE__, __LINE__, __func__);\
+            panic("check failed \"" #X "\" at " __FILE__ ":%d in %s\n", __LINE__, __func__);\
     } while (0)
 
 #ifndef NDEBUG
