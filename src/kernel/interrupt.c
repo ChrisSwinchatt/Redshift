@@ -107,7 +107,7 @@ void isr_handler(const struct cpu_state* regs)
     /* Exception.
      */
      struct isr_info info = isr_info[regs->interrupt];
-     printk(PRINTK_ERROR "Interrupt 0x%02X - %s: ", regs->interrupt, info.message);
+     printk(PRINTK_ERROR "Interrupt 0x%02lX - %s: ", regs->interrupt, info.message);
      if (info.has_error_code) {
          printk(PRINTK_ERROR "(error code = %08bb, ", regs->errorcode);
      } else {

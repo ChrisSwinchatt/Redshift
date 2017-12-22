@@ -17,7 +17,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <boot/sysinfo.h>
+#include <hal/memory.h>
 #include <kernel/redshift.h>
 #include <kernel/sorted_list.h>
 #include <mem/heap.h>
@@ -58,8 +58,8 @@ enum {
 static uint32_t get_heap_region(uint64_t size)
 {
     DEBUG_ASSERT(size != 0);
-    RUNTIME_CHECK(__sysinfo__.nb_mmap > 0 && __sysinfo__.memmap != NULL);
-    struct memmap* memmap = __sysinfo__.memmap;
+    RUNTIME_CHECK(memory_map_size() > 0 && memory_map_head() != NULL);
+    const struct memory_map* memmap = memory_map_head();
     do {
         const uint64_t region_size = memmap->end - memmap->start;
         if (memmap->type == MEMORY_TYPE_AVAILABLE && region_size >= size) {

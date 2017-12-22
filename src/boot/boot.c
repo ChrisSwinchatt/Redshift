@@ -17,7 +17,6 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <hal/cpu.h>
 #include <boot/gdt.h>
 #include <boot/idt.h>
 #include <boot/multiboot.h>
@@ -26,6 +25,8 @@
 #include <boot/sched.h>
 #include <boot/sysinfo.h>
 #include <boot/tss.h>
+#include <hal/cpu.h>
+#include <hal/memory.h>
 #include <kernel/asm.h>
 #include <kernel/console.h>
 #include <kernel/redshift.h>
@@ -51,7 +52,7 @@ static void splash(void)
 
 static void check_boot_env(uint32_t magic, uint32_t tags)
 {
-    printk("Checking boot environment...\n");
+    printk(PRINTK_DEBUG "Checking boot environment...\n");
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX).",
               (uint32_t)MULTIBOOT_BOOTLOADER_MAGIC,
@@ -64,8 +65,8 @@ static void check_boot_env(uint32_t magic, uint32_t tags)
 
 static void init_interrupt_system(void)
 {
-    printk("Initialising interrupt system...\n");
-    /* Note: gdt_init writes the TSS' GDT entry and loads the GDT, so we create (but don't load) a valid TSS first.
+    printk(PRINTK_DEBUG "Initialising interrupt system...\n");
+    /* FIXME gdt_init writes the TSS' GDT entry and loads the GDT, so we create (but don't load) a valid TSS first.
      */
     /*tss_init(); XXX */
     gdt_init();
@@ -80,35 +81,24 @@ static void init_interrupt_system(void)
     printk(PRINTK_DEBUG " * Initialised PIT\n");
 }
 
-static void get_sysinfo_1(struct multiboot_tag* tags)
+static void init_hal(struct multiboot_tag* tags)
 {
-    /* We can't initialise the memory allocator without knowing some system information (how much memory and where we
-     * can start storing data) but we can't save some system information (memory map, where modules are located) without
-     * a memory allocator. To get around this, the information gathering has to be done in multiple steps.
-     */
-    printk("Gathering system info (1)...\n");
+    printk(PRINTK_DEBUG "Initialising hardware abstraction layer\n");
     cpu_init();
-    sysinfo_init_1(&__sysinfo__, tags);
+    printk(PRINTK_DEBUG " * Initialised CPU");
+    memory_init(tags);
 }
 
-static void init_memory_1(void)
+static void init_memory(struct multiboot_tag* tags)
 {
-    printk("Initialising memory management (1)...\n");
+
+    printk("Initialising memory manager...\n");
     static_init();
     printk(PRINTK_DEBUG " * Initialised static allocator\n");
-    paging_init(__sysinfo__.mem_lower + __sysinfo__.mem_upper);
+    paging_init(memory_size_total());
     printk(PRINTK_DEBUG " * Initialised page allocator\n");
-}
-
-static void get_sysinfo_2(struct multiboot_tag* tags)
-{
-    printk("Gathering system info (2)...\n");
-    sysinfo_init_2(&__sysinfo__, tags);
-}
-
-static void init_memory_2(void)
-{
-    printk("Initialising memory management (2)...\n");
+    memory_map_init(tags);
+    printk(PRINTK_DEBUG " * Parsed memory map\n");
     heap_init();
     printk(PRINTK_DEBUG " * Intialised heap allocator\n");
 }
@@ -146,10 +136,8 @@ void boot(uint32_t magic, uint32_t tags)
     splash();
     check_boot_env(magic, tags);
     init_interrupt_system();
-    get_sysinfo_1((struct multiboot_tag*)tags);
-    init_memory_1();
-    get_sysinfo_2((struct multiboot_tag*)tags);
-    init_memory_2();
+    init_hal((struct multiboot_tag*)tags);
+    init_memory((struct multiboot_tag*)tags);
     init_devices();
     start_scheduler();
     enable_interrupts();

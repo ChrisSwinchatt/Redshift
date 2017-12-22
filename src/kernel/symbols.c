@@ -28,6 +28,7 @@ static struct symbol {
 
 uint32_t get_symbol(const char* name)
 {
+    UNUSED(__symbols__); /* TODO */
     UNUSED(name);
     return 0;
 }

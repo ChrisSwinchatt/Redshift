@@ -35,27 +35,6 @@ struct module {
 };
 
 /**
- * Memory map entry type.
- */
-enum {
-    MEMORY_TYPE_INVALID     = MULTIBOOT_MEMORY_INVALID,
-    MEMORY_TYPE_AVAILABLE   = MULTIBOOT_MEMORY_AVAILABLE,
-    MEMORY_TYPE_RESERVED    = MULTIBOOT_MEMORY_RESERVED,
-    MEMORY_TYPE_RECLAIMABLE = MULTIBOOT_MEMORY_RECLAIMABLE,
-    MEMORY_TYPE_NVS         = MULTIBOOT_MEMORY_NVS
-};
-
-/**
- * Memory map.
- */
-struct memmap {
-    uint32_t       type;  /**< Entry type.   */
-    uint64_t       start; /**< Region start. */
-    uint64_t       end;   /**< Region end.   */
-    struct memmap* next;  /**< Pointer to next entry in list. */
-};
-
-/**
  * System info.
  */
 struct sysinfo {
