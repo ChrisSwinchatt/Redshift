@@ -22,7 +22,7 @@
 #include <debug/dump_registers.h>
 #include <kernel/asm.h>
 #include <kernel/console.h>
-#include <kernel/cpu_state.h>
+#include <hal/cpu.h>
 #include <kernel/interrupt.h>
 #include <kernel/redshift.h>
 

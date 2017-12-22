@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_KERNEL_CPU_STATE_H
-#define REDSHIFT_KERNEL_CPU_STATE_H
+#ifndef REDSHIFT_HAL_CPU_STATE_H
+#define REDSHIFT_HAL_CPU_STATE_H
 
 #include <kernel/redshift.h>
 #include <string.h>
@@ -138,4 +138,4 @@ static inline void __always_inline get_cpu_state(struct cpu_state* state)
     );
 }
 
-#endif // ! REDSHIFT_KERNEL_CPU_STATE_H
+#endif // ! REDSHIFT_HAL_CPU_STATE_H

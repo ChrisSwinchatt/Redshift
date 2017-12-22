@@ -22,7 +22,7 @@
 #define REDSHIFT_DEBUG_DUMP_REGISTERS_H
 
 #include <kernel/redshift.h>
-#include <kernel/cpu_state.h>
+#include <hal/cpu.h>
 
 void dump_registers(const struct cpu_state* state);
 

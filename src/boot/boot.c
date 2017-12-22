@@ -17,7 +17,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <boot/cpuinfo.h>
+#include <hal/cpu.h>
 #include <boot/gdt.h>
 #include <boot/idt.h>
 #include <boot/multiboot.h>
@@ -87,6 +87,7 @@ static void get_sysinfo_1(struct multiboot_tag* tags)
      * a memory allocator. To get around this, the information gathering has to be done in multiple steps.
      */
     printk("Gathering system info (1)...\n");
+    cpu_init();
     sysinfo_init_1(&__sysinfo__, tags);
 }
 

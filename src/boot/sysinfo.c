@@ -29,7 +29,6 @@ void sysinfo_init_1(struct sysinfo* info, struct multiboot_tag* tags)
 {
     DEBUG_ASSERT(info != NULL);
     DEBUG_ASSERT(tags != NULL);
-    cpuinfo_init(&info->cpuinfo);
     for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)tags + 8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
          tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {

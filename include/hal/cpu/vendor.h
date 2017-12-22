@@ -1,4 +1,8 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/**
+ * \file hal/cpu/features.h
+ * \brief CPU features.
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
+ * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,37 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_KERNEL_ISR_H
-#define REDSHIFT_KERNEL_ISR_H
+#ifndef REDSHIFT_HAL_CPU_VENDOR_H
+#define REDSHIFT_HAL_CPU_VENDOR_H
 
-#include <hal/cpu.h>
 #include <kernel/redshift.h>
 
-#define  IRQ0 32
-#define  IRQ1 33
-#define  IRQ2 34
-#define  IRQ3 35
-#define  IRQ4 36
-#define  IRQ5 37
-#define  IRQ6 38
-#define  IRQ7 39
-#define  IRQ8 40
-#define  IRQ9 41
-#define IRQ10 42
-#define IRQ11 43
-#define IRQ12 44
-#define IRQ13 45
-#define IRQ14 46
-#define IRQ15 47
+#define VENDOR_AMD_OLD    "AMDisbetter!"
+#define VENDOR_AMD_NEW    "AuthenticAMD"
+#define VENDOR_CENTAUR    "CentaurHauls"
+#define VENDOR_CYRIX      "CyrixInstead"
+#define VENDOR_INTEL      "GenuineIntel"
+#define VENDOR_TRANSMETA1 "TransmetaCPU"
+#define VENDOR_TRANSMETA2 "GenuineTMx86"
+#define VENDOR_NSC        "Geode by NSC"
+#define VENDOR_NEXGEN     "NexGenDriven"
+#define VENDOR_RISE       "RiseRiseRise"
+#define VENDOR_SIS        "SiS SiS SiS "
+#define VENDOR_UMC        "UMC UMC UMC "
+#define VENDOR_VIA        "VIA VIA VIA "
 
-/** ISR handler function */
-typedef void(* isr_handler_t)(const struct cpu_state*);
-
-/**
- * \brief Create an ISR handler
- * \param n ISR number
- * \param fp Function pointer
- */
-void set_interrupt_handler(uint8_t n, isr_handler_t fp);
-
-#endif /* ! REDSHIFT_KERNEL_ISR_H */
+#endif /* ! REDSHIFT_HAL_CPU_VENDOR_H */

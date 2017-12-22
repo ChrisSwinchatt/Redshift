@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 #include <boot/sched.h>
-#include <kernel/cpu_state.h>
+#include <hal/cpu.h>
 #include <kernel/redshift.h>
 #include <kernel/timer.h>
 #include <mem/paging.h>

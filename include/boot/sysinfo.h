@@ -22,7 +22,8 @@
 
 #include <kernel/redshift.h>
 #include <boot/multiboot.h>
-#include <boot/cpuinfo.h>
+#include <hal/cpu.h>
+#include <hal/cpu/cpuid.h>
 
 /**
  * System module.
@@ -58,7 +59,7 @@ struct memmap {
  * System info.
  */
 struct sysinfo {
-    struct cpuinfo cpuinfo;     /**< CPU info.                 */
+    struct cpuid   cpuinfo;     /**< CPU info.                 */
     size_t         nb_mod;      /**< Number of module entries. */
     struct module* modules;     /**< Modules.                  */
     size_t         nb_mmap;     /**< Number of memmap entries. */
