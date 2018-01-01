@@ -1,6 +1,6 @@
 /**
  * \file mem/paging.c
- * \brief Page allocator.
+ * Page allocator.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,11 +17,11 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <mem/paging.h>
-#include <kernel/interrupt.h>
-#include <mem/heap.h>
-#include <mem/static.h>
+#include <redshift/kernel.h>
+#include <redshift/mem/paging.h>
+#include <redshift/kernel/interrupt.h>
+#include <redshift/mem/heap.h>
+#include <redshift/mem/static.h>
 #include <string.h>
 
 #define BIT_INDEX(a)  ((a) / (8 * 4))
@@ -56,19 +56,19 @@ static uint32_t               frames_count;
 static void frame_set(uint32_t addr)
 {
     uint32_t frame = addr / 0x1000;
-    set_bit(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
+    SET_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
 
 static void frame_clear(uint32_t addr)
 {
     uint32_t frame = addr / 0x1000;
-    clear_bit(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
+    CLEAR_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
 
 static uint32_t frame_test(uint32_t addr)
 {
     uint32_t frame = addr / 0x1000;
-    return test_bit(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
+    return TEST_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
 
 static uint32_t frame_get_first_free()
@@ -77,7 +77,7 @@ static uint32_t frame_get_first_free()
     for (i = 0; i < BIT_INDEX(frames_count); ++i) {
         if (frames[i] != 0xFFFFFFFF) {
             for (j = 0; j < 32; ++j) {
-                if (!(test_bit(frames[i], j))) {
+                if (!(TEST_BIT(frames[i], j))) {
                     return i * 4 * 8 + j;
                 }
             }
@@ -117,22 +117,22 @@ static void page_fault_handler(const struct cpu_state* registers)
     uint32_t address = 0;
     asm("mov %%cr2, %0":"=r"(address));
     printk(PRINTK_ERROR "Page fault at 0x%08lX", address);
-    if (test_bit(registers->errorcode, 2)) {
+    if (TEST_BIT(registers->errorcode, 2)) {
         printk(PRINTK_ERROR "in user mode ");
     } else {
         printk(PRINTK_ERROR "in kernel mode ");
     }
-    if (test_bit(registers->errorcode, 1)) {
+    if (TEST_BIT(registers->errorcode, 1)) {
         printk(PRINTK_ERROR "when writing ");
     } else {
         printk(PRINTK_ERROR "when reading ");
     }
-    if (!(test_bit(registers->errorcode, 0))) {
+    if (!(TEST_BIT(registers->errorcode, 0))) {
         printk(PRINTK_ERROR "because the page was not marked present ");
-    } else if (test_bit(registers->errorcode, 3)) {
+    } else if (TEST_BIT(registers->errorcode, 3)) {
         printk(PRINTK_ERROR "because of an invalid write ");
     }
-    if (test_bit(registers->errorcode, 4)) {
+    if (TEST_BIT(registers->errorcode, 4)) {
         printk(PRINTK_ERROR "during an instruction fetch ");
     }
     printk("\n");

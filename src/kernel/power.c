@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */  
-#include <kernel/asm.h>
-#include <kernel/power.h>
-#include <kernel/redshift.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/power.h>
+#include <redshift/kernel.h>
     
 #define KBD_KDATA_BIT        0
 #define KBD_UDATA_BIT        1
@@ -31,9 +31,9 @@ void __noreturn reboot(void)
     int_disable();
     do {
         tmp = io_inb(KEYBOARD_CMND);
-        if (test_flag(tmp, KBD_KDATA_BIT) != 0)
+        if (TEST_FLAG(tmp, KBD_KDATA_BIT) != 0)
             io_inb(KEYBOARD_DATA);
-    } while (test_flag(tmp, KBD_UDATA_BIT) != 0);
+    } while (TEST_FLAG(tmp, KBD_UDATA_BIT) != 0);
     io_outb(KEYBOARD_CMND, KEYBOARD_RESET);
     hang();
 }

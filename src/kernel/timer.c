@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <kernel/timer.h>
-#include <mem/heap.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/timer.h>
+#include <redshift/mem/heap.h>
 
 static struct timer_event {
     uint32_t period;

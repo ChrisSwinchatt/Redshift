@@ -49,7 +49,7 @@ int isupper(int c);
 int isxdigit(int c);
 
 /**
- * \brief Converts a character to lower case
+ * Converts a character to lower case
  * \param c ASCII character
  * \return If the character is uppercase, it will be converted to lowercase. If
  * it is already lowercase or is not an alphabetic character it will be returned
@@ -58,7 +58,7 @@ int isxdigit(int c);
 int tolower(int c);
 
 /**
- * \brief Converts a character to upper case
+ * Converts a character to upper case
  * \param c ASCII character
  * \return If the character is lowercase, it will be converted to uppercase. If
  * it is already uppercase or is not an alphabetic character it will be returned

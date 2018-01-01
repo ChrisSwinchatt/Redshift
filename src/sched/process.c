@@ -18,10 +18,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <mem/heap.h>
-#include <mem/paging.h>
-#include <sched/process.h>
+#include <redshift/kernel.h>
+#include <redshift/mem/heap.h>
+#include <redshift/mem/paging.h>
+#include <redshift/sched/process.h>
 #include <string.h>
 
 static struct process {

@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 
 void int_disable(void)
 {

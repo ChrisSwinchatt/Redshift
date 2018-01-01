@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/tss.h>
-#include <kernel/redshift.h>
+#include <redshift/boot/tss.h>
+#include <redshift/kernel.h>
 #include <string.h>
 
 extern symbol_t __stack_top__;

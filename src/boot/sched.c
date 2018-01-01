@@ -18,13 +18,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/sched.h>
-#include <hal/cpu.h>
-#include <kernel/redshift.h>
-#include <kernel/timer.h>
-#include <mem/paging.h>
-#include <sched/idle.h>
-#include <sched/process.h>
+#include <redshift/boot/sched.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/timer.h>
+#include <redshift/mem/paging.h>
+#include <redshift/sched/idle.h>
+#include <redshift/sched/process.h>
 
 int sched_init(void)
 {

@@ -18,12 +18,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <hal/cpu.h>
-#include <hal/cpu/cpuid.h>
-#include <hal/cpu/features.h>
-#include <hal/cpu/vendor.h>
-#include <kernel/asm.h>
-#include <kernel/sleep.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/hal/cpu/cpuid.h>
+#include <redshift/hal/cpu/features.h>
+#include <redshift/hal/cpu/vendor.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/sleep.h>
 #include <string.h>
 
 enum cpuid_requests {

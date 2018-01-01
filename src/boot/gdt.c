@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <boot/gdt.h>
-#include <boot/tss.h>
+#include <redshift/kernel.h>
+#include <redshift/boot/gdt.h>
+#include <redshift/boot/tss.h>
 
 enum {
     GDT_ENTRIES_SIZE = 5

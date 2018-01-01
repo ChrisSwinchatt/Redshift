@@ -18,11 +18,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/pit.h>
-#include <kernel/asm.h>
-#include <kernel/interrupt.h>
-#include <kernel/timer.h>
-#include <sched/process.h>
+#include <redshift/boot/pit.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/interrupt.h>
+#include <redshift/kernel/timer.h>
+#include <redshift/sched/process.h>
 
 static void pit_handler(const struct cpu_state* regs)
 {

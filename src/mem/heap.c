@@ -1,6 +1,6 @@
 /**
  * \file mem/heap.c
- * \brief Heap allocator.
+ * Heap allocator.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,12 +17,12 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <hal/memory.h>
-#include <kernel/redshift.h>
-#include <kernel/sorted_list.h>
-#include <mem/heap.h>
-#include <mem/paging.h>
-#include <mem/static.h>
+#include <redshift/hal/memory.h>
+#include <redshift/kernel.h>
+#include <redshift/util/sorted_list.h>
+#include <redshift/mem/heap.h>
+#include <redshift/mem/paging.h>
+#include <redshift/mem/static.h>
 
 enum {
     HEAP_SIZE_MIN  = 0x00070000,

@@ -1,6 +1,6 @@
 /**
  * \file boot/sysinfo.c
- * \brief Collect system details, primarily from multiboot tags.
+ * Collect system details, primarily from multiboot tags.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,10 +17,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <boot/multiboot.h>
-#include <boot/sysinfo.h>
-#include <mem/static.h>
+#include <redshift/kernel.h>
+#include <redshift/boot/multiboot.h>
+#include <redshift/boot/sysinfo.h>
+#include <redshift/mem/static.h>
 #include <string.h>
 
 void sysinfo_init_1(struct sysinfo* info, struct multiboot_tag* tags)

@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 #include <ctype.h>
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 
 enum {
     ALNUM  = 1 <<  0,
@@ -169,62 +169,62 @@ static const unsigned ctype_table[] = {
 
 int isalnum(int c)
 {
-    return test_flag(ctype_table[c], ALNUM);
+    return TEST_FLAG(ctype_table[c], ALNUM);
 }
 
 int isalpha(int c)
 {
-    return test_flag(ctype_table[c], ALPHA);
+    return TEST_FLAG(ctype_table[c], ALPHA);
 }
 
 int isblank(int c)
 {
-    return test_flag(ctype_table[c], BLANK);
+    return TEST_FLAG(ctype_table[c], BLANK);
 }
 
 int iscntrl(int c)
 {
-    return test_flag(ctype_table[c], CNTRL);
+    return TEST_FLAG(ctype_table[c], CNTRL);
 }
 
 int isdigit(int c)
 {
-    return test_flag(ctype_table[c], DIGIT);
+    return TEST_FLAG(ctype_table[c], DIGIT);
 }
 
 int isgraph(int c)
 {
-    return test_flag(ctype_table[c], GRAPH);
+    return TEST_FLAG(ctype_table[c], GRAPH);
 }
 
 int islower(int c)
 {
-    return test_flag(ctype_table[c], LOWER);
+    return TEST_FLAG(ctype_table[c], LOWER);
 }
 
 int isprint(int c)
 {
-    return test_flag(ctype_table[c], PRINT);
+    return TEST_FLAG(ctype_table[c], PRINT);
 }
 
 int ispunct(int c)
 {
-    return test_flag(ctype_table[c], PUNCT);
+    return TEST_FLAG(ctype_table[c], PUNCT);
 }
 
 int isspace(int c)
 {
-    return test_flag(ctype_table[c], SPACE);
+    return TEST_FLAG(ctype_table[c], SPACE);
 }
 
 int isupper(int c)
 {
-    return test_flag(ctype_table[c], UPPER);
+    return TEST_FLAG(ctype_table[c], UPPER);
 }
 
 int isxdigit(int c)
 {
-    return test_flag(ctype_table[c], XDIGIT);
+    return TEST_FLAG(ctype_table[c], XDIGIT);
 }
 
 int toupper(int c)

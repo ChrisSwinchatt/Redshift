@@ -21,11 +21,11 @@
 #ifndef _CSTRING_H
 #define _CSTRING_H
 
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 #include <stdint.h>
 
 /**
- * \brief Convert an integer to a string.
+ * Convert an integer to a string.
  * \param buf Buffer to store the string in. This must be large enough to store
  * any long integer. 20 characters should be enough.
  * \param i Integer to convert.
@@ -35,7 +35,7 @@
 char* itos(long i, int base, char* buf, size_t n);
 
 /**
- * \brief Search for 'c' in 'array'.
+ * Search for 'c' in 'array'.
  * \param array Array to search.
  * \param c Character to search for.
  * \param n Size of 'array'.
@@ -45,7 +45,7 @@ char* itos(long i, int base, char* buf, size_t n);
 void* memchr(const void* array, int c, size_t n);
 
 /**
- * \brief Compare 'p1' with 'p2'.
+ * Compare 'p1' with 'p2'.
  * \param p1 Array 1.
  * \param p2 Array 2.
  * \param n Maximum number of bytes to compare.
@@ -55,7 +55,7 @@ void* memchr(const void* array, int c, size_t n);
 int memcmp(const void* p1, const void* p2, size_t n);
 
 /**
- * \brief Copy 'n' bytes from 'src' to 'dst', allowing overlap.
+ * Copy 'n' bytes from 'src' to 'dst', allowing overlap.
  * \param dst Destination buffer.
  * \param src Source buffer.
  * \param n Maximum number of bytes to copy.
@@ -64,7 +64,7 @@ int memcmp(const void* p1, const void* p2, size_t n);
 void* memcpy(void* dst, const void* src, size_t n);
 
 /**
- * \brief Copy 'n' bytes from 'src' to 'dst', with overlap disallowed.
+ * Copy 'n' bytes from 'src' to 'dst', with overlap disallowed.
  * \param dst Destination buffer.
  * \param src Source buffer.
  * \param n Maximum number of bytes to copy.
@@ -73,7 +73,7 @@ void* memcpy(void* dst, const void* src, size_t n);
 void* memmove(void* dst, const void* src, size_t n);
 
 /**
- * \brief Set each byte in 'array' to 'c', up to max 'n' bytes.
+ * Set each byte in 'array' to 'c', up to max 'n' bytes.
  * \param array Array.
  * \param c Value to set.
  * \param n Maximum number of bytes to write.
@@ -82,7 +82,7 @@ void* memmove(void* dst, const void* src, size_t n);
 void* memset(void* array, int c, size_t n);
 
 /**
- * \brief Append 'src' to 'dst'.
+ * Append 'src' to 'dst'.
  * \param dst Destination string.
  * \param src source string.
  * \return dst is returned.
@@ -90,7 +90,7 @@ void* memset(void* array, int c, size_t n);
 char* strcat(char* dst, const char* src);
 
 /**
- * \brief Search for 'c' in 's'.
+ * Search for 'c' in 's'.
  * \param s String to search.
  * \param c Character to search for.
  * \return A pointer to the first occurrence of 'c' in 's' or NULL if 'c' is not
@@ -99,7 +99,7 @@ char* strcat(char* dst, const char* src);
 char* strchr(const char* s, int c);
 
 /**
- * \brief Compare 's1' with 's2'.
+ * Compare 's1' with 's2'.
  * \param s1 String 1.
  * \param s2 String 2.
  * \return If the two strings are equal, 0 is returned. If two characters that
@@ -108,7 +108,7 @@ char* strchr(const char* s, int c);
 int strcmp(const char* s1, const char* s2);
 
 /**
- * \brief Copy 'src' into 'dst'.
+ * Copy 'src' into 'dst'.
  * \param dst Destination buffer.
  * \param src Source buffer.
  * \return A pointer to dst is returned.
@@ -116,21 +116,21 @@ int strcmp(const char* s1, const char* s2);
 char* strcpy(char* dst, const char* src);
 
 /**
- * \brief Retrieve the error message associated with 'errnum'.
+ * Retrieve the error message associated with 'errnum'.
  * \param errnum Error message to get.
  * \return The associated error message is returned or NULL if none was found.
  */
 char* strerror(int errnum);
 
 /**
- * \brief Find the lenth of 's'.
+ * Find the lenth of 's'.
  * \param s A string.
  * \return The length of 's' is returned.
  */
 size_t strlen(const char* s);
 
 /**
- * \brief Append max. 'n' characters from 'src' to 'dst'
+ * Append max. 'n' characters from 'src' to 'dst'
  * \param dst Destination buffer.
  * \param src Source buffer.
  * \param n Maximum number of characters to append.
@@ -139,7 +139,7 @@ size_t strlen(const char* s);
 char* strncat(char* dst, const char* src, size_t n);
 
 /**
- * \brief Compare a maximum of 'n' characters from 's1' with 's2'.
+ * Compare a maximum of 'n' characters from 's1' with 's2'.
  * \param s1 A string.
  * \param s2 Another string.
  * \param n Maximum number of characters to compare.
@@ -149,7 +149,7 @@ char* strncat(char* dst, const char* src, size_t n);
 int strncmp(const char* s1, const char* s2, size_t n);
 
 /**
- * \brief Copy a maximum of 'n' characters from 'src' to 'dst'.
+ * Copy a maximum of 'n' characters from 'src' to 'dst'.
  * \param dst Destination string.
  * \param src Source string.
  * \param n Maximum number of characters to copy.
@@ -158,14 +158,14 @@ int strncmp(const char* s1, const char* s2, size_t n);
 char* strncpy(char* dst, const char* src, size_t n);
 
 /**
- * \brief Reverse a string.
+ * Reverse a string.
  * \param s String to be reversed.
  * \return The string is returned.
  */
 char* strreverse(char* s);
 
 /**
- * \brief Find the first instance of 's2' in 's1'.
+ * Find the first instance of 's2' in 's1'.
  * \param s1 String to search.
  * \param s2 String to search for.
  * \return A pointer to the first instance of 's2' in 's1' is returned, or NULL
@@ -174,14 +174,14 @@ char* strreverse(char* s);
 char* strstr(const char* dst, const char* src);
 
 /**
- * \brief Converts any upper-case characters in a string to lower-case.
+ * Converts any upper-case characters in a string to lower-case.
  * \param s A string.
  * \return A pointer to s is returned.
  */
 char* stolower(char* s);
 
 /**
- * \brief Converts any lower-case characters in a string to upper-case.
+ * Converts any lower-case characters in a string to upper-case.
  * \param s A string.
  * \return A pointer to s is returned.
  */

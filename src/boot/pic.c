@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <kernel/asm.h>
-#include <boot/pic.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/boot/pic.h>
 
 int pic_init(void)
 {

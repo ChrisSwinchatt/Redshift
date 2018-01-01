@@ -1,6 +1,6 @@
 /**
  * \file util/tar.c
- * \brief TAR archive reader.
+ * TAR archive reader.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,12 +17,12 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <util/hash.h>
-#include <util/tar.h>
+#include <redshift/kernel.h>
+#include <redshift/util/hash.h>
+#include <redshift/util/tar.h>
 #include <string.h>
 
-#define TAR_HEADER_SIZE 512 /* TAR headers are padded to 512 bytes. */
+#define TAR_HEADER_SIZE 512UL /* TAR headers are padded to 512 bytes. */
 
 struct tar_header {
     char filename[TAR_FILENAME_MAX];
@@ -63,23 +63,33 @@ static uint32_t tar_get_checksum(struct tar_header* header)
 
 size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive, size_t size)
 {
-    size_t index  = 0;
-    size_t offset = 0;
     /* Discover files. Stop if we reach the limit of the files array, the archive buffer, or we find
      * a header filled with zeros.
      */
-    for (; index < max_files && offset < size && archive[offset] != 0; ++index) {
+    size_t index  = 0;
+    size_t offset = 0;
+    printk(PRINTK_DEBUG "Extracting files (archive at 0x%p, size=%lu)\n", archive, size);
+    for (; index < max_files && offset < size; ++index) {
         struct tar_header* header = (struct tar_header*)(archive + offset);
+        /* Break on NUL header.
+         */
+        if (header->filename[0] == 0) {
+            break;
+        }
         /* Copy fields.
          */
         strncpy(files[index].filename, header->filename, TAR_FILENAME_MAX);
         files[index].hash     = hash32_asciz(files[index].filename, TAR_FILENAME_MAX);
+        files[index].start    = (uintptr_t)header + TAR_HEADER_SIZE;
         files[index].mode     = tar_get_mode(header);
         files[index].size     = tar_get_size(header);
         files[index].checksum = tar_get_checksum(header);
-        /* Advance offset to include the header, padding and file.
+        /* Advance offset past the header, padding and file.
          */
-        offset = offset + TAR_HEADER_SIZE + files[index].size;
+        offset += (files[index].size/TAR_HEADER_SIZE + 1)*TAR_HEADER_SIZE;
+        if ((files[index].size % TAR_HEADER_SIZE) != 0) {
+            offset += TAR_HEADER_SIZE;
+        }
     }
     return index;
 }

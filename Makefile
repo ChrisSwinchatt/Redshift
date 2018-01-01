@@ -8,8 +8,9 @@ VERSION              := $(VERSION_MAJOR).$(VERSION_MINOR)
 AS                   := nasm
 AFLAGS               := -felf32 -g
 CC                   := $(PREFIX)-gcc
+INCLUDES             := -Iinclude -Iinclude/libc
 CFLAGS               := -Wall -Wextra -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all\
-                        -fno-omit-frame-pointer -Iinclude/ -Iinclude/libc\
+                        -fno-omit-frame-pointer $(INCLUDES)\
                         -DKERNEL="$(KERNEL)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
                         -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
 LD                   := $(PREFIX)-ld
@@ -65,10 +66,10 @@ debug-qemu:
 statistics:
 	@tools/kstats
 analyse:
-	@cppcheck --quiet --enable=all -I include/ -I include/libc `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1 | grep -v "never used"
-	@clang -analyze -I include/ -I include/libc -Xanalyzer -analyzer-output=text `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1
+	@cppcheck --quiet --enable=all $(INCLUDES) `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1 | grep -v "never used"
+	@clang -analyze $(INCLUDES) -Xanalyzer -analyzer-output=text `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1
 xgcc:
-	@tools/build-xgcc $(ARGS) $(TARGET)
+	@cd out && ../tools/build-xgcc $(ARGS) $(TARGET)
 clean:
 	@echo "\033[1;37mCleaning redshift... \033[0m"
 	@rm -f $(OBJECTS)

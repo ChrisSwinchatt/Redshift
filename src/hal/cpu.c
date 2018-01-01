@@ -1,6 +1,6 @@
 /**
  * \file hal/cpu.c
- * \brief CPU abstraction.
+ * CPU abstraction.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <hal/cpu/cpuid.h>
+#include <redshift/kernel.h>
+#include <redshift/hal/cpu/cpuid.h>
 
 static struct cpu {
     struct cpuid info;
@@ -36,12 +36,12 @@ void cpu_init(void)
 
 bool cpu_has_feature(cpu_feature_t feature)
 {
-    return test_flag(__cpu__.info.features, (uint32_t)feature);
+    return TEST_FLAG(__cpu__.info.features, (uint32_t)feature);
 }
 
 bool cpu_has_ext_feature(cpu_feature_ext_t feature)
 {
-    return test_flag(__cpu__.info.features_ext, (uint32_t)feature);
+    return TEST_FLAG(__cpu__.info.features_ext, (uint32_t)feature);
 }
 
 const char* cpu_get_vendor(void)

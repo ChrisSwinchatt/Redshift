@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <boot/idt.h>
-#include <kernel/asm.h>
+#include <redshift/kernel.h>
+#include <redshift/boot/idt.h>
+#include <redshift/kernel/asm.h>
 #include <string.h>
 
 enum {

@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <sched/process.h>
+#include <redshift/kernel.h>
+#include <redshift/sched/process.h>
 
 void idle(void* arg)
 {

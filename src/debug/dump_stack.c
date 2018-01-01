@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <debug/dump_stack.h>
-#include <kernel/redshift.h>
-#include <kernel/symbols.h>
+#include <redshift/debug/dump_stack.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/symbols.h>
 
 static unsigned __noinline stacktrace(unsigned* array, unsigned max_frames)
 {

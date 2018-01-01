@@ -1,6 +1,6 @@
 /**
  * \file boot/boot.c
- * \brief Boot the kernel.
+ * Boot the kernel.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,27 +17,27 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <boot/boot_module.h>
-#include <boot/gdt.h>
-#include <boot/idt.h>
-#include <boot/multiboot.h>
-#include <boot/pic.h>
-#include <boot/pit.h>
-#include <boot/sched.h>
-#include <boot/tss.h>
-#include <hal/cpu.h>
-#include <hal/memory.h>
-#include <kernel/asm.h>
-#include <kernel/console.h>
-#include <kernel/initrd.h>
-#include <kernel/redshift.h>
-#include <kernel/sleep.h>
-#include <kernel/symbols.h>
-#include <kernel/timer.h>
-#include <mem/heap.h>
-#include <mem/paging.h>
-#include <mem/static.h>
-#include <sched/process.h>
+#include <redshift/boot/boot_module.h>
+#include <redshift/boot/gdt.h>
+#include <redshift/boot/idt.h>
+#include <redshift/boot/multiboot.h>
+#include <redshift/boot/pic.h>
+#include <redshift/boot/pit.h>
+#include <redshift/boot/sched.h>
+#include <redshift/boot/tss.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/hal/memory.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/console.h>
+#include <redshift/kernel/initrd.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/sleep.h>
+#include <redshift/kernel/symbols.h>
+#include <redshift/kernel/timer.h>
+#include <redshift/mem/heap.h>
+#include <redshift/mem/paging.h>
+#include <redshift/mem/static.h>
+#include <redshift/sched/process.h>
 
 static void splash(void)
 {
@@ -46,9 +46,10 @@ static void splash(void)
                                      "|      __|  |_____| |   | | |_  |__|  |  |__  |\n"
                                      "|  |\\  \\ |  |_____| |___| | __| |  | _|_ |    |\n"
                                      "|__| \\__\\|________|______/\n";
-    console.screen.foreground = CONSOLE_COLOR_RED;
-    console_writestring(splash_text);
-    console.screen.foreground = CONSOLE_COLOR_LIGHT_GRAY;
+    const console_color_t foreground = console_get_foreground_color();
+    console_set_foreground_color(CONSOLE_COLOR_RED);
+    console_write_string(splash_text);
+    console_set_foreground_color(foreground);
 }
 
 static void check_boot_env(uint32_t magic, uint32_t tags)
@@ -121,9 +122,22 @@ static void load_initrd(void)
     /* Initial ramdisk should always be the first boot module.
      */
     printk(PRINTK_DEBUG "Loading initial ramdisk...\n");
+    if (boot_modules_count() < 1) {
+        panic("no initial ramdisk (must be passed as first boot module)");
+    }
     const struct boot_module* module = boot_modules_head();
-    initrd_init((const char*)module->start, module->end - module->start);
+    initrd_init((const char*)(module->start), module->end - module->start);
     printk(PRINTK_DEBUG " * Loaded initial ramdisk\n");
+}
+
+static void load_symbol_table(void)
+{
+    printk(PRINTK_DEBUG "Loading symbol table...\n");
+    const struct initrd_file* symtab = initrd_get_file_by_name("boot/redshift.map");
+    if (symtab == NULL) {
+        panic("initial ramdisk does not contain the symbol table");
+    }
+    symbols_load(symtab->start, symtab->size);
 }
 
 static void init_devices(void)
@@ -152,7 +166,7 @@ static void __noreturn handle_events(void)
     }
 }
 
-void boot(uint32_t magic, uint32_t tags)
+void __noreturn boot(uint32_t magic, uint32_t tags)
 {
     struct multiboot_tag* mb_tags = (struct multiboot_tag*)tags;
     int_disable();
@@ -165,6 +179,7 @@ void boot(uint32_t magic, uint32_t tags)
     init_memory(mb_tags);
     init_boot_modules_2(mb_tags);
     load_initrd();
+    load_symbol_table();
     init_devices();
     start_scheduler();
     enable_interrupts();

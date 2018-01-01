@@ -1,6 +1,6 @@
 /**
  * \file mem/static.c
- * \brief Static memory allocator.
+ * Static memory allocator.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,9 +17,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <boot/sysinfo.h>
-#include <kernel/redshift.h>
-#include <mem/static.h>
+#include <redshift/boot/sysinfo.h>
+#include <redshift/kernel.h>
+#include <redshift/mem/static.h>
 
 extern const symbol_t __end__; /* Defined in linker script. Points after .bss and stack. */
 uint32_t heap_addr;

@@ -1,6 +1,6 @@
 /**
  * \file hal/memory.c
- * \brief Memory abstraction.
+ * Memory abstraction.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -24,10 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/multiboot.h>
-#include <hal/memory.h>
-#include <mem/static.h>
-#include <kernel/redshift.h>
+#include <redshift/boot/multiboot.h>
+#include <redshift/hal/memory.h>
+#include <redshift/mem/static.h>
+#include <redshift/kernel.h>
 
 static struct memory {
     uint32_t size_lower;

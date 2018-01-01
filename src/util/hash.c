@@ -1,6 +1,6 @@
 /**
  * \file util/hash.c
- * \brief String hashing functions.
+ * String hashing functions.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -18,7 +18,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <string.h>
-#include <util/hash.h>
+#include <redshift/util/hash.h>
 
 uint32_t hash32_asciz(const char* asciz, size_t size)
 {

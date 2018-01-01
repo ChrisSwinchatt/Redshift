@@ -19,8 +19,8 @@
  * SOFTWARE.
  */
 #include <ctype.h>
-#include <kernel/console.h>
-#include <kernel/redshift.h>
+#include <redshift/kernel/console.h>
+#include <redshift/kernel.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -64,16 +64,16 @@ int vprintk(const char* fmt, va_list ap)
     /* Print coloured output.
      */
     {
-        const uint8_t foreground = console.screen.foreground;
+        const console_color_t foreground = console_get_foreground_color();
         switch (level) {
-            case LOGLEVEL_DEBUG:   console.screen.foreground = CONSOLE_COLOR_LIGHT_GRAY; break;
-            case LOGLEVEL_INFO:    console.screen.foreground = CONSOLE_COLOR_WHITE;      break;
-            case LOGLEVEL_WARNING: console.screen.foreground = CONSOLE_COLOR_RED;        break;
-            case LOGLEVEL_ERROR:   console.screen.foreground = CONSOLE_COLOR_LIGHT_RED;  break;
-            default:               REDSHIFT_UNREACHABLE("no switch case for level %d", level);
+            case LOGLEVEL_DEBUG:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_GRAY); break;
+            case LOGLEVEL_INFO:    console_set_foreground_color(CONSOLE_COLOR_WHITE);      break;
+            case LOGLEVEL_WARNING: console_set_foreground_color(CONSOLE_COLOR_RED);        break;
+            case LOGLEVEL_ERROR:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_RED);  break;
+            default:               UNREACHABLE("no switch case for level %d", level);
         }
-        console_writestring(buffer);
-        console.screen.foreground = foreground;
+        console_write_string(buffer);
+        console_set_foreground_color(foreground);
     }
     return ret;
 }

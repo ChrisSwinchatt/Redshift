@@ -18,13 +18,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <debug/dump_hex.h>
-#include <debug/dump_registers.h>
-#include <kernel/asm.h>
-#include <kernel/console.h>
-#include <hal/cpu.h>
-#include <kernel/interrupt.h>
-#include <kernel/redshift.h>
+#include <redshift/debug/dump_hex.h>
+#include <redshift/debug/dump_registers.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/console.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/kernel/interrupt.h>
+#include <redshift/kernel.h>
 
 #define ISR_HANDLERS_SIZE 256
 
