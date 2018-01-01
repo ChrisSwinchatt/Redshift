@@ -38,9 +38,9 @@ src/abi/stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -
 	@$(CC) $(CFLAGS) -c -o $@ $<
 all: image
 image: $(IMAGE)
-kernel: $(KERNEL) initrd
+kernel: $(KERNEL)
 initrd: $(INITRD)
-$(IMAGE): kernel
+$(IMAGE): $(INITRD)
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
@@ -52,7 +52,7 @@ $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@cp "$@" "$(DEBUG)"
 	@echo "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
-$(INITRD):
+$(INITRD): $(KERNEL)
 	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
 	@rm -f $@
 	@cd out/initrd && tar -cf "../../$@" * >/dev/null
