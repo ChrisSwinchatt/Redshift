@@ -68,15 +68,13 @@ static void check_boot_env(uint32_t magic, uint32_t tags)
 static void init_interrupt_system(void)
 {
     printk(PRINTK_DEBUG "Initialising interrupt system...\n");
-    /* FIXME gdt_init writes the TSS' GDT entry and loads the GDT, so we create (but don't load) a valid TSS first.
-     */
-    /*tss_init(); XXX */
+    tss_init();
     gdt_init();
     printk(PRINTK_DEBUG "Loaded GDT\n");
     idt_init();
     printk(PRINTK_DEBUG "Loaded IDT\n");
-    /*tss_load();
-    printk(PRINTK_DEBUG "Loaded TSS\n"); XXX */
+    tss_load();
+    printk(PRINTK_DEBUG "Loaded TSS\n");
     pic_init();
     printk(PRINTK_DEBUG "Initialised PIC\n");
     pit_init(TICK_RATE);
@@ -182,6 +180,6 @@ void __noreturn boot(uint32_t magic, uint32_t tags)
     load_symbol_table();
     init_devices();
     start_scheduler();
-    /* enable_interrupts(); XXX */
+    enable_interrupts();
     handle_events();
 }

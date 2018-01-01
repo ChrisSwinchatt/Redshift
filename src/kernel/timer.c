@@ -21,16 +21,20 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/timer.h>
 #include <redshift/mem/heap.h>
+#include <redshift/util/hash.h>
+#include <string.h>
 
 static struct timer_event {
-    uint32_t period;
-    uint32_t elapsed_time; /* Time elapsed since event last raised. */
-    void(*   callback)(void*);
-    void*    arg;
+    const char* name;
+    uint32_t    name_hash;
+    uint32_t    period;
+    uint32_t    elapsed_time; /* Time elapsed since event last raised. */
+    void(*      callback)(void*);
+    void*       arg;
     struct timer_event* next;
 } * events;
 
-void add_timer_event(uint32_t period, void(* callback)(void*), void* arg)
+void add_timer_event(const char* name, uint32_t period, void(* callback)(void*), void* arg)
 {
     if (!(callback)) {
         return;
@@ -39,11 +43,15 @@ void add_timer_event(uint32_t period, void(* callback)(void*), void* arg)
     if (event == NULL) {
         panic("can't allocate memory");
     }
+    event->name         = strdup(name);
+    event->name_hash    = hash32_asciz(name, strlen(name));
     event->period       = period;
     event->elapsed_time = 0;
     event->callback     = callback;
     event->arg          = arg;
     event->next         = NULL;
+    console_write_string(event->name);
+    hang();
     if (events) {
         /* Append the event handler.
          */
@@ -69,8 +77,8 @@ void process_timer_queue(uint32_t elapsed_time)
         if (queue->elapsed_time + elapsed_time >= queue->period) {
             /* Call event.
              */
+            printk(PRINTK_DEBUG "Event \"%s\" (fn=0x%p) raised", queue->name, queue->callback);
             if (queue->callback) {
-                printk(PRINTK_DEBUG "Event raised (0x%p)\n", queue->callback);
                 queue->callback(queue->arg);
             }
             queue->elapsed_time = 0;

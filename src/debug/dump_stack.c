@@ -25,16 +25,15 @@
 static unsigned __noinline stacktrace(unsigned* array, unsigned max_frames)
 {
     unsigned* frame = &max_frames - 2;
-    unsigned i;
-    for (i = 0; i < max_frames; ++i) {
+    for (unsigned i = 0; i < max_frames; ++i) {
         unsigned ip = frame[1];
         if (ip == 0) {
-            break;
+            return i;
         }
         array[i] = ip;
         frame = (unsigned*)frame[0];
     }
-    return i;
+    return max_frames;
 }
 
 #define MAX_FRAMES 10

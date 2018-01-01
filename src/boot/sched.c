@@ -22,7 +22,6 @@
 #include <redshift/hal/cpu.h>
 #include <redshift/kernel.h>
 #include <redshift/kernel/timer.h>
-#include <redshift/mem/paging.h>
 #include <redshift/sched/idle.h>
 #include <redshift/sched/process.h>
 
@@ -34,6 +33,6 @@ int sched_init(void)
     if (process_spawn((uint32_t)idle, page_dir, 0) < 0) {
         panic("unable to spawn idle process");
     }
-    add_timer_event(SCHED_PERIOD, process_switch, NULL);
+    add_timer_event("switch", SCHED_PERIOD, process_switch, NULL);
     return 0;
 }

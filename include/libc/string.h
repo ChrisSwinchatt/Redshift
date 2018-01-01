@@ -187,4 +187,11 @@ char* stolower(char* s);
  */
 char* stoupper(char* s);
 
+/**
+ * Duplicate a string.
+ * \param s The string to duplicate.
+ * \return A newly-allocated string which is identical to the original.
+ */
+char* strdup(const char* s);
+
 #endif /* ! _CSTRING_H */

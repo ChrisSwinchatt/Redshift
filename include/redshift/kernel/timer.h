@@ -25,11 +25,12 @@
 
 /**
  * Calls a function periodically.
+ * \param name A unique name for the timer.
  * \param period The period of time to allow in between function calls (ms).
  * \param callback A pointer to a function to call when the time period elapses.
  * \param arg A pointer to an argument to pass to the callback function.
  */
-void add_timer_event(uint32_t period, void(* callback)(void*), void* arg);
+void add_timer_event(const char* name, uint32_t period, void(* callback)(void*), void* arg);
 
 /**
  * Processes the timer queue.

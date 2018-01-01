@@ -17,19 +17,26 @@ STACK_SIZE equ 0x10000
 [section .text]
 ; Entry point.
 [global _start]
-_start:             mov     esp, __stack_top__              ; Create the stack.
-                    push    ebx                             ; Save multiboot info.
-                    push    eax                             ; Save multiboot magic number.
-                    [extern __stack_chk_guard_setup]
-                    call    __stack_chk_guard_setup         ; Set up the stack guard.
-                    [extern _init]
-                    call    _init                           ; Call constructors.
-                    [extern boot]
-                    call    boot                            ; Call boot. EAX and EBX are still on the stack.
+_start:
+        cli
+        mov     esp, __stack_top__              ; Create the stack.
+        xor     ebp, ebp
+        push    ebp
+        push    ebx                             ; Save multiboot info.
+        push    eax                             ; Save multiboot magic number.
+        [extern __stack_chk_guard_setup]
+        call    __stack_chk_guard_setup         ; Set up the stack guard.
+        [extern _init]
+        call    _init                           ; Call constructors.
+        [extern boot]
+        call    boot                            ; Call boot. EAX and EBX are still on the stack.
+        [extern _fini]
+        call    _fini                           ; Call destructors.
 [global hang]
-hang:               cli
-                    hlt
-                    jmp     hang
+hang:
+        cli
+        hlt
+        jmp     hang
 [section .bss]
 [global __stack__]
 __stack__:          resb    STACK_SIZE

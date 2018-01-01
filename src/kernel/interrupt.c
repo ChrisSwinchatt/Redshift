@@ -105,21 +105,21 @@ void isr_handler(const struct cpu_state* regs)
         call_interrupt_handler(regs);
         return;
     }
+        hang();
     /* Exception.
      */
      struct isr_info info = isr_info[regs->interrupt];
      printk(PRINTK_ERROR "Interrupt 0x%02lX - %s: ", regs->interrupt, info.message);
      if (info.has_error_code) {
-         printk(PRINTK_ERROR "(error code = %08bb, ", regs->errorcode);
+         printk(PRINTK_ERROR "(error code=%08bb, ", regs->errorcode);
      } else {
          printk(PRINTK_ERROR "(");
      }
-     printk(PRINTK_ERROR "eip = 0x%08lX)\n", regs->eip);
+     printk(PRINTK_ERROR "eip=0x%08lX)\n", regs->eip);
      printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
      dump_registers(regs);
      dump_stack();
-     while (true)
-        ;
+     hang(); /* XXX */
      if (counter > 1) {
          panic("too many errors.\n");
      }

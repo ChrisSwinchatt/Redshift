@@ -24,6 +24,10 @@
 #include <redshift/mem/paging.h>
 #include <redshift/mem/static.h>
 
+static bool     kmalloc_allowed = false;
+static unsigned alloc_count = 0;
+static unsigned free_count  = 0;
+
 enum {
     HEAP_SIZE_MIN  = 0x00070000,
     BLOCKLIST_SIZE = 0x00002000,
@@ -58,8 +62,8 @@ enum {
 static uint32_t get_heap_region(uint64_t size)
 {
     DEBUG_ASSERT(size != 0);
-    RUNTIME_CHECK(memory_map_size() > 0 && memory_map_head() != NULL);
     const struct memory_map* memmap = memory_map_head();
+    RUNTIME_CHECK(memory_map_size() > 0 && memmap != NULL);
     do {
         const uint64_t region_size = memmap->end - memmap->start;
         if (memmap->type == MEMORY_TYPE_AVAILABLE && region_size >= size) {
@@ -75,6 +79,7 @@ int heap_init()
     DEBUG_ASSERT(UINT32_MAX - HEAP_SIZE_INIT > start);
     __kernel_heap__ = create_heap(start, start + HEAP_SIZE_INIT, HEAP_SIZE_INIT, true, false);
     DEBUG_ASSERT(__kernel_heap__ != NULL);
+    kmalloc_allowed = true;
     return 0;
 }
 
@@ -260,14 +265,14 @@ void* heap_alloc(struct heap* heap, size_t size, bool align)
 
 static uint32_t heap_contract(struct heap* heap, size_t new_size)
 {
-    DEBUG_ASSERT(new_size < (heap->end - heap->start));
+    uint32_t old_size = heap->end - heap->start;
+    DEBUG_ASSERT(new_size < old_size);
     if (new_size & 0x1000) {
         new_size &= 0x1000;
         new_size += 0x1000;
     }
     if (new_size < HEAP_SIZE_MIN)
         new_size = HEAP_SIZE_MIN;
-    uint32_t old_size = heap->end - heap->start;
     uint32_t i;
     for (i = old_size - 0x1000; i > new_size; i -= 0x1000) {
         frame_free(page_get(heap->start + i, kernel_directory, false));
@@ -353,10 +358,22 @@ void heap_free(struct heap* heap, void* ptr)
 
 void* kmalloc(size_t size)
 {
-    return heap_alloc(__kernel_heap__, size, true);
+    if (!(kmalloc_allowed)) {
+        panic("%s called before heap initialised", __func__);
+    }
+    void* p = heap_alloc(__kernel_heap__, size, true);
+    if (p) {
+        ++alloc_count;
+    }
+    return p;
 }
 
 void kfree(void* ptr)
 {
+    if (!(kmalloc_allowed)) {
+        panic("%s called before heap initialised", __func__);
+    }
     heap_free(__kernel_heap__, ptr);
+    ++free_count;
+    DEBUG_ASSERT(free_count <= alloc_count);
 }

@@ -20,6 +20,7 @@
  */
 #include <ctype.h>
 #include <string.h>
+#include <redshift/mem/heap.h>
 
 char* itos(long i, int base, char* buf, size_t n)
 {
@@ -38,7 +39,7 @@ char* itos(long i, int base, char* buf, size_t n)
 void* memchr(const void* array, int c, size_t n)
 {
     const char* p = array;
-    while (n-- > 0) {
+    while (n --> 0) {
         if (*p++ == c)
             return (void*)p;
     }
@@ -49,7 +50,7 @@ int memcmp(const void* p1, const void* p2, size_t n)
 {
     const char* s1 = p1;
     const char* s2 = p2;
-    while (n-- > 0) {
+    while (n --> 0) {
         if (*s1 != *s2)
             return *s1 - *s2;
     }
@@ -61,7 +62,7 @@ void* memcpy(void* dst, const void* src, size_t n)
     if (dst != src) {
         char* pdst = dst;
         const char* psrc = src;
-        while (n-- > 0) {
+        while (n --> 0) {
             *pdst++ = *psrc++;
         }
     }
@@ -91,7 +92,7 @@ void* memmove(void* dst, const void* src, size_t n)
 void* memset(void* array, int c, size_t n)
 {
     char* parray = array;
-    while (n-- > 0) {
+    while (n --> 0) {
         *parray++ = c;
     }
     return array;
@@ -106,8 +107,9 @@ char* strcat(char* dst, const char* src)
 char* strchr(const char* s, int c)
 {
     for (; *s != 0; ++s) {
-        if (*s == c)
+        if (*s == c) {
             return (char* ) s;
+        }
     }
     return NULL;
 }
@@ -115,16 +117,18 @@ char* strchr(const char* s, int c)
 int strcmp(const char* s1, const char* s2)
 {
     for (; *s1 != 0 && *s2 != 0; ++s1, ++s2) {
-        if (*s1 != *s2)
+        if (*s1 != *s2) {
             return *s1 - *s2;
+        }
     }
     return 0;
 }
 
 char* strcpy(char* dst, const char* src)
 {
-    while (*dst != 0 && *src != 0)
+    while (*dst != 0 && *src != 0) {
         *dst++ = *src++;
+    }
     return dst;
 }
 
@@ -150,17 +154,19 @@ char* strncat(char* dst, const char* src, size_t n)
 
 int strncmp(const char* s1, const char* s2, size_t n)
 {
-    for (; n-- > 0 && *s1 != 0 && *s2 != 0; ++s1, ++s2) {
-        if (*s1 != *s2)
+    for (; n --> 0 && *s1 != 0 && *s2 != 0; ++s1, ++s2) {
+        if (*s1 != *s2) {
             return *s1 - *s2;
+        }
     }
     return 0;
 }
 
 char* strncpy(char* dst, const char* src, size_t n)
 {
-    while (n-- > 0 && *src != 0)
-        *dst++ = *src++;
+    for (size_t i = 0; i < n && *src != 0; ++i, ++dst, ++src) {
+        *dst = *src;
+    }
     return dst;
 }
 
@@ -184,28 +190,38 @@ char* strstr(const char* dst, const char* src)
         const char* psrc = src;
         while ((*pdst++ == *psrc++) && *pdst && *psrc)
             ;
-        if (*psrc == 0)
+        if (*psrc == 0) {
             return (char*)dst;
+        }
     }
     return NULL;
 }
 
 char* stolower(char* s)
 {
-    char* p = s;
-    while (*p != 0) {
+    for (char* p = s; *p != 0; ++p) {
         *p = tolower(*p);
-        ++p;
     }
     return s;
 }
 
 char* stoupper(char* s)
 {
-    char* p = s;
-    while (*p != 0) {
+    for (char* p = s; *p != 0; ++p) {
         *p = toupper(*p);
-        ++p;
     }
     return s;
+}
+
+char* strdup(const char* s)
+{
+    size_t size = strlen(s);
+    char* dup = kmalloc(size);
+    if (dup == NULL) {
+        panic("can't allocate memory");
+    }
+    strncpy(dup, s, size);
+    printk("\"%s\" => \"%s\"\n", s, dup);
+    hang();
+    return dup;
 }

@@ -23,7 +23,7 @@
 #include <redshift/boot/tss.h>
 
 enum {
-    GDT_ENTRIES_SIZE = 5
+    GDT_ENTRIES_SIZE = 6
 };
 
 static struct gdt_entry {
@@ -64,7 +64,6 @@ void gdt_init(void)
     gdt_entry(2, 0x00000000, 0xFFFFFFFF, 0x92, 0xCF);
     gdt_entry(3, 0x00000000, 0xFFFFFFFF, 0xFA, 0xCF);
     gdt_entry(4, 0x00000000, 0xFFFFFFFF, 0xF2, 0xCF);
-    //gdt_entry(5, tss_base,   tss_limit,  0xE9, 0x00);
+    gdt_entry(5, tss_base,   tss_limit,  0x89, 0x40);
     loadgdt((uint32_t)&pgdt);
-    UNUSED(tss_limit);
 }
