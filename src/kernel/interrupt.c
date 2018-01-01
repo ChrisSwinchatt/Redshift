@@ -20,6 +20,7 @@
  */
 #include <redshift/debug/dump_hex.h>
 #include <redshift/debug/dump_registers.h>
+#include <redshift/debug/dump_stack.h>
 #include <redshift/kernel/asm.h>
 #include <redshift/kernel/console.h>
 #include <redshift/hal/cpu.h>
@@ -116,6 +117,7 @@ void isr_handler(const struct cpu_state* regs)
      printk(PRINTK_ERROR "eip = 0x%08lX)\n", regs->eip);
      printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
      dump_registers(regs);
+     dump_stack();
      while (true)
         ;
      if (counter > 1) {

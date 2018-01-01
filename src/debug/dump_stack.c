@@ -44,6 +44,10 @@ void dump_stack(void)
     static unsigned array[MAX_FRAMES];
     unsigned j = stacktrace(array, MAX_FRAMES);
     for (unsigned i = 0; i < j; ++i) {
-        printk("%d. At 0x%08X (aka <%s>)\n", i + 1, array[i], get_symbol_name(array[i]));
+        const char* symbol = get_symbol(array[i]);
+        if (symbol == NULL) {
+            symbol = "";
+        }
+        printk("%d. At 0x%08X (aka <%s>)\n", i + 1, array[i], symbol);
     }
 }

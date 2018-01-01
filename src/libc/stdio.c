@@ -260,8 +260,17 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
                 }
             }
             if (size) {
-                *str++ = (unsigned char) va_arg(args, int);
-                size--;
+                /* print '\0' if c == 0, otherwise print c
+                 */
+                unsigned char c = (unsigned char)va_arg(args, int);
+                if (c == 0) {
+                    *str++ = '\\';
+                    *str++ = '0';
+                    size -= 2;
+                } else {
+                    *str++ = c;
+                    size--;
+                }
             }
             while (--field_width > 0 && size) {
                 *str++ = ' ';
@@ -326,6 +335,7 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
         case 'X':
             flags |= LARGE;
+            FALL_THROUGH;
         case 'x':
             base = 16;
             break;

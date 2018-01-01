@@ -59,7 +59,7 @@ void memory_init(struct multiboot_tag* mb_tags)
                 } else {
                     prefix = 'k';
                 }
-                printk(PRINTK_DEBUG " * System has %lu %ciB RAM\n", mem, prefix);
+                printk(PRINTK_DEBUG "System has %lu %ciB RAM\n", mem, prefix);
                 break;
             default:
                 break;
@@ -77,7 +77,7 @@ void memory_map_init(struct multiboot_tag* mb_tags)
          tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
             case MULTIBOOT_TAG_TYPE_MMAP:
-                printk(PRINTK_DEBUG " * Memory map:\n");
+                printk(PRINTK_DEBUG "Memory map:\n");
                 for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
                      (uint8_t*)mmap < (uint8_t*)tag + tag->size;
                      mmap = (struct multiboot_mmap_entry*)((uint32_t)mmap +

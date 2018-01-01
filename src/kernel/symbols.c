@@ -24,54 +24,26 @@
 #include <redshift/mem/static.h>
 #include <string.h>
 
-static struct symbol {
+#define SYNTAX_ERROR(FMT, ...)     panic("syntax error in symbol table: %lu:%lu: " FMT, line, column, __VA_ARGS__)
+
+#define UNEXPECTED_TOKEN(EXPECTED) SYNTAX_ERROR("expected %s, got \"%c\"", EXPECTED, file[i])
+
+struct symbol {
     char*          name;
     uintptr_t      address;
     struct symbol* next;
-} * __symbols__ = NULL;
+};
 
-static void skip_whitespace(const char* file, size_t size, size_t* pi, size_t* pcolumn, size_t* pline)
-{
-    size_t i      = *pi;
-    size_t column = *pcolumn;
-    size_t line   = *pline;
-    for (; i < size && isspace(file[i]); ++i, ++column) {
-        if (file[i] == '\n') {
-            column = 1;
-            ++line;
-        }
-    }
-    *pi      = i;
-    *pcolumn = column;
-    *pline   = line;
-}
+static struct symbol* __symbols__ = NULL;
 
-static uintptr_t parse_address(const char* file, size_t size, size_t* pi, size_t* pcolumn, size_t* pline)
+static uintptr_t parse_address(const char* p, const char* q)
 {
-    static char buffer[20];
-    static const char* buffer_max = buffer + ARRAY_SIZE(buffer);
-    /* Copy address digits into temporary buffer.
-     */
-    size_t i      = *pi;
-    size_t column = *pcolumn;
-    size_t line   = *pline;
-    char* p       = buffer;
-    for (; i < size && isxdigit(file[i]) && p < buffer_max; ++i, ++column, ++p) {
-        *p = file[i];
-    }
-    *pi      = i;
-    *pcolumn = column;
-    *pline   = line;
-    /* Compute address in buffer.
-     */
     uintptr_t address = 0;
-    char* q = p;
-    p = buffer;
     for (; p < q; ++p) {
         unsigned value = 0;
         if (isdigit(*p)) {
             value = *p - '0';      /* '0' -> 0, '1' -> 1, etc. */
-        } else {
+        } else if (isalpha(*p)) {
             value = *p - 'A' + 10; /* 'A' -> 10, 'B' -> 11, etc. */
         }
         address *= 16;
@@ -80,63 +52,83 @@ static uintptr_t parse_address(const char* file, size_t size, size_t* pi, size_t
     return address;
 }
 
-static const char* parse_identifier(const char* file, size_t size, size_t* pi, size_t* pcolumn, size_t* pline)
-{
-    size_t i      = *pi;
-    size_t column = *pcolumn;
-    size_t line   = *pline;
-    const char* p = file + i;
-    for (; i < size && (file[i] == '_' || isalnum(file[i])); ++i, ++column)
-        ;
-    *pi      = i;
-    *pcolumn = column;
-    *pline   = line;
-    return p;
-}
+enum {
+    ADDRESS_MAX = (2 << sizeof(uintptr_t))/4,
+    NAME_MAX    = 2048
+};
 
-void symbols_load(uintptr_t address, size_t size)
+enum { ADDRESS = 0, SYMBOL = 1 };
+
+void symbols_load(uintptr_t ptr, size_t size)
 {
-    DEBUG_ASSERT(address != 0);
-    struct symbol* symbol = static_alloc(sizeof(*__symbols__));
-    const  char*   file   = (const char*)address;
+    DEBUG_ASSERT(ptr != 0);
+    __symbols__  = static_alloc(sizeof(*__symbols__));
+    struct symbol* symbol = __symbols__;
+    const  char*   file   = (const char*)ptr;
+    char address[ADDRESS_MAX];
+    char name[NAME_MAX];
     size_t line   = 1;
     size_t column = 1;
-    __symbols__ = symbol;
-    for (size_t i = 0; i < size; ++i, ++column) {
-        /* Skip leading whitespace/blank lines.
-         */
-        skip_whitespace(file, size, &i, &column, &line);
-        /* Parse address.
-         */
-        if (!(isxdigit(file[i]))) {
-            panic("syntax error in symbol table: %lu:%lu: expected digit, got \'%c\'", line, column, file[i]);
+    int    state  = ADDRESS;
+    char*  p      = address;
+    for (size_t i = 0; i < size && file[i] != 0; ++i, ++column) {
+        if (isspace(file[i])) {
+            if (file[i] == '\n') {
+                if (column == 1) {
+                    /* Stop on empty line.
+                     */
+                    break;
+                }
+                column = 1;
+                ++line;
+            }
+            switch (state) {
+                case ADDRESS:
+                    /* Copy address.
+                     */
+                    symbol->address = parse_address(address, p);
+                    state = SYMBOL;
+                    p     = name;
+                    break;
+                case SYMBOL:
+                    /* Copy symbol name and advance to the next symbol.
+                     */
+                    if (name[0] != '_' && !(isalpha(name[0]))) {
+                        *++p = 0;
+                        SYNTAX_ERROR("invalid symbol name \"%s\"", name);
+                    }
+                    symbol->name = static_alloc(p - name);
+                    strncpy(symbol->name, name, p - name);
+                    symbol->next = static_alloc(sizeof(*(symbol->next)));
+                    symbol = symbol->next;
+                    state  = ADDRESS;
+                    p      = address;
+                    break;
+                default:
+                    UNREACHABLE("no switch case for state %d", state);
+            }
+        } else {
+            switch (state) {
+                case ADDRESS:
+                    if (!(isxdigit(file[i]))) {
+                        UNEXPECTED_TOKEN("digit");
+                    }
+                    *p++ = file[i];
+                    break;
+                case SYMBOL:
+                    if (file[i] != '_' && !(isalnum(file[i]))) {
+                        UNEXPECTED_TOKEN("digit, letter or underscore");
+                    }
+                    *p++ = file[i];
+                    break;
+                default:
+                    UNREACHABLE("no switch case for state %d", state);
+            }
         }
-        symbol->address = parse_address(file, size, &i, &column, &line);
-        /* Skip whitespace in between.
-         */
-        if (!(isspace(file[i]))) {
-            panic("syntax error in symbol table: %lu:%lu: expected space, got \'%c\'", line, column, file[i]);
-        }
-        skip_whitespace(file, size, &i, &column, &line);
-        /* Parse identifier.
-         */
-        const char* name = parse_identifier(file, size, &i, &column, &line);
-        /* Copy identifier name into symbol.
-         */
-        {
-            size_t length = file + i - name;
-            symbol->name = static_alloc(length);
-            strncpy(symbol->name, name, length);
-        }
-        printk(PRINTK_DEBUG "0x%lX %s\n", symbol->address, symbol->name);
-        /* Allocate next symbol.
-         */
-        symbol->next = static_alloc(sizeof(*symbol));
-        symbol = symbol->next;
     }
 }
 
-const void* get_symbol(const char* name)
+const void* resolve_symbol(const char* name)
 {
     const struct symbol* symbol = __symbols__;
     while (symbol) {
@@ -148,7 +140,7 @@ const void* get_symbol(const char* name)
     return NULL;
 }
 
-const char* get_symbol_name(uintptr_t address)
+const char* get_symbol(uintptr_t address)
 {
     const struct symbol* symbol = __symbols__;
     while (symbol) {

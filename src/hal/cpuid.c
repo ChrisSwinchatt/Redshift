@@ -76,7 +76,7 @@ static void cpuid_get_vendor_string(struct cpuid* info)
     memcpy(info->vendor_string + 4, &regs[EDX], 4);
     memcpy(info->vendor_string + 8, &regs[ECX], 4);
     info->vendor_string[CPUID_VENDOR_STRING_MAX - 1] = 0;
-    printk(PRINTK_DEBUG " * Vendor ID: %s ", info->vendor_string);
+    printk(PRINTK_DEBUG "Vendor ID: %s ", info->vendor_string);
 }
 
 static void cpuid_get_vendor(struct cpuid* info)
@@ -122,7 +122,7 @@ static void cpuid_get_features(struct cpuid* info)
     info->type         = (regs[EAX] >> 12);
     info->features     = regs[ECX];
     info->features_ext = regs[EDX];
-    printk(PRINTK_DEBUG " * Type: %d\n * Family: %d\n * Model: %d\n * Stepping: %d\n",
+    printk(PRINTK_DEBUG "Type: %d\n * Family: %d\n * Model: %d\n * Stepping: %d\n",
            info->type, info->family, info->model, info->stepping);
 }
 
@@ -147,7 +147,7 @@ static void cpuid_get_brand_string(struct cpuid* info)
     strncpy(info->brand_string + 39, (const char*)&regs[ECX], 4);
     strncpy(info->brand_string + 43, (const char*)&regs[EDX], 4);
     info->brand_string[47] = 0;
-    printk(PRINTK_DEBUG " * Brand string: %s\n", info->brand_string);
+    printk(PRINTK_DEBUG "Brand string: %s\n", info->brand_string);
 }
 
 static void cpuid_get_model(struct cpuid* info)
@@ -185,7 +185,7 @@ static void cpuid_get_frequency(struct cpuid* info)
             freq /= 1000UL;
             unit = "kHz";
         }
-        printk(PRINTK_DEBUG " * Clock rate: %lu %s\n", freq, unit);
+        printk(PRINTK_DEBUG "Clock rate: %lu %s\n", freq, unit);
     }
 }
 

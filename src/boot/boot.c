@@ -72,15 +72,15 @@ static void init_interrupt_system(void)
      */
     /*tss_init(); XXX */
     gdt_init();
-    printk(PRINTK_DEBUG " * Loaded GDT\n");
+    printk(PRINTK_DEBUG "Loaded GDT\n");
     idt_init();
-    printk(PRINTK_DEBUG " * Loaded IDT\n");
+    printk(PRINTK_DEBUG "Loaded IDT\n");
     /*tss_load();
-    printk(PRINTK_DEBUG " * Loaded TSS\n"); XXX */
+    printk(PRINTK_DEBUG "Loaded TSS\n"); XXX */
     pic_init();
-    printk(PRINTK_DEBUG " * Initialised PIC\n");
+    printk(PRINTK_DEBUG "Initialised PIC\n");
     pit_init(TICK_RATE);
-    printk(PRINTK_DEBUG " * Initialised PIT\n");
+    printk(PRINTK_DEBUG "Initialised PIT\n");
 }
 
 static void init_boot_modules_1(struct multiboot_tag* tags)
@@ -93,7 +93,7 @@ static void init_hal(struct multiboot_tag* tags)
 {
     printk(PRINTK_DEBUG "Initialising hardware abstraction layer\n");
     cpu_init();
-    printk(PRINTK_DEBUG " * Initialised CPU\n");
+    printk(PRINTK_DEBUG "Initialised CPU\n");
     memory_init(tags);
 }
 
@@ -102,13 +102,13 @@ static void init_memory(struct multiboot_tag* tags)
 
     printk("Initialising memory manager...\n");
     static_init();
-    printk(PRINTK_DEBUG " * Initialised static allocator\n");
+    printk(PRINTK_DEBUG "Initialised static allocator\n");
     paging_init(memory_size_total());
-    printk(PRINTK_DEBUG " * Initialised page allocator\n");
+    printk(PRINTK_DEBUG "Initialised page allocator\n");
     memory_map_init(tags);
-    printk(PRINTK_DEBUG " * Parsed memory map\n");
+    printk(PRINTK_DEBUG "Parsed memory map\n");
     heap_init();
-    printk(PRINTK_DEBUG " * Intialised heap allocator\n");
+    printk(PRINTK_DEBUG "Intialised heap allocator\n");
 }
 
 static void init_boot_modules_2(struct multiboot_tag* tags)
@@ -127,7 +127,7 @@ static void load_initrd(void)
     }
     const struct boot_module* module = boot_modules_head();
     initrd_init((const char*)(module->start), module->end - module->start);
-    printk(PRINTK_DEBUG " * Loaded initial ramdisk\n");
+    printk(PRINTK_DEBUG "Loaded initial ramdisk\n");
 }
 
 static void load_symbol_table(void)
@@ -150,13 +150,13 @@ static void start_scheduler(void)
 {
     printk("Starting scheduler...\n");
     sched_init();
-    printk(PRINTK_DEBUG " * Started scheduler\n");
+    printk(PRINTK_DEBUG "Started scheduler\n");
 }
 
 static void enable_interrupts(void)
 {
     int_enable();
-    printk(PRINTK_DEBUG " * Enabled interrupts\n");
+    printk(PRINTK_DEBUG "Enabled interrupts\n");
 }
 
 static void __noreturn handle_events(void)
@@ -182,6 +182,6 @@ void __noreturn boot(uint32_t magic, uint32_t tags)
     load_symbol_table();
     init_devices();
     start_scheduler();
-    enable_interrupts();
+    /* enable_interrupts(); XXX */
     handle_events();
 }

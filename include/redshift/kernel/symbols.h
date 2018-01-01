@@ -25,23 +25,23 @@
 
 /**
  * Load the symbol table from a file in the format <hexadecimal address> <symbol name> (one per line).
- * \param address The address of the file in memory.
+ * \param ptr The address of the file in memory.
  * \param size The size of the file in memory.
  */
-void symbols_load(uintptr_t address, size_t size);
+void symbols_load(uintptr_t ptr, size_t size);
 
 /**
- * Get a pointer to a symbol by name.
+ * Resolve a symbol name to an address.
  * \param name The name of the symbol.
  * \return A pointer to the named symbol if it exists, otherwise NULL.
  */
-const void* get_symbol(const char* name);
+const void* resolve_symbol(const char* name);
 
 /**
- * Get the name of a symbol if it exists.
+ * Get the name of a symbol by its address.
  * \param address The address of the symbol.
  * \return The symbol's name.
  */
-const char* get_symbol_name(uintptr_t address);
+const char* get_symbol(uintptr_t address);
 
 #endif // ! REDSHIFT_KERNEL_SYMBOLS_H

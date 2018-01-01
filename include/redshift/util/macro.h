@@ -56,6 +56,8 @@
 #undef  __noreturn
 #define __noreturn                  __attribute__((noreturn))
 
+#define FALL_THROUGH                __attribute__((fallthrough))
+
 /** Find the number of elements in 'array' if known at compile-time. */
 #define ARRAY_SIZE(array)            (sizeof(array)/sizeof(*(array)))
 

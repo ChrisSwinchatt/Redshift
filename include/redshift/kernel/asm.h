@@ -46,23 +46,23 @@ enum io_commands {
 /**
  * Disables interrupts.
  */
-void int_disable();
+void int_disable(void);
 
 /**
  * Enables interrupts.
  */
-void int_enable();
+void int_enable(void);
 
 /**
  * Waits until the next interrupt (be careful with int_disable()!).
  */
-void int_wait();
+void int_wait(void);
 
 /**
  * Reads the timestamp counter.
  * \return The number of ticks since the last CPU reset.
  */
-uint64_t read_ticks();
+uint64_t read_ticks(void);
 
 /**
  * Writes a byte value to a port.
