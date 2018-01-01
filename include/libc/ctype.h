@@ -1,7 +1,7 @@
 /*
  * redshift/include/common/libc/ctype.h - C ctype library
  *
- * Copyright (c) 2012 Chris Swinchatt.
+ * Copyright (c) 2012-2018 Chris Swinchatt.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ int isupper(int c);
 int isxdigit(int c);
 
 /**
- * \brief Converts a character to lower case
+ * Converts a character to lower case
  * \param c ASCII character
  * \return If the character is uppercase, it will be converted to lowercase. If
  * it is already lowercase or is not an alphabetic character it will be returned
@@ -58,7 +58,7 @@ int isxdigit(int c);
 int tolower(int c);
 
 /**
- * \brief Converts a character to upper case
+ * Converts a character to upper case
  * \param c ASCII character
  * \return If the character is lowercase, it will be converted to uppercase. If
  * it is already uppercase or is not an alphabetic character it will be returned

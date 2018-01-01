@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,13 +18,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/sched.h>
-#include <kernel/cpu_state.h>
-#include <kernel/redshift.h>
-#include <kernel/timer.h>
-#include <mem/paging.h>
-#include <sched/idle.h>
-#include <sched/process.h>
+#include <redshift/boot/sched.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/timer.h>
+#include <redshift/sched/idle.h>
+#include <redshift/sched/process.h>
 
 int sched_init(void)
 {
@@ -34,6 +33,6 @@ int sched_init(void)
     if (process_spawn((uint32_t)idle, page_dir, 0) < 0) {
         panic("unable to spawn idle process");
     }
-    add_timer_event(SCHED_PERIOD, process_switch, NULL);
+    add_timer_event("switch", SCHED_PERIOD, process_switch, NULL);
     return 0;
 }

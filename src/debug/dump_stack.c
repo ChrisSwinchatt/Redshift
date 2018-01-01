@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,23 +18,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <debug/dump_stack.h>
-#include <kernel/redshift.h>
-#include <kernel/symbols.h>
+#include <redshift/debug/dump_stack.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/symbols.h>
 
 static unsigned __noinline stacktrace(unsigned* array, unsigned max_frames)
 {
     unsigned* frame = &max_frames - 2;
-    unsigned i;
-    for (i = 0; i < max_frames; ++i) {
+    for (unsigned i = 0; i < max_frames; ++i) {
         unsigned ip = frame[1];
         if (ip == 0) {
-            break;
+            return i;
         }
         array[i] = ip;
         frame = (unsigned*)frame[0];
     }
-    return i;
+    return max_frames;
 }
 
 #define MAX_FRAMES 10
@@ -44,6 +43,10 @@ void dump_stack(void)
     static unsigned array[MAX_FRAMES];
     unsigned j = stacktrace(array, MAX_FRAMES);
     for (unsigned i = 0; i < j; ++i) {
-        printk("%d. At 0x%08X (aka <%s>)\n", i + 1, array[i], get_symbol_name(array[i]));
+        const char* symbol = get_symbol(array[i]);
+        if (symbol == NULL) {
+            symbol = "";
+        }
+        printk("%d. At 0x%08X (aka <%s>)\n", i + 1, array[i], symbol);
     }
 }

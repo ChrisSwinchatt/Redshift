@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
 #ifndef REDSHIFT_LIBC__CSTDIO_H
 #define REDSHIFT_LIBC__CSTDIO_H
 
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 #include <stdarg.h>
 
 /**
- * \brief Write formatted text to a string
+ * Write formatted text to a string
  * \param buffer Buffer to store formatted string
  * \param n Maximum characters to write
  * \param fmt Formatted string
@@ -35,7 +35,7 @@
 int vsnprintf(char* buffer, uint32_t n, const char* fmt, va_list ap);
 
 /**
- * \brief Write formatted text to a string
+ * Write formatted text to a string
  * \param buffer Buffer to store formatted string
  * \param n Maximum characters to write
  * \param fmt Formatted string

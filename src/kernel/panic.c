@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,13 +19,15 @@
  * SOFTWARE.
  */
 #include <ctype.h>
-#include <debug/dump_registers.h>
-#include <debug/dump_stack.h>
-#include <kernel/asm.h>
-#include <kernel/console.h>
-#include <kernel/power.h>
-#include <kernel/redshift.h>
-#include <kernel/sleep.h>
+#include <redshift/debug/dump_registers.h>
+#include <redshift/debug/dump_stack.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/console.h>
+#include <redshift/kernel/power.h>
+#include <redshift/kernel.h>
+#include <redshift/kernel/panic.h>
+#include <redshift/kernel/printk.h>
+#include <redshift/kernel/sleep.h>
 #include <string.h>
 
 void __noreturn panic(const char* fmt, ...)
@@ -34,8 +36,9 @@ void __noreturn panic(const char* fmt, ...)
     get_cpu_state(&state);
     char buffer[strlen(PRINTK_ERROR) + strlen(fmt) + 1];
     int_disable();
-    memset(buffer,  0,   ARRAY_SIZE(buffer));
-    strncat(buffer, fmt, strlen(fmt));
+    memset(buffer,  0,            ARRAY_SIZE(buffer));
+    strncpy(buffer, PRINTK_ERROR, ARRAY_SIZE(buffer));
+    strncat(buffer, fmt,          strlen(fmt));
     printk(PRINTK_ERROR "Kernel panic - ");
     {
         va_list ap;

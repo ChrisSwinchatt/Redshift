@@ -17,9 +17,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <boot/sysinfo.h>
-#include <kernel/redshift.h>
-#include <mem/static.h>
+#include <redshift/boot/boot_module.h>
+#include <redshift/kernel.h>
+#include <redshift/mem/static.h>
 
 extern const symbol_t __end__; /* Defined in linker script. Points after .bss and stack. */
 uint32_t heap_addr;
@@ -27,8 +27,9 @@ uint32_t heap_addr;
 void static_init(void)
 {
     uint32_t end = (uint32_t)__end__;
-    if (__sysinfo__.modules_end > end) {
-        end = __sysinfo__.modules_end;
+    uintptr_t modules_end = boot_modules_end();
+    if (modules_end > end) {
+        end = modules_end;
     }
     heap_addr = (end & 0xFFFFF000) + 0x1000;
 }

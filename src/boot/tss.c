@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <boot/tss.h>
-#include <kernel/redshift.h>
+#include <redshift/boot/tss.h>
+#include <redshift/kernel.h>
 #include <string.h>
 
 extern symbol_t __stack_top__;
@@ -57,14 +57,16 @@ static struct tss {
 void tss_init(void)
 {
     memset(&tss, 0, sizeof(tss));
-    tss.esp0 = 0x00;
+    tss.esp0 = (uint32_t)__stack_top__;
     tss.ss0  = 0x10;
+/* XXX
     tss.cs   = 0x0B;
     tss.ds   = 0x13;
     tss.es   = 0x13;
     tss.fs   = 0x13;
     tss.gs   = 0x13;
     tss.ss   = 0x13;
+*/
     tss.iobt = sizeof(tss);
 }
 

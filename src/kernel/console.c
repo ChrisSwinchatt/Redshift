@@ -1,6 +1,6 @@
 /**
  * \file kernel/console.c
- * \brief Simple console output.
+ * Simple console output.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,15 +17,26 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <kernel/console.h>
-#include <kernel/redshift.h>
+#include <redshift/kernel/console.h>
+#include <redshift/kernel.h>
 
-struct console console;
-
-struct {
-    uint16_t* ptr;      /**< The framebuffer.       */
-    uint32_t size;      /**< The framebuffer size.  */
-} buffer;
+static struct console {
+    struct {
+        uint32_t columns;    /**< The number of columns. */
+        uint32_t rows;       /**< The number of rows.    */
+        uint8_t  background; /**< The background colour. */
+        uint8_t  foreground; /**< The foreground colour. */
+    } screen;
+    struct {
+        uint32_t x;          /**< The x co-ordinate.     */
+        uint32_t y;          /**< The y co-ordinate.     */
+        uint32_t flags;      /**< The cursor flags.      */
+    } cursor;
+    struct {
+        uint16_t* ptr;      /**< The frameconsole.buffer.       */
+        uint32_t size;      /**< The framebuffer size.  */
+    } buffer;
+} console;
 
 static uint32_t buffer_index(void)
 {
@@ -46,8 +57,8 @@ void console_init(void)
     console.cursor.x          = 0;
     console.cursor.y          = 0;
     console.cursor.flags      = CONSOLE_DEFAULT_CURSOR_FLAGS;
-    buffer.ptr                = (uint16_t*)CONSOLE_DEFAULT_FRAMEBUFFER;
-    buffer.size               = CONSOLE_DEFAULT_BUFFER_SIZE;
+    console.buffer.ptr        = (uint16_t*)CONSOLE_DEFAULT_FRAMEBUFFER;
+    console.buffer.size       = CONSOLE_DEFAULT_BUFFER_SIZE;
     console_clear();
 }
 
@@ -63,7 +74,7 @@ void console_disable_cursor()
     console.cursor.flags |= CONSOLE_CURSOR_DISABLED;
 }
 
-void console_writechar(int c)
+void console_write_char(int c)
 {
     switch (c) {
         case '\b':
@@ -81,7 +92,7 @@ void console_writechar(int c)
             console.cursor.x = (console.cursor.x + 8) & ~7;
             break;
         default:
-            buffer.ptr[buffer_index()] = c | (attribute() << 8);
+            console.buffer.ptr[buffer_index()] = c | (attribute() << 8);
             ++console.cursor.x;
             break;
     }
@@ -94,19 +105,19 @@ void console_writechar(int c)
     }
 }
 
-long console_writestring(const char* string)
+long console_write_string(const char* string)
 {
     long index = 0;
     while (string[index])
-        console_writechar(string[index++]);
+        console_write_char(string[index++]);
     console_update_cursor();
     return index;
 }
 
-long console_writeline(const char* line)
+long console_write_line(const char* line)
 {
-    long count = console_writestring(line);
-    console_writechar('\n');
+    long count = console_write_string(line);
+    console_write_char('\n');
     return count + 1;
 }
 
@@ -114,10 +125,10 @@ void console_scroll(void)
 {
     unsigned i = 0;
     for (i = 0; i < console.screen.columns * (console.screen.rows - 1); ++i) {
-        buffer.ptr[i] = buffer.ptr[i + console.screen.columns];
+        console.buffer.ptr[i] = console.buffer.ptr[i + console.screen.columns];
     }
     for (; i < console.screen.columns * console.screen.rows; ++i) {
-        buffer.ptr[i] = ' ' | (attribute() << 8);
+        console.buffer.ptr[i] = ' ' | (attribute() << 8);
     }
     console.cursor.y = console.screen.rows - 1;
     console_update_cursor();
@@ -134,9 +145,9 @@ static void hide_cursor(void)
 static void set_cursor_shape(void)
 {
     uint8_t tmp = 0;
-    if (test_flag(console.cursor.flags, CONSOLE_CURSOR_UNDERLINE))
+    if (TEST_FLAG(console.cursor.flags, CONSOLE_CURSOR_UNDERLINE))
         tmp = 255;
-    clear_bit(tmp, 5);
+    CLEAR_BIT(tmp, 5);
     io_outb(VGA_CMND, 0x0a);
     io_outb(VGA_DATA, tmp);
 }
@@ -151,7 +162,7 @@ static void set_cursor_position(void)
 
 void console_update_cursor(void)
 {
-    if (test_flag(console.cursor.flags, CONSOLE_CURSOR_DISABLED)) {
+    if (TEST_FLAG(console.cursor.flags, CONSOLE_CURSOR_DISABLED)) {
         hide_cursor();
     } else {
         set_cursor_shape();
@@ -159,11 +170,11 @@ void console_update_cursor(void)
     }
 }
 
-void console_clearline(void)
+void console_clear_line(void)
 {
     console.cursor.x = 0;
     while (console.cursor.x < console.screen.columns) {
-        buffer.ptr[buffer_index()] = ' ' | (attribute() << 8);
+        console.buffer.ptr[buffer_index()] = ' ' | (attribute() << 8);
         ++console.cursor.x;
     }
     console.cursor.x = 0;
@@ -174,9 +185,53 @@ void console_clear(void)
 {
     console.cursor.y = 0;
     while (console.cursor.y < console.screen.rows) {
-        console_clearline();
+        console_clear_line();
         ++console.cursor.y;
     }
     console.cursor.y = 0;
     console_update_cursor();
+}
+
+void console_set_foreground_color(console_color_t color)
+{
+    console.screen.foreground = color;
+}
+
+void console_set_background_color(console_color_t color)
+{
+    console.screen.background = color;
+}
+
+void console_set_color(console_color_t foreground, console_color_t background)
+{
+    console.screen.foreground = foreground;
+    console.screen.background = background;
+}
+
+console_color_t console_get_foreground_color(void)
+{
+    return console.screen.foreground;
+}
+
+console_color_t console_get_background_color(void)
+{
+    return console.screen.background;
+}
+
+void console_get_color(console_color_t* foreground, console_color_t* background)
+{
+    *foreground = console.screen.foreground;
+    *background = console.screen.background;
+}
+
+void console_set_cursor(uint32_t x, uint32_t y)
+{
+    console.cursor.x = x;
+    console.cursor.y = y;
+}
+
+void console_get_cursor(uint32_t* x, uint32_t* y)
+{
+    *x = console.cursor.x;
+    *y = console.cursor.y;
 }

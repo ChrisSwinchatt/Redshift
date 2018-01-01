@@ -1,5 +1,5 @@
-/* Copyright (c) 2012 Chris Swinchatt.
- * 
+/* Copyright (c) 2012-2018 Chris Swinchatt.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 #include <ctype.h>
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 
 enum {
     ALNUM  = 1 <<  0,
@@ -90,7 +90,7 @@ static const unsigned ctype_table[] = {
     /*  50  2     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
     /*  51  3     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
     /*  52  4     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
-    /*  53  5     */ DIGIT | XDIGIT | ALNUM | GRAPH |  PRINT,
+    /*  53  5     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
     /*  54  6     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
     /*  55  7     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
     /*  56  8     */ DIGIT | XDIGIT | ALNUM | GRAPH | PRINT,
@@ -102,12 +102,12 @@ static const unsigned ctype_table[] = {
     /*  62  >     */ PUNCT | GRAPH | PRINT,
     /*  63  ?     */ PUNCT | GRAPH | PRINT,
     /*  64  @     */ PUNCT | GRAPH | PRINT,
-    /*  65  A     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  66  B     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  67  C     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  68  D     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  69  E     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  70  F     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
+    /*  65  A     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  66  B     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  67  C     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  68  D     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  69  E     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  70  F     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
     /*  71  G     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
     /*  72  H     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
     /*  73  I     */ UPPER | ALPHA | ALNUM | GRAPH | PRINT,
@@ -134,12 +134,12 @@ static const unsigned ctype_table[] = {
     /*  94  ^     */ PUNCT | GRAPH | PRINT,
     /*  95  _     */ PUNCT | GRAPH | PRINT,
     /*  96  `     */ PUNCT | GRAPH | PRINT,
-    /*  97  a     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  98  b     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
-    /*  99  c     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
-    /* 100  d     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
-    /* 101  e     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
-    /* 102  f     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
+    /*  97  a     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  98  b     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /*  99  c     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /* 100  d     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /* 101  e     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
+    /* 102  f     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT | XDIGIT,
     /* 103  g     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
     /* 104  h     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
     /* 105  i     */ LOWER | ALPHA | ALNUM | GRAPH | PRINT,
@@ -169,74 +169,76 @@ static const unsigned ctype_table[] = {
 
 int isalnum(int c)
 {
-    return test_flag(ctype_table[c], ALNUM);
+    return TEST_FLAG(ctype_table[c], ALNUM);
 }
 
 int isalpha(int c)
 {
-    return test_flag(ctype_table[c], ALPHA);
+    return TEST_FLAG(ctype_table[c], ALPHA);
 }
 
 int isblank(int c)
 {
-    return test_flag(ctype_table[c], BLANK);
+    return TEST_FLAG(ctype_table[c], BLANK);
 }
 
 int iscntrl(int c)
 {
-    return test_flag(ctype_table[c], CNTRL);
+    return TEST_FLAG(ctype_table[c], CNTRL);
 }
 
 int isdigit(int c)
 {
-    return test_flag(ctype_table[c], DIGIT);
+    return TEST_FLAG(ctype_table[c], DIGIT);
 }
 
 int isgraph(int c)
 {
-    return test_flag(ctype_table[c], GRAPH);
+    return TEST_FLAG(ctype_table[c], GRAPH);
 }
 
 int islower(int c)
 {
-    return test_flag(ctype_table[c], LOWER);
+    return TEST_FLAG(ctype_table[c], LOWER);
 }
 
 int isprint(int c)
 {
-    return test_flag(ctype_table[c], PRINT);
+    return TEST_FLAG(ctype_table[c], PRINT);
 }
 
 int ispunct(int c)
 {
-    return test_flag(ctype_table[c], PUNCT);
+    return TEST_FLAG(ctype_table[c], PUNCT);
 }
 
 int isspace(int c)
 {
-    return test_flag(ctype_table[c], SPACE);
+    return TEST_FLAG(ctype_table[c], SPACE);
 }
 
 int isupper(int c)
 {
-    return test_flag(ctype_table[c], UPPER);
+    return TEST_FLAG(ctype_table[c], UPPER);
 }
 
 int isxdigit(int c)
 {
-    return test_flag(ctype_table[c], XDIGIT);
+    return TEST_FLAG(ctype_table[c], XDIGIT);
 }
 
 int toupper(int c)
 {
-    if (!(islower(c)))
+    if (!(islower(c))) {
         return c;
+    }
     return ((c - 'a') + 'A');
 }
 
 int tolower(int c)
 {
-    if (!(isupper(c)))
+    if (!(isupper(c))) {
         return c;
+    }
     return ((c - 'A') + 'a');
 }

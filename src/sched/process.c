@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,10 +18,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
-#include <mem/heap.h>
-#include <mem/paging.h>
-#include <sched/process.h>
+#include <redshift/kernel.h>
+#include <redshift/mem/heap.h>
+#include <redshift/mem/paging.h>
+#include <redshift/sched/process.h>
 #include <string.h>
 
 static struct process {

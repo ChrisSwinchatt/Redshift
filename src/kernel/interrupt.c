@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,13 +18,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <debug/dump_hex.h>
-#include <debug/dump_registers.h>
-#include <kernel/asm.h>
-#include <kernel/console.h>
-#include <kernel/cpu_state.h>
-#include <kernel/interrupt.h>
-#include <kernel/redshift.h>
+#include <redshift/debug/dump_hex.h>
+#include <redshift/debug/dump_registers.h>
+#include <redshift/debug/dump_stack.h>
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/console.h>
+#include <redshift/hal/cpu.h>
+#include <redshift/kernel/interrupt.h>
+#include <redshift/kernel.h>
 
 #define ISR_HANDLERS_SIZE 256
 
@@ -107,17 +108,17 @@ void isr_handler(const struct cpu_state* regs)
     /* Exception.
      */
      struct isr_info info = isr_info[regs->interrupt];
-     printk(PRINTK_ERROR "Interrupt 0x%02X - %s: ", regs->interrupt, info.message);
+     printk(PRINTK_ERROR "Interrupt 0x%02lX - %s: ", regs->interrupt, info.message);
      if (info.has_error_code) {
-         printk(PRINTK_ERROR "(error code = %08bb, ", regs->errorcode);
+         printk(PRINTK_ERROR "(error code=%08bb, ", regs->errorcode);
      } else {
          printk(PRINTK_ERROR "(");
      }
-     printk(PRINTK_ERROR "eip = 0x%08lX)\n", regs->eip);
+     printk(PRINTK_ERROR "eip=0x%08lX)\n", regs->eip);
      printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
      dump_registers(regs);
-     while (true)
-        ;
+     dump_stack();
+     hang(); /* XXX */
      if (counter > 1) {
          panic("too many errors.\n");
      }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,63 +18,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <debug/dump_registers.h>
-#include <kernel/redshift.h>
+#include <redshift/debug/dump_registers.h>
+#include <redshift/kernel.h>
 
 static void dump_cr0(uint32_t cr0)
 {
     printk("CR0:   [");
-    if (test_bit(cr0, 31)) {
+    if (TEST_BIT(cr0, 31)) {
         printk("p");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 30)) {
+    if (TEST_BIT(cr0, 30)) {
         printk("C");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 29)) {
+    if (TEST_BIT(cr0, 29)) {
         printk("n");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 18)) {
+    if (TEST_BIT(cr0, 18)) {
         printk("A");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 16)) {
+    if (TEST_BIT(cr0, 16)) {
         printk("W");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 5)) {
+    if (TEST_BIT(cr0, 5)) {
         printk("N");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 4)) {
+    if (TEST_BIT(cr0, 4)) {
         printk("e");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 3)) {
+    if (TEST_BIT(cr0, 3)) {
         printk("T");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 2)) {
+    if (TEST_BIT(cr0, 2)) {
         printk("E");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 1)) {
+    if (TEST_BIT(cr0, 1)) {
         printk("M");
     } else {
         printk("-");
     }
-    if (test_bit(cr0, 0)) {
+    if (TEST_BIT(cr0, 0)) {
         printk("P");
     } else {
         printk("-");
@@ -84,51 +84,51 @@ static void dump_cr0(uint32_t cr0)
 
 static void dump_eflags(uint32_t eflags)
 {
-    printk("FLAGS: [%0lud", (test_bit(eflags, 12) << 1) | test_bit(eflags, 13));
-    if (test_bit(eflags, 11)) {
+    printk("FLAGS: [%0lud", (TEST_BIT(eflags, 12) << 1) | TEST_BIT(eflags, 13));
+    if (TEST_BIT(eflags, 11)) {
         printk("O");
     } else {
         printk("-");
     }
-    if (test_bit(eflags, 10)) {
+    if (TEST_BIT(eflags, 10)) {
         printk("D");
     } else {
         printk("-");
     }
-    if (test_bit(eflags, 9)) {
+    if (TEST_BIT(eflags, 9)) {
         printk("I");
     } else {
         printk("-");
     }
-    if (test_bit(eflags, 8)) {
+    if (TEST_BIT(eflags, 8)) {
         printk("T");
     } else {
         printk("-");
     }
-    if (test_bit(eflags, 7)) {
+    if (TEST_BIT(eflags, 7)) {
         printk("S");
     } else {
         printk("-");
     }
-    if (test_bit(eflags, 6)) {
+    if (TEST_BIT(eflags, 6)) {
         printk("Z");
     } else {
         printk("-");
     }
     printk("-");
-    if (test_bit(eflags, 4)) {
+    if (TEST_BIT(eflags, 4)) {
         printk("A");
     } else {
         printk("-");
     }
     printk("-");
-    if (test_bit(eflags, 2)) {
+    if (TEST_BIT(eflags, 2)) {
         printk("P");
     } else {
         printk("-");
     }
     printk("-");
-    if (test_bit(eflags, 0)) {
+    if (TEST_BIT(eflags, 0)) {
         printk("C");
     } else {
         printk("-");

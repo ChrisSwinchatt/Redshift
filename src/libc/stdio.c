@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-14 Chris Swinchatt.
+/* Copyright (c) 2012-2018-14 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <kernel/redshift.h>
+#include <redshift/kernel.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
@@ -260,8 +260,17 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
                 }
             }
             if (size) {
-                *str++ = (unsigned char) va_arg(args, int);
-                size--;
+                /* print '\0' if c == 0, otherwise print c
+                 */
+                unsigned char c = (unsigned char)va_arg(args, int);
+                if (c == 0) {
+                    *str++ = '\\';
+                    *str++ = '0';
+                    size -= 2;
+                } else {
+                    *str++ = c;
+                    size--;
+                }
             }
             while (--field_width > 0 && size) {
                 *str++ = ' ';
@@ -326,6 +335,7 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
         case 'X':
             flags |= LARGE;
+            FALL_THROUGH;
         case 'x':
             base = 16;
             break;
