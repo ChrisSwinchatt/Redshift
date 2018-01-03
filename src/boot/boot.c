@@ -41,22 +41,46 @@
 
 static void splash(void)
 {
-    static const char* splash_text = " ________________________\n"
-                                     "|   ____ |  ______|  ___ \\   __      ___  __ ___\n"
-                                     "|      __|  |_____| |   | | |_  |__|  |  |__  |\n"
-                                     "|  |\\  \\ |  |_____| |___| | __| |  | _|_ |    |\n"
-                                     "|__| \\__\\|________|______/\n";
+    static const char* splash_text[] = {
+        "                          _   __  _   _      ___  __ ___",
+        "                         |_| |__ | \\ |_  |_|  |  |__  |",
+        "                         | \\ |__ |_/  _| | | _|_ |    |"
+    };
+    static const size_t splash_lines = ARRAY_SIZE(splash_text);
     const console_color_t foreground = console_get_foreground_color();
-    console_set_foreground_color(CONSOLE_COLOR_RED);
-    console_write_string(splash_text);
+    console_set_foreground_color(CONSOLE_COLOR_LIGHT_RED);
+    for (size_t i = 0; i < splash_lines; ++i) {
+        console_write_line(splash_text[i]);
+    }
     console_set_foreground_color(foreground);
+    console_set_origin(0, splash_lines);
 }
+
+#define TYPE_LIST(F)\
+    F(int8_t,    1)\
+    F(int16_t,   2)\
+    F(int32_t,   4)\
+    F(int64_t,   8)\
+    F(uint8_t,   1)\
+    F(uint16_t,  2)\
+    F(uint32_t,  4)\
+    F(uint64_t,  8)\
+    F(uintptr_t, 4)\
+    F(size_t,    4)\
+    F(void*,     4)
 
 static void check_boot_env(uint32_t magic, uint32_t tags)
 {
-    printk(PRINTK_DEBUG "Checking boot environment...\n");
+    printk(PRINTK_INFO "Checking boot environment\n");
+    /* Check type sizes.
+     */
+#define CHECK_SIZE(T, S) RUNTIME_CHECK(sizeof(T) == S);
+    TYPE_LIST(CHECK_SIZE)
+#undef CHECK_SIZE
+    /* Check bootloader info.
+     */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-        panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX).",
+        panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX)",
               (uint32_t)MULTIBOOT_BOOTLOADER_MAGIC,
               magic);
     }
@@ -65,9 +89,11 @@ static void check_boot_env(uint32_t magic, uint32_t tags)
     }
 }
 
+#undef TYPE_LIST
+
 static void init_interrupt_system(void)
 {
-    printk(PRINTK_DEBUG "Initialising interrupt system...\n");
+    printk(PRINTK_INFO "Initialising interrupt system\n");
     tss_init();
     gdt_init();
     printk(PRINTK_DEBUG "Loaded GDT\n");
@@ -83,13 +109,13 @@ static void init_interrupt_system(void)
 
 static void init_boot_modules_1(struct multiboot_tag* tags)
 {
-    printk(PRINTK_DEBUG "Discovering boot modules...\n");
+    printk(PRINTK_INFO "Discovering boot modules\n");
     discover_boot_modules(tags);
 }
 
 static void init_hal(struct multiboot_tag* tags)
 {
-    printk(PRINTK_DEBUG "Initialising hardware abstraction layer\n");
+    printk(PRINTK_INFO "Initialising hardware abstraction layer\n");
     cpu_init();
     printk(PRINTK_DEBUG "Initialised CPU\n");
     memory_init(tags);
@@ -98,7 +124,7 @@ static void init_hal(struct multiboot_tag* tags)
 static void init_memory(struct multiboot_tag* tags)
 {
 
-    printk("Initialising memory manager...\n");
+    printk(PRINTK_INFO "Initialising memory manager\n");
     static_init();
     printk(PRINTK_DEBUG "Initialised static allocator\n");
     paging_init(memory_size_total());
@@ -111,7 +137,7 @@ static void init_memory(struct multiboot_tag* tags)
 
 static void init_boot_modules_2(struct multiboot_tag* tags)
 {
-    printk(PRINTK_DEBUG "Processing boot modules...\n");
+    printk(PRINTK_INFO "Processing boot modules\n");
     save_boot_modules(tags);
 }
 
@@ -119,7 +145,7 @@ static void load_initrd(void)
 {
     /* Initial ramdisk should always be the first boot module.
      */
-    printk(PRINTK_DEBUG "Loading initial ramdisk...\n");
+    printk(PRINTK_INFO "Loading initial ramdisk\n");
     if (boot_modules_count() < 1) {
         panic("no initial ramdisk (must be passed as first boot module)");
     }
@@ -130,7 +156,7 @@ static void load_initrd(void)
 
 static void load_symbol_table(void)
 {
-    printk(PRINTK_DEBUG "Loading symbol table...\n");
+    printk(PRINTK_INFO "Loading symbol table\n");
     const struct initrd_file* symtab = initrd_get_file_by_name("boot/redshift.map");
     if (symtab == NULL) {
         panic("initial ramdisk does not contain the symbol table");
@@ -146,7 +172,7 @@ static void init_devices(void)
 
 static void start_scheduler(void)
 {
-    printk("Starting scheduler...\n");
+    printk(PRINTK_INFO "Starting scheduler\n");
     sched_init();
     printk(PRINTK_DEBUG "Started scheduler\n");
 }
@@ -169,6 +195,7 @@ void __noreturn boot(uint32_t magic, uint32_t tags)
     struct multiboot_tag* mb_tags = (struct multiboot_tag*)tags;
     int_disable();
     console_init();
+    console_clear();
     splash();
     check_boot_env(magic, tags);
     init_interrupt_system();

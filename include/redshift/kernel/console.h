@@ -24,6 +24,8 @@
 
 /** Console output colours. */
 typedef enum console_color {
+    /* NB: Order is significant here.
+     */
     CONSOLE_COLOR_BLACK,
     CONSOLE_COLOR_BLUE,
     CONSOLE_COLOR_GREEN,
@@ -43,21 +45,20 @@ typedef enum console_color {
 } console_color_t;
 
 /** Console cursor flags. */
-typedef enum console_cursor_flags {
-    CONSOLE_CURSOR_DISABLED,  /**< Cursor disabled.       */
-    CONSOLE_CURSOR_ENABLED,   /**< Cursor enabled.        */
-    CONSOLE_CURSOR_UNDERLINE, /**< Underline cursor (_).  */
-    CONSOLE_CURSOR_BLOCK,     /**< Block cursor ([]).     */
-} console_cursor_flags_t;
+typedef enum console_cursor_mode {
+    CONSOLE_CURSOR_DISABLED,  /**< Cursor disabled.      */
+    CONSOLE_CURSOR_UNDERLINE, /**< Underline cursor (_). */
+    CONSOLE_CURSOR_BLOCK,     /**< Block cursor ([]).    */
+} console_cursor_mode_t;
 
 enum {
-    CONSOLE_DEFAULT_COLUMNS      = 80,
-    CONSOLE_DEFAULT_ROWS         = 25,
-    CONSOLE_DEFAULT_BACKGROUND   = CONSOLE_COLOR_BLACK,
-    CONSOLE_DEFAULT_FOREGROUND   = CONSOLE_COLOR_LIGHT_GRAY,
-    CONSOLE_DEFAULT_CURSOR_FLAGS = CONSOLE_CURSOR_DISABLED,
-    CONSOLE_DEFAULT_BUFFER_SIZE  = CONSOLE_DEFAULT_COLUMNS * CONSOLE_DEFAULT_ROWS,
-    CONSOLE_DEFAULT_FRAMEBUFFER  = 0xB8000
+    CONSOLE_DEFAULT_COLUMNS     = 80,
+    CONSOLE_DEFAULT_ROWS        = 25,
+    CONSOLE_DEFAULT_FRAMEBUFFER = 0xB8000,
+    CONSOLE_DEFAULT_TAB_SIZE    = 8,
+    CONSOLE_DEFAULT_BACKGROUND  = CONSOLE_COLOR_BLACK,
+    CONSOLE_DEFAULT_FOREGROUND  = CONSOLE_COLOR_LIGHT_GRAY,
+    CONSOLE_DEFAULT_CURSOR_MODE = CONSOLE_CURSOR_UNDERLINE
 };
 
 /**
@@ -72,14 +73,14 @@ void console_init(void);
 void console_add_key(int c);
 
 /**
- * Enables the cursor.
+ * Set the cursor mode.
  */
-void console_enable_cursor();
+void console_set_cursor_mode(console_cursor_mode_t mode);
 
 /**
  * Disables the cursor.
  */
-void console_disable_cursor();
+void console_disable_cursor(void);
 
 /**
  * Writes a character to the console.
@@ -121,20 +122,73 @@ void console_clear_line(void);
  */
 void console_clear(void);
 
+/**
+ * Set the foreground colour.
+ * \param color The new foreground colour.
+ */
 void console_set_foreground_color(console_color_t color);
 
+/**
+ * Set the background colour.
+ * \param color The new background colour.
+ */
 void console_set_background_color(console_color_t color);
 
+/**
+ * Set the foreground and background colours.
+ * \param foreground The new foreground colour.
+ * \param background The new background colour.
+ */
 void console_set_color(console_color_t foreground, console_color_t background);
 
+/**
+ * Get the current foreground colour.
+ * \return The current foreground colour.
+ */
 console_color_t console_get_foreground_color(void);
 
+
+/**
+ * Get the current foreground colour.
+ * \return The current foreground colour.
+ */
 console_color_t console_get_background_color(void);
 
+
+/**
+ * Get the current foreground colour.
+ * \return The current foreground colour.
+ */
 void console_get_color(console_color_t* foreground, console_color_t* background);
 
+/**
+ * Set the cursor position.
+ * \param x The x co-ordinate of the new cursor position.
+ * \param y The y co-ordinate of the new cursor position.
+ */
 void console_set_cursor(uint32_t x, uint32_t y);
 
+
+/**
+ * Get the current cursor position.
+ * \param x_origin Contains the x co-ordinate of the current cursor position.
+ * \param y_origin Contains the y co-ordinate of the current cursor position.
+ */
 void console_get_cursor(uint32_t* x, uint32_t* y);
+
+/**
+ * Set the cursor origin. Scroll and clear operations will not affect positions where x < x_origin OR y < y_origin.
+ * \param x_origin The x origin.
+ * \param y_origin The y origin.
+ */
+void console_set_origin(uint32_t x_origin, uint32_t y_origin);
+
+
+/**
+ * Get the cursor origin.
+ * \param x_origin Contains the x origin.
+ * \param y_origin Contains the y origin.
+ */
+void console_get_origin(uint32_t* x_origin, uint32_t* y_origin);
 
 #endif /* ! REDSHIFT_KERNEL_CONSOLE_H */
