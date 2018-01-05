@@ -30,19 +30,21 @@
 #include <redshift/boot/multiboot.h>
 #include <redshift/kernel.h>
 
-enum {
-    MEMORY_TYPE_INVALID     = MULTIBOOT_MEMORY_INVALID,
-    MEMORY_TYPE_AVAILABLE   = MULTIBOOT_MEMORY_AVAILABLE,
-    MEMORY_TYPE_RESERVED    = MULTIBOOT_MEMORY_RESERVED,
-    MEMORY_TYPE_RECLAIMABLE = MULTIBOOT_MEMORY_RECLAIMABLE,
-    MEMORY_TYPE_NVS         = MULTIBOOT_MEMORY_NVS
-};
+/** Memory region type. */
+typedef enum {
+    MEMORY_TYPE_INVALID     = MULTIBOOT_MEMORY_INVALID,     /**< Invalid memory.                            */
+    MEMORY_TYPE_AVAILABLE   = MULTIBOOT_MEMORY_AVAILABLE,   /**< Available memory.                          */
+    MEMORY_TYPE_RESERVED    = MULTIBOOT_MEMORY_RESERVED,    /**< Unavailable memory.                        */
+    MEMORY_TYPE_RECLAIMABLE = MULTIBOOT_MEMORY_RECLAIMABLE, /**< Unavailable memory which can be reclaimed. */
+    MEMORY_TYPE_NVS         = MULTIBOOT_MEMORY_NVS          /**< Memory used by ACPI.                       */
+} memory_type_t;
 
+/** Memory map. */
 struct memory_map {
-    uint32_t type;
-    uint64_t start;
-    uint64_t end;
-    const struct memory_map* next;
+    memory_type_t            type;  /**< Memory region type.  */
+    uint64_t                 start; /**< Memory region start. */
+    uint64_t                 end;   /**< Memory region end.   */
+    const struct memory_map* next;  /**< Next region in map.  */
 };
 
 /**
@@ -72,17 +74,20 @@ size_t memory_map_size(void);
 
 /**
  * Get the size of memory in kiB (lower part).
+ * \return The size of memory in kiB (lower part).
  */
-uint32_t memory_size_lower(void);
+size_t memory_size_lower(void);
 
 /**
  * Get the size of memory in kiB (upper part).
+ * \return The size of memory in kiB (upper part).
  */
-uint32_t memory_size_upper(void);
+size_t memory_size_upper(void);
 
 /**
  * Get the total size of memory in kiB.
+ * \return The total size of memory in kiB.
  */
-uint32_t memory_size_total(void);
+size_t memory_size_total(void);
 
 #endif /* ! REDSHIFT_HAL_MEMORY_H */

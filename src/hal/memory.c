@@ -30,11 +30,11 @@
 #include <redshift/kernel.h>
 
 static struct memory {
-    uint32_t size_lower;
-    uint32_t size_upper;
+    size_t             size_lower;
+    size_t             size_upper;
     struct memory_map* map;
-    size_t   size_map;
-} __memory__;
+    size_t             size_map;
+} memory;
 
 void memory_init(struct multiboot_tag* mb_tags)
 {
@@ -44,10 +44,10 @@ void memory_init(struct multiboot_tag* mb_tags)
          tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
             case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-                __memory__.size_lower = ((struct multiboot_tag_basic_meminfo*)tag)->mem_lower;
-                __memory__.size_upper = ((struct multiboot_tag_basic_meminfo*)tag)->mem_upper;
+                memory.size_lower = ((struct multiboot_tag_basic_meminfo*)tag)->mem_lower;
+                memory.size_upper = ((struct multiboot_tag_basic_meminfo*)tag)->mem_upper;
                 char prefix;
-                uint32_t mem = __memory__.size_lower + __memory__.size_upper;
+                uint32_t mem = memory.size_lower + memory.size_upper;
                 if (mem > 1024*1024) {
                     mem /= 1024*1024;
                     ++mem;
@@ -84,12 +84,12 @@ void memory_map_init(struct multiboot_tag* mb_tags)
                             ((struct multiboot_tag_mmap*)tag)->entry_size)) {
                     /* Store the entry into `info`.
                      */
-                    if (memmap == NULL || __memory__.map == NULL) {
+                    if (memmap == NULL || memory.map == NULL) {
                         /* Initialise the list.
                          */
-                        __memory__.map = (struct memory_map*)static_alloc(sizeof(*__memory__.map));
-                        RUNTIME_CHECK(__memory__.map != NULL);
-                        memmap = __memory__.map;
+                        memory.map = (struct memory_map*)static_alloc(sizeof(*memory.map));
+                        RUNTIME_CHECK(memory.map != NULL);
+                        memmap = memory.map;
                     } else {
                         /* Add a new node to the list.
                          */
@@ -101,7 +101,7 @@ void memory_map_init(struct multiboot_tag* mb_tags)
                     memmap->start = mmap->addr;
                     memmap->end   = mmap->addr + mmap->len - 1;
                     memmap->next  = NULL;
-                    ++__memory__.size_map;
+                    ++memory.size_map;
                     /* Print some debugging info about the memory region.
                      */
                     {
@@ -128,25 +128,25 @@ void memory_map_init(struct multiboot_tag* mb_tags)
 
 const struct memory_map* memory_map_head(void)
 {
-    return __memory__.map;
+    return memory.map;
 }
 
 size_t memory_map_size(void)
 {
-    return __memory__.size_map;
+    return memory.size_map;
 }
 
-uint32_t memory_size_lower(void)
+size_t memory_size_lower(void)
 {
-    return __memory__.size_lower;
+    return memory.size_lower;
 }
 
-uint32_t memory_size_upper(void)
+size_t memory_size_upper(void)
 {
-    return __memory__.size_upper;
+    return memory.size_upper;
 }
 
-uint32_t memory_size_total(void)
+size_t memory_size_total(void)
 {
-    return __memory__.size_lower + __memory__.size_upper;
+    return memory.size_lower + memory.size_upper;
 }

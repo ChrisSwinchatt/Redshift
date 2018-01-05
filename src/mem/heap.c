@@ -1,6 +1,6 @@
 /**
  * \file mem/heap.c
- * \brief Heap allocator.
+ * \brief Heap memory manager.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -240,8 +240,8 @@ static struct blockheader* create_or_update_block(
     return header;
 }
 
-/* Create a hole at the end of a  */
-static void* create_hole_and_alloc(struct heap* heap, size_t size, bool align, size_t new_size)
+/* Create a hole at the end of a memory block. */
+static void* create_hole_and_alloc(struct heap* heap, size_t size, bool page_align, size_t new_size)
 {
     /* Expand the heap.
      */
@@ -255,7 +255,7 @@ static void* create_hole_and_alloc(struct heap* heap, size_t size, bool align, s
     create_or_update_block(heap, index, old_end, old_len - new_len, BLOCK_FLAGS_IS_HOLE);
     /* Try to allocate again.
      */
-    return heap_alloc(heap, size, align);
+    return heap_alloc(heap, size, page_align);
 }
 
 static struct blockheader* create_hole(struct heap* heap, uintptr_t address, size_t size)
@@ -275,7 +275,7 @@ static struct blockheader* create_hole(struct heap* heap, uintptr_t address, siz
     return header;
 }
 
-static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, size_t new_size, bool align)
+static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, size_t new_size, bool page_align)
 {
     DEBUG_ASSERT(hole >= 0);
     DEBUG_ASSERT(new_size > old_size);
@@ -290,8 +290,8 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
         old_size += original_size - new_size;
         new_size =  original_size;
     }
-    if (align && (original_addr & PAGE_MASK)) {
-        /* If address needs to be aligned, page-align it and create a new hole in front.
+    if (page_align && (original_addr & PAGE_MASK)) {
+        /* If address needs to be aligned, page-page_align it and create a new hole in front.
          */
         const size_t              adjusted_size = PAGE_SIZE - (original_addr & 0xFFF) - sizeof(struct blockheader);
         const uintptr_t           new_addr      = original_addr + adjusted_size;
@@ -320,22 +320,22 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
     return header;
 }
 
-void* heap_alloc(struct heap* heap, size_t size, bool align)
+void* heap_alloc(struct heap* heap, size_t size, bool page_align)
 {
     DEBUG_ASSERT(heap != NULL);
     DEBUG_ASSERT(size != 0);
     /* Try to find a hole big enough to contain the memory block.
      */
     uint32_t new_size = size + sizeof(struct blockheader) + sizeof(struct blockfooter);
-    int32_t hole      = get_smallest_hole(heap, new_size, align);
+    int32_t hole      = get_smallest_hole(heap, new_size, page_align);
     if (hole < 0) {
         /* No hole big enough - try to create a new hole.
          */
-        return create_hole_and_alloc(heap, size, new_size, align);
+        return create_hole_and_alloc(heap, size, new_size, page_align);
     }
     /* Allocate using the hole we found.
      */
-    struct blockheader* header = alloc_with_hole(heap, hole, size, new_size, align);
+    struct blockheader* header = alloc_with_hole(heap, hole, size, new_size, page_align);
     /* Update statistics.
      */
     heap->alloc_count++;
@@ -460,41 +460,8 @@ void heap_free(struct heap* heap, void* ptr)
     DEBUG_ASSERT(heap->bytes_allocd <= heap->end - heap->start); /* Check we haven't allocated more bytes than available. */
 }
 
-/* Panics if kmalloc is called before the heap is initialised. */
-static void* pre_init_kmalloc(size_t ignored)
-{
-    panic("kmalloc called before heap initialised");
-    UNUSED(ignored);
-}
 
-/* Panics if kfree is called before the heap is initialised. */
-static void pre_init_kfree(void* ignored)
-{
-    panic("kfree called before heap initialised");
-    UNUSED(ignored);
-}
-
-/* Real kmalloc implementation. */
-static void* real_kmalloc(size_t size)
-{
-    void* p = heap_alloc(__kernel_heap__, size, true);
-    return p;
-}
-
-/* Real kfree implementation. */
-static void real_kfree(void* ptr)
-{
-    heap_free(__kernel_heap__, ptr);
-}
-
-typedef void* void_ptr;
-typedef void_ptr(* kmalloc_fn_t)(size_t);
-typedef void(* kfree_fn_t)(void*);
-
-kmalloc_fn_t kmalloc_fn = pre_init_kmalloc;
-kfree_fn_t   kfree_fn   = pre_init_kfree;
-
-int heap_init(void)
+void heap_init(void)
 {
     const uint32_t start = get_heap_region(HEAP_SIZE_INIT);
     DEBUG_ASSERT(UINT32_MAX - HEAP_SIZE_INIT > start);
@@ -506,17 +473,5 @@ int heap_init(void)
     }
     /* Enable kmalloc/kfree.
      */
-    kmalloc_fn = real_kmalloc;
-    kfree_fn   = real_kfree;
-    return 0;
-}
-
-void* kmalloc(size_t size)
-{
-    return kmalloc_fn(size);
-}
-
-void kfree(void* ptr)
-{
-    kfree_fn(ptr);
+    enable_kmalloc();
 }

@@ -1,5 +1,8 @@
 Things to Do:
  * [ ] Scale heap to available memory
+ * [ ] Maybe convert NASM code into GNU AS
+ * [ ] Maybe convert C code into C++
+ * [ ] Maybe migrate to Clang
  * [ ] Stability
    * [X] Solve triple fault with TSS.
    * [x] Ensure static allocator doesn't overwrite modules, which GRUB loads immediately after the kernel.

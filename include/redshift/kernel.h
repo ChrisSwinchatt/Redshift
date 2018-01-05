@@ -21,15 +21,17 @@
 #ifndef REDSHIFT_KERNEL_H
 #define REDSHIFT_KERNEL_H
 
-#include <redshift/kernel/asm.h>
-#include <redshift/kernel/panic.h>
-#include <redshift/kernel/printk.h>
-#include <redshift/util/assert.h>
-#include <redshift/util/macro.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+
+#include <redshift/kernel/asm.h>
+#include <redshift/kernel/kmalloc.h>
+#include <redshift/kernel/panic.h>
+#include <redshift/kernel/printk.h>
+#include <redshift/util/assert.h>
+#include <redshift/util/macro.h>
 
 /** Size of the kernel stack. */
 #define STACK_SIZE ((size_t)(((uintptr_t)__stack_top__) - ((uintptr_t)__stack_bottom__)))
@@ -47,7 +49,7 @@ extern void __noreturn hang(void);
  * are handled as just addresses by default. */
 typedef int symbol_t[];
 
-extern symbol_t __stack_bottom__;  /**< Bottom of stack (_start.asm).                    */
+extern symbol_t __stack_bottom__; /**< Bottom of stack (_start.asm).                    */
 extern symbol_t __stack_top__;    /**< Top of stack (_start.asm).                       */
 extern symbol_t __bss_start__;    /**< Start of .bss section (linker script).           */
 extern symbol_t __bss_end__;      /**< End of .bss section (linker script).             */

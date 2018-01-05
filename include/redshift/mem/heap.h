@@ -23,25 +23,49 @@
 #include <redshift/kernel.h>
 #include <redshift/util/sorted_array.h>
 
+/** Heap flags. */
 typedef enum {
-    HEAP_FLAGS_USER_MODE = 1 << 0,
-    HEAP_FLAGS_WRITEABLE = 1 << 2
+    HEAP_FLAGS_SUPERVISOR = 0,      /**< Create supervisor mode heap. */
+    HEAP_FLAGS_USER_MODE  = 1 << 0, /**< Create user mode heap.       */
+    HEAP_FLAGS_WRITEABLE  = 1 << 2  /**< Create writeable heap. */
 } heap_flags_t;
 
+/* Forward declaration for struct heap (mem/heap.c). */
 struct heap;
 
+/** Default kernel heap. */
 extern struct heap* __kernel_heap__;
 
-int heap_init(void);
+/**
+ * Initialise the kernel heap and memory manager.
+ * \param
+ */
+void heap_init(void);
 
-struct heap* create_heap(uint32_t start, uint32_t end, size_t max, heap_flags_t flags);
+/**
+ * Create a new heap.
+ * \param start The start address.
+ * \param end The end address.
+ * \param max_size The maximum size of the heap. Must be >= end - start.
+ * \param Heap flags.
+ * \return The new heap.
+ */
+struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_flags_t flags);
 
-void* heap_alloc(struct heap* heap, size_t size, bool align);
+/**
+ * Allocate a block of memory on a heap.
+ * \param heap The heap.
+ * \param size The size of the memory to allocate.
+ * \param page_align Whether to align the block on a page boundary. Blocks are always aligned to 8-byte boundaries.
+ * \return A pointer to the memory block.
+ */
+void* heap_alloc(struct heap* heap, size_t size, bool page_align);
 
+/**
+ * Free a block of memory allocated on a heap.
+ * \param The heap.
+ * \param The block of memory.
+ */
 void heap_free(struct heap* heap, void* ptr);
-
-void* kmalloc(size_t size);
-
-void kfree(void* ptr);
 
 #endif /* ! REDSHIFT_MEM_HEAP_H */
