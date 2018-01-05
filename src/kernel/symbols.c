@@ -100,6 +100,7 @@ void symbols_load(uintptr_t ptr, size_t size)
                     symbol->name = static_alloc(p - name);
                     strncpy(symbol->name, name, p - name);
                     symbol->next = static_alloc(sizeof(*(symbol->next)));
+                    memset(symbol->next, 0, sizeof(*(symbol->next)));
                     symbol = symbol->next;
                     state  = ADDRESS;
                     p      = address;
@@ -128,7 +129,7 @@ void symbols_load(uintptr_t ptr, size_t size)
     }
 }
 
-const void* resolve_symbol(const char* name)
+const void* get_symbol_address(const char* name)
 {
     const struct symbol* symbol = __symbols__;
     while (symbol) {
@@ -140,14 +141,20 @@ const void* resolve_symbol(const char* name)
     return NULL;
 }
 
-const char* get_symbol(uintptr_t address)
+const char* get_symbol_name(uintptr_t address)
 {
-    const struct symbol* symbol = __symbols__;
-    while (symbol) {
-        if (address == symbol->address) {
-            return symbol->name;
+    const struct symbol* symbol  = __symbols__;
+    const struct symbol* closest = symbol;
+    if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
+        return NULL;
+    }
+    do {
+        /* Find the symbol with the highest address which is
+         */
+        if (symbol->address >= closest->address && symbol->address <= address) {
+            closest  = symbol;
         }
         symbol = symbol->next;
-    }
-    return NULL;
+    } while (symbol);
+    return closest->name;
 }

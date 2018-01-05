@@ -28,26 +28,62 @@
 #include <redshift/kernel/panic.h>
 #include <redshift/kernel/printk.h>
 #include <redshift/kernel/sleep.h>
+#include <redshift/mem/static.h>
 #include <string.h>
+
+static bool in_panic = false;
+
+static void vpanic_common_start(const char* fmt, va_list ap)
+{
+    if (in_panic) {
+        hang();
+    }
+    in_panic = true;
+    disable_interrupts();
+    const size_t size = ARRAY_SIZE(PRINTK_ERROR) + strlen(fmt);
+    char* buffer      = static_alloc(size + 1);
+    memset(buffer,  0,            size + 1);
+    strncpy(buffer, PRINTK_ERROR, size);
+    strncat(buffer, fmt,          strlen(fmt));
+    printk(PRINTK_ERROR "\n\aKernel panic - ");
+    vprintk(buffer, ap);
+}
+
+static void vpanic_common_end(void)
+{
+    printk(PRINTK_ERROR "\nStack trace:\n");
+    dump_stack();
+    printk(PRINTK_ERROR "\n\aSystem halted.");
+}
+
+static void vpanic(const char* fmt, va_list ap)
+{
+    vpanic_common_start(fmt, ap);
+    vpanic_common_end();
+}
+
+static void vpanic_with_state(const struct cpu_state* state, const char* fmt, va_list ap)
+{
+    vpanic_common_start(fmt, ap);
+    printk(PRINTK_ERROR "\n\nCPU state:\n");
+    dump_registers(state);
+    vpanic_common_end();
+}
 
 void __noreturn panic(const char* fmt, ...)
 {
-    struct cpu_state state;
-    get_cpu_state(&state);
-    char buffer[strlen(PRINTK_ERROR) + strlen(fmt) + 1];
-    int_disable();
-    memset(buffer,  0,            ARRAY_SIZE(buffer));
-    strncpy(buffer, PRINTK_ERROR, ARRAY_SIZE(buffer));
-    strncat(buffer, fmt,          strlen(fmt));
-    printk(PRINTK_ERROR "Kernel panic - ");
-    {
-        va_list ap;
-        va_start(ap, fmt);
-        vprintk(buffer, ap);
-        va_end(ap);
-    }
-    printk(PRINTK_ERROR "\nStack trace:\n");
-    dump_stack();
-    printk(PRINTK_ERROR "\nSystem will hang.");
+    va_list ap;
+    va_start(ap, fmt);
+    vpanic(fmt, ap);
+    va_end(ap);
+    hang();
+}
+
+void __noreturn panic_with_state(const struct cpu_state* state, const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vpanic_with_state(state, fmt, ap);
+    va_end(ap);
     hang();
 }

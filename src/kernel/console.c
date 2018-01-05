@@ -111,7 +111,7 @@ void console_write_char(int c)
         console.cursor.x =  console.cursor.x_origin;
         ++console.cursor.y;
     }
-    if (console.cursor.y > console.screen.rows) {
+    if (console.cursor.y >= console.screen.rows) {
         console_scroll();
     }
 }
@@ -143,14 +143,14 @@ void console_scroll(void)
     );
     console.cursor.y = console.screen.rows;
     console_clear_line();
-    console.cursor.y = console.screen.rows;
+    console.cursor.y = console.screen.rows - 1;
     console_update_cursor();
 }
 
 void console_clear_line(void)
 {
     memsetw(
-        console.screen.buffer + console.cursor.y*console.screen.columns + console.cursor.x_origin,
+        console.screen.buffer + (console.cursor.y - 1)*console.screen.columns + console.cursor.x_origin,
         BLANK,
         console.screen.columns - console.cursor.x_origin
     );

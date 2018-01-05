@@ -48,7 +48,7 @@ enum cpuid_regs {
     EDX
 };
 
-extern int cpuid_supported(); /* cpuid_supported.asm */
+extern int cpuid_supported(void); /* cpuid_supported.asm */
 
 static void cpuid(uint32_t(* regs)[4])
 {
@@ -61,7 +61,7 @@ static void cpuid(uint32_t(* regs)[4])
     );
 }
 
-static int cpuid_extended_supported()
+static int cpuid_extended_supported(void)
 {
     uint32_t regs[4] = { CPUID_EXTENDED_MAX_FUNCTION, 0, 0, 0};
     cpuid(&regs);
@@ -166,7 +166,7 @@ static void cpuid_get_frequency(struct cpuid* info)
     uint64_t ticks1, ticks2;
     ticks1 = read_ticks();
     msleep(period);
-    int_disable(); /* msleep enables interrupts, but we don't want them any more during the boot process. */
+    disable_interrupts(); /* msleep enables interrupts, but we don't want them any more during the boot process. */
     ticks2 = read_ticks();
     info->frequency = (uint32_t)((ticks2 - ticks1) * 1000 / period);
     if (info->frequency == 0) {

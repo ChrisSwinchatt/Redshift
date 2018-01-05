@@ -49,6 +49,7 @@ static void splash(void)
     static const size_t splash_lines = ARRAY_SIZE(splash_text);
     const console_color_t foreground = console_get_foreground_color();
     console_set_foreground_color(CONSOLE_COLOR_LIGHT_RED);
+    console_set_origin(0, 0);
     for (size_t i = 0; i < splash_lines; ++i) {
         console_write_line(splash_text[i]);
     }
@@ -162,6 +163,7 @@ static void load_symbol_table(void)
         panic("initial ramdisk does not contain the symbol table");
     }
     symbols_load(symtab->start, symtab->size);
+    //panic("test");
 }
 
 static void init_devices(void)
@@ -177,23 +179,10 @@ static void start_scheduler(void)
     printk(PRINTK_DEBUG "Started scheduler\n");
 }
 
-static void enable_interrupts(void)
-{
-    int_enable();
-    printk(PRINTK_DEBUG "Enabled interrupts\n");
-}
-
-static void __noreturn handle_events(void)
-{
-    while (true) {
-        ;
-    }
-}
-
 void __noreturn boot(uint32_t magic, uint32_t tags)
 {
     struct multiboot_tag* mb_tags = (struct multiboot_tag*)tags;
-    int_disable();
+    disable_interrupts();
     console_init();
     console_clear();
     splash();
@@ -208,5 +197,6 @@ void __noreturn boot(uint32_t magic, uint32_t tags)
     init_devices();
     start_scheduler();
     enable_interrupts();
-    handle_events();
+    process_yield();
+    panic("%s should not return!", __func__);
 }

@@ -18,12 +18,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_UTIL_SORTED_LIST_H
-#define REDSHIFT_UTIL_SORTED_LIST_H
+#ifndef REDSHIFT_UTIL_SORTED_ARRAY_H
+#define REDSHIFT_UTIL_SORTED_ARRAY_H
 
 #include <redshift/kernel.h>
 
-struct sorted_list;
+struct sorted_array;
 
 typedef bool(* order_predicate)(void*, void*);
 
@@ -31,18 +31,18 @@ bool uint32_t_ascending_order_predicate(void* pa, void* pb);
 
 bool uint32_t_descending_order_predicate(void* pa, void* pb);
 
-struct sorted_list* create_sorted_list(size_t capacity, bool static_, order_predicate predicate);
+struct sorted_array* create_sorted_array(size_t capacity, bool static_, order_predicate predicate);
 
-struct sorted_list* place_sorted_list(void* address, size_t capacity, bool static_, order_predicate predicate);
+struct sorted_array* place_sorted_array(void* address, size_t capacity, bool static_, order_predicate predicate);
 
-void delete_sorted_list(struct sorted_list* list);
+void delete_sorted_array(struct sorted_array* list);
 
-size_t sorted_list_add(struct sorted_list* list, void* element);
+size_t sorted_array_add(struct sorted_array* list, void* element);
 
-void* sorted_list_get(const struct sorted_list* list, size_t index);
+void* sorted_array_get(const struct sorted_array* list, size_t index);
 
-void sorted_list_remove(struct sorted_list* list, size_t index);
+void sorted_array_remove(struct sorted_array* list, size_t index);
 
-size_t sorted_list_count(const struct sorted_list* list);
+size_t sorted_array_count(const struct sorted_array* list);
 
-#endif /* ! REDSHIFT_UTIL_SORTED_LIST_H */
+#endif /* ! REDSHIFT_UTIL_SORTED_ARRAY_H */

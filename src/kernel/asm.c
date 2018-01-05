@@ -20,21 +20,6 @@
  */
 #include <redshift/kernel.h>
 
-void int_disable(void)
-{
-    asm("cli");
-}
-
-void int_enable(void)
-{
-    asm("sti");
-}
-
-void int_wait(void)
-{
-    asm("hlt");
-}
-
 uint64_t read_ticks(void)
 {
     uint32_t hi, lo;

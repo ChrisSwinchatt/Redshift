@@ -1,7 +1,7 @@
 /**
  * \file kernel/sleep.c
  * Put the calling CPU to sleep.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -33,10 +33,11 @@ void msleep(uint64_t msec)
 void usleep(uint64_t usec)
 {
     uint64_t ticks;
+    //int int_flag = get_interrupt_flag();
     for (ticks = usec * (uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
-        int_enable();
+        enable_interrupts();
         int_wait();
-        int_disable();
+        disable_interrupts();
         if (ticks > 0ULL && ticks < 1000000ULL) {
             /* Prevent ticks underflowing.
              */

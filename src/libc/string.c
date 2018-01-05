@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <redshift/mem/heap.h>
+#include <redshift/util/memory_copy.h>
 
 char* itos(long i, int base, char* buf, size_t n)
 {
@@ -40,8 +41,9 @@ void* memchr(const void* array, int c, size_t n)
 {
     const char* p = array;
     while (n --> 0) {
-        if (*p++ == c)
+        if (*p++ == c) {
             return (void*)p;
+        }
     }
     return NULL;
 }
@@ -51,8 +53,9 @@ int memcmp(const void* p1, const void* p2, size_t n)
     const char* s1 = p1;
     const char* s2 = p2;
     while (n --> 0) {
-        if (*s1 != *s2)
+        if (*s1 != *s2) {
             return *s1 - *s2;
+        }
     }
     return 0;
 }
@@ -60,40 +63,39 @@ int memcmp(const void* p1, const void* p2, size_t n)
 void* memcpy(void* dst, const void* src, size_t n)
 {
     if (dst != src) {
-        char* pdst = dst;
-        const char* psrc = src;
-        while (n --> 0) {
-            *pdst++ = *psrc++;
-        }
+        FORWARD_COPY(dst, src, n);
     }
     return dst;
 }
 
 void* memmove(void* dst, const void* src, size_t n)
 {
-    char* pdst = (char*)dst;
-    const char* psrc = (const char*)src;
-    if (pdst == psrc) {
-        return pdst;
-    }
-    if (pdst < psrc && pdst + n >= psrc) {
-        /* Copy backwards.
-         */
-        while (n --> 0) {
-            pdst[n] = psrc[n];
-        }
-        return pdst;
-    }
-    /* Use memcpy to copy forwards.
+    /* Do nothing if dst and src are the same. Copy backwards if dst and src overlap. Otherwise, copy forwards.
      */
-    return memcpy(dst, src, n);
+    if (dst == src) {
+        return dst;
+    } else if (src < dst) {
+        BACKWARD_COPY(dst, src, n);
+    } else {
+        FORWARD_COPY(dst, src, n);
+    }
+    return dst;
 }
 
 void* memset(void* array, int c, size_t n)
 {
     char* parray = array;
     while (n --> 0) {
-        *parray++ = c;
+        *parray++ = (char)c;
+    }
+    return array;
+}
+
+void* memsetw(void* array, int c, size_t n)
+{
+    uint16_t* parray = array;
+    while (n --> 0) {
+        *parray++ = (uint16_t)c;
     }
     return array;
 }
@@ -126,7 +128,7 @@ int strcmp(const char* s1, const char* s2)
 
 char* strcpy(char* dst, const char* src)
 {
-    while (*dst != 0 && *src != 0) {
+    while (*src != 0) {
         *dst++ = *src++;
     }
     return dst;
@@ -216,12 +218,12 @@ char* stoupper(char* s)
 char* strdup(const char* s)
 {
     size_t size = strlen(s);
-    char* dup = kmalloc(size);
+    //printk("strlen(%s)=%lu\n", s, size);
+    char* dup = kmalloc(size) + 1;
     if (dup == NULL) {
-        panic("can't allocate memory");
+        panic("%s: failed to allocate memory", __func__);
     }
-    strncpy(dup, s, size);
-    printk("\"%s\" => \"%s\"\n", s, dup);
-    hang();
+    dup[size] = 0;
+    strcpy(dup, s);
     return dup;
 }

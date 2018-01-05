@@ -68,7 +68,7 @@ size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive
      */
     size_t index  = 0;
     size_t offset = 0;
-    printk(PRINTK_DEBUG "Extracting files (archive at 0x%p, size=%lu)\n", archive, size);
+    printk(PRINTK_DEBUG "Extracting archive: <address=0x%p,size=%lu>\n", archive, size);
     for (; index < max_files && offset < size; ++index) {
         struct tar_header* header = (struct tar_header*)(archive + offset);
         /* Break on NUL header.

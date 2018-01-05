@@ -22,18 +22,20 @@
 #include <redshift/boot/gdt.h>
 #include <redshift/boot/tss.h>
 
+extern void loadgdt(uint32_t addr); /* loadgdt.asm */
+
 enum {
-    GDT_ENTRIES_SIZE = 6
+    GDT_ENTRIES_MAX = 7
 };
 
 static struct gdt_entry {
     uint16_t limit_low;
     uint16_t base_low;
-    uint8_t base_mid;
-    uint8_t access;
-    uint8_t granularity;
-    uint8_t base_high;
-} __packed gdt_entries[GDT_ENTRIES_SIZE];
+    uint8_t  base_mid;
+    uint8_t  access;
+    uint8_t  granularity;
+    uint8_t  base_high;
+} __packed gdt_entries[GDT_ENTRIES_MAX];
 
 static struct gdt_ptr {
     uint16_t limit;
@@ -42,6 +44,7 @@ static struct gdt_ptr {
 
 static void gdt_entry(uint32_t i, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
 {
+    DEBUG_ASSERT(i < GDT_ENTRIES_MAX);
     gdt_entries[i].base_low     = (base & 0xFFFF);
     gdt_entries[i].base_mid     = (base >> 16) & 0xFF;
     gdt_entries[i].base_high    = (base >> 24) & 0xFF;
@@ -51,19 +54,18 @@ static void gdt_entry(uint32_t i, uint32_t base, uint32_t limit, uint8_t access,
     gdt_entries[i].access       = access;
 }
 
-extern void loadgdt(uint32_t addr); /* loadgdt.asm */
-
 void gdt_init(void)
 {
     const uint32_t tss_base  = get_tss_base();
     const uint32_t tss_limit = tss_base + get_tss_size();
-    pgdt.limit = (sizeof(struct gdt_entry) * GDT_ENTRIES_SIZE) - 1;
+    DEBUG_ASSERT(tss_limit > tss_base);
+    pgdt.limit = (sizeof(*gdt_entries)*GDT_ENTRIES_MAX) - 1;
     pgdt.base = (uint32_t)&gdt_entries;
-    gdt_entry(0, 0x00000000, 0x00000000, 0x00, 0x00);
-    gdt_entry(1, 0x00000000, 0xFFFFFFFF, 0x9A, 0xCF);
-    gdt_entry(2, 0x00000000, 0xFFFFFFFF, 0x92, 0xCF);
-    gdt_entry(3, 0x00000000, 0xFFFFFFFF, 0xFA, 0xCF);
-    gdt_entry(4, 0x00000000, 0xFFFFFFFF, 0xF2, 0xCF);
-    gdt_entry(5, tss_base,   tss_limit,  0x89, 0x40);
+    gdt_entry(0, 0x00000000, 0x00000000,  0x00, 0x00); /* Null descriptor.        */
+    gdt_entry(1, 0x00000000, 0xFFFFFFFF,  0x9A, 0xCF); /* Kernel code segment.    */
+    gdt_entry(2, 0x00000000, 0xFFFFFFFF,  0x92, 0xCF); /* Kernel data segment.    */
+    gdt_entry(3, 0x00000000, 0xFFFFFFFF,  0xFA, 0xCF); /* User-mode code segment. */
+    gdt_entry(4, 0x00000000, 0xFFFFFFFF,  0xF2, 0xCF); /* User-mode data segment. */
+    gdt_entry(5, tss_base,   tss_limit,   0x89, 0x40); /* TSS                     */
     loadgdt((uint32_t)&pgdt);
 }

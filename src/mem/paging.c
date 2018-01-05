@@ -18,14 +18,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <redshift/kernel.h>
+#include <redshift/mem/common.h>
 #include <redshift/mem/paging.h>
 #include <redshift/kernel/interrupt.h>
 #include <redshift/mem/heap.h>
 #include <redshift/mem/static.h>
 #include <string.h>
 
-#define BIT_INDEX(a)  ((a) / (8 * 4))
-#define BIT_OFFSET(a) ((a) % (8 * 4))
+#define BIT_INDEX(a)  ((a)/(8*4))
+#define BIT_OFFSET(a) ((a)%(8*4))
 
 struct page {
     unsigned present  :  1;
@@ -35,7 +36,7 @@ struct page {
     unsigned written  :  1;
     unsigned reserved :  7;
     unsigned frame    : 20;
-};
+} __packed;
 
 struct page_table {
     struct page pages[PAGE_ENTRIES];
@@ -55,23 +56,25 @@ static uint32_t               frames_count;
 
 static void frame_set(uint32_t addr)
 {
-    uint32_t frame = addr / 0x1000;
+    uint32_t frame = addr / PAGE_SIZE;
     SET_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
 
 static void frame_clear(uint32_t addr)
 {
-    uint32_t frame = addr / 0x1000;
+    uint32_t frame = addr / PAGE_SIZE;
     CLEAR_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
 
+#if 0
 static uint32_t frame_test(uint32_t addr)
 {
-    uint32_t frame = addr / 0x1000;
+    uint32_t frame = addr / PAGE_SIZE;
     return TEST_BIT(frames[BIT_INDEX(frame)], BIT_OFFSET(frame));
 }
+#endif
 
-static uint32_t frame_get_first_free()
+static uint32_t frame_get_first_free(void)
 {
     uint32_t i, j;
     for (i = 0; i < BIT_INDEX(frames_count); ++i) {
@@ -86,19 +89,19 @@ static uint32_t frame_get_first_free()
     return 0;
 }
 
-void frame_alloc(struct page* page, bool mode, bool write)
+void frame_alloc(struct page* page, page_flags_t flags)
 {
     if (page->frame) {
         return; /* Already allocated. */
     }
     uint32_t i = frame_get_first_free();
     if (i >= ((uint32_t)-1)) {
-        panic("out of memory");
+        panic("%s: out of memory", __func__);
     }
-    frame_set(i * 0x1000);
-    page->present = 1;
-    page->rw      = (write) ? 1 : 0;
-    page->user    = (mode) ? 0 : 1;
+    frame_set(i * PAGE_SIZE);
+    page->present = TEST_FLAG(flags, PAGE_FLAGS_PRESENT)   ? 1 : 0;
+    page->rw      = TEST_FLAG(flags, PAGE_FLAGS_WRITEABLE) ? 1 : 0;
+    page->user    = TEST_FLAG(flags, PAGE_FLAGS_USER_MODE) ? 1 : 0;
     page->frame   = i;
 }
 
@@ -112,38 +115,22 @@ void frame_free(struct page* page)
     page->frame = 0;
 }
 
-static void page_fault_handler(const struct cpu_state* registers)
+static void page_fault_handler(const struct cpu_state* regs)
 {
     uint32_t address = 0;
     asm("mov %%cr2, %0":"=r"(address));
-    printk(PRINTK_ERROR "Page fault at 0x%08lX", address);
-    if (TEST_BIT(registers->errorcode, 2)) {
-        printk(PRINTK_ERROR "in user mode ");
-    } else {
-        printk(PRINTK_ERROR "in kernel mode ");
-    }
-    if (TEST_BIT(registers->errorcode, 1)) {
-        printk(PRINTK_ERROR "when writing ");
-    } else {
-        printk(PRINTK_ERROR "when reading ");
-    }
-<<<<<<< HEAD
-    if (!(test_bit(registers->errorcode, 0))) {
-        printk(PRINTK_ERROR "because the page was not marked present ");
-    } else if (test_bit(registers->errorcode, 3)) {
-=======
-    if (!(TEST_BIT(registers->errorcode, 0))) {
-        printk(PRINTK_ERROR "because the page was not marked present ");
-    } else if (TEST_BIT(registers->errorcode, 3)) {
->>>>>>> refactor
-        printk(PRINTK_ERROR "because of an invalid write ");
-    }
-    if (TEST_BIT(registers->errorcode, 4)) {
-        printk(PRINTK_ERROR "during an instruction fetch ");
-    }
-    printk("\n");
-    if (current_directory == kernel_directory) {
-        panic("bug: page fault in kernel code.");
+    bool user    = TEST_BIT(regs->error_code, 2);
+    bool rw      = TEST_BIT(regs->error_code, 1);
+    bool present = TEST_BIT(regs->error_code, 0);
+    printk(
+        PRINTK_ERROR "Page fault at 0x%8lX in %s mode when %s because %s\n",
+        address,
+        user    ? "user"                       : "kernel",
+        rw      ? "writing"                    : "reading",
+        present ? "there was an invalid write" : "the page was not marked present"
+    );
+    if (!(user)) {
+        panic("bug: kernel triggered page fault");
     }
 }
 
@@ -171,22 +158,24 @@ void page_directory_load(struct page_directory* dir)
 
 struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
 {
-    addr /= 0x1000;
+    addr /= PAGE_SIZE;
     uint32_t i = addr / PAGE_ENTRIES;
     if (dir->tables[i]) {
         return &(dir->tables[i]->pages[addr % PAGE_ENTRIES]);
     } else if (create) {
         uint32_t tmp;
         dir->tables[i] = (struct page_table*)static_alloc_base(sizeof(struct page_table), true, &tmp);
-        memset(dir->tables[i], 0, 0x1000);
+        memset(dir->tables[i], 0, PAGE_SIZE);
         dir->physical_tables[i] = tmp | 0x07;
         return &(dir->tables[i]->pages[addr % PAGE_ENTRIES]);
     }
     return NULL;
 }
 
-#define HEAP_ADDRESS   0x1000000
-#define HEAP_SIZE_INIT 0x1000
+enum {
+    HEAP_ADDRESS   = 0x1000000,
+    HEAP_SIZE_INIT = 0x1000
+};
 
 int paging_init(uint32_t mem_size)
 {
@@ -198,20 +187,22 @@ int paging_init(uint32_t mem_size)
      */
     kernel_directory = static_alloc(sizeof(*kernel_directory));
     memset(kernel_directory, 0, sizeof(*kernel_directory));
-    /* Map some pages to the kernel heap.
+    /* Identity map pages up to heap address. We make the first page non-present so that NULL-pointer dereferences cause
+     * a page fault.
      */
-    uint32_t i;
-    for (i = HEAP_ADDRESS; i < HEAP_ADDRESS + HEAP_SIZE_INIT; i += 0x1000) {
-        page_get(i, kernel_directory, true);
+    frame_alloc(page_get(0, kernel_directory, true), 0);
+    uint32_t i = 0;
+    for (i = PAGE_SIZE; i < heap_addr; i += PAGE_SIZE) {
+        frame_alloc(page_get(i, kernel_directory, true), PAGE_FLAGS_PRESENT);
     }
-    /* Create, identity map & allocate pages.
-     */
-    for (i = 0; i < heap_addr; i += 0x1000) {
-        frame_alloc(page_get(i, kernel_directory, true), false, false);
+    /* Map pages for the heap.
+    */
+    for (; i < HEAP_ADDRESS + HEAP_SIZE_INIT; i += PAGE_SIZE) {
+        page_get(i, kernel_directory, true);
     }
     /* Set page fault handler.
      */
-    set_interrupt_handler(14, page_fault_handler);
+    set_interrupt_handler(ISR_PAGE_FAULT, page_fault_handler);
     page_directory_load(kernel_directory);
     page_enable();
     return 0;

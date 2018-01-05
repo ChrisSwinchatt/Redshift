@@ -41,6 +41,46 @@
 #define IRQ14 46
 #define IRQ15 47
 
+typedef enum {
+    ISR_TYPE_ABORT,
+    ISR_TYPE_FAULT,
+    ISR_TYPE_INTERRUPT,
+    ISR_TYPE_RESERVED,
+    ISR_TYPE_TRAP
+} isr_type_t;
+
+typedef enum {
+    ISR_DIVIDE_BY_ZERO              = 0x00,
+    ISR_DEBUG                       = 0x01,
+    ISR_BREAKPOINT                  = 0x03,
+    ISR_OVERFLOW                    = 0x04,
+    ISR_BOUNDCHECK                  = 0x05,
+    ISR_INVALID_OPCODE              = 0x06,
+    ISR_DEVICE_NOT_AVAILABLE        = 0x07,
+    ISR_DOUBLE_FAULT                = 0x08,
+    ISR_COPROCESSOR_SEGMENT_OVERRUN = 0x09,
+    ISR_INVALID_TSS                 = 0x0A,
+    ISR_SEGMENT_NOT_PRESENT         = 0x0B,
+    ISR_STACK_SEGMENT_FAULT         = 0x0C,
+    ISR_GENERAL_PROTECTION_FAULT    = 0x0D,
+    ISR_PAGE_FAULT                  = 0x0E,
+    ISR_FLOATING_POINT              = 0x10,
+    ISR_ALIGNMENT_CHECK             = 0x11,
+    ISR_MACHINE_CHECK               = 0x12,
+    ISR_SIMD_EXCEPTION              = 0x13,
+    ISR_VIRTUALIZATION_EXCEPTION    = 0x14,
+    ISR_SECURITY_EXCEPTION          = 0x1E,
+    ISR_FPU_ERROR                   = 0x21
+} isr_t;
+
+struct isr_info {
+    isr_type_t  type;
+    bool        has_error_code;
+    const char* message;
+};
+
+extern const struct isr_info isr_info[];
+
 /** ISR handler function */
 typedef void(* isr_handler_t)(const struct cpu_state*);
 

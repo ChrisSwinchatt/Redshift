@@ -82,6 +82,15 @@ void* memmove(void* dst, const void* src, size_t n);
 void* memset(void* array, int c, size_t n);
 
 /**
+ * Set each word in 'array' to 'c', up to max 'n' bytes.
+ * \param array Array.
+ * \param c Value to set.
+ * \param n Maximum number of bytes to write.
+ * \return A pointer to 'array' is returned.
+ */
+void* memsetw(void* array, int c, size_t n);
+
+/**
  * Append 'src' to 'dst'.
  * \param dst Destination string.
  * \param src source string.

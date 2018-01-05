@@ -9,7 +9,7 @@ AS                   := nasm
 AFLAGS               := -felf32 -g
 CC                   := $(PREFIX)-gcc
 INCLUDES             := -Iinclude -Iinclude/libc
-CFLAGS               := -Wall -Wextra -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all\
+CFLAGS               := -Wall -Wextra -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all -nostdlib\
                         -fno-omit-frame-pointer $(INCLUDES)\
                         -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
                         -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
@@ -45,7 +45,7 @@ $(IMAGE): $(INITRD)
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37mLinking `basename $@`... \033[0m"
-	@$(CC) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 	@echo "\033[1;37mGenerating symbol table... \033[0m"
 	@tools/gensymtab "$@" "$(MAP)"
 	@echo "\033[1;37mCreating debug file `basename $(DEBUG)`... \033[0m"
@@ -68,7 +68,7 @@ statistics:
 	@tools/kstats
 analyse:
 	@cppcheck --quiet --enable=all $(INCLUDES) `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1 | grep -v "never used"
-	@clang -analyze $(INCLUDES) -Xanalyzer -analyzer-output=text `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1
+	@#clang -analyze $(INCLUDES) -Xanalyzer -analyzer-output=text `find src/ -name "*.c"` `find include/ -name "*.h"` 2>&1
 xgcc:
 	@cd out && ../tools/build-xgcc $(ARGS) $(TARGET)
 clean:

@@ -25,14 +25,38 @@
 #include <redshift/sched/idle.h>
 #include <redshift/sched/process.h>
 
+extern struct cpu_state cpu_state; /* cpu_state.asm */
+
+extern void kernel_main(void);
+
 int sched_init(void)
 {
-    struct page_directory* page_dir = NULL;
-    /* Spawn the process.
+    /* Start main process, which uses the main kernel stack.
      */
-    if (process_spawn((uint32_t)idle, page_dir, 0) < 0) {
+    int main_id = process_spawn(
+        (uintptr_t)kernel_main,
+        kernel_directory,
+        0,
+        (uintptr_t)__stack_bottom__,
+        STACK_SIZE,
+        PROCESS_FLAGS_SUPERVISOR
+    );
+    if (main_id < 0) {
+        panic("unable to spawn main process");
+    }
+    /* Start idle process, which gets its own stack.
+     */
+    int idle_id = process_spawn(
+        (uintptr_t)idle,
+        kernel_directory,
+        0,
+        0,
+        STACK_SIZE,
+        PROCESS_FLAGS_SUPERVISOR
+    );
+    if (idle_id < 0) {
         panic("unable to spawn idle process");
     }
-    add_timer_event("switch", SCHED_PERIOD, process_switch, NULL);
+    add_timer_event("switch", SCHED_PERIOD, process_switch, &cpu_state);
     return 0;
 }

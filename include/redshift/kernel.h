@@ -31,19 +31,32 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/** Size of the kernel stack. */
+#define STACK_SIZE ((size_t)(((uintptr_t)__stack_top__) - ((uintptr_t)__stack_bottom__)))
+
 /**
  * PIT tick rate (Hz).
- * As this is used in calculations (see sleep.c), it should stay within ([10,1000)).
+ * As this is used in calculations (see sleep.c), it should stay within [10,1000).
  */
 #define TICK_RATE 100
 
 /** Hang the computer forever. */
 extern void __noreturn hang(void);
 
-struct heap;
-extern struct heap* __kernel_heap__; /* mem/heap.c */
-
-/** Type for linker script symbols. These are just addresses, so we define it as an array type because arrays
+/** Type for linker script symbols. Linker symbols are just addresses, so we define it as an array type because arrays
  * are handled as just addresses by default. */
 typedef int symbol_t[];
+
+extern symbol_t __stack_bottom__;  /**< Bottom of stack (_start.asm).                    */
+extern symbol_t __stack_top__;    /**< Top of stack (_start.asm).                       */
+extern symbol_t __bss_start__;    /**< Start of .bss section (linker script).           */
+extern symbol_t __bss_end__;      /**< End of .bss section (linker script).             */
+extern symbol_t __code_start__;   /**< Start of code section (linker script).           */
+extern symbol_t __code_end__;     /**< End of code section (linker script).             */
+extern symbol_t __data_start__;   /**< Start of data section (linker script).           */
+extern symbol_t __data_end__;     /**< End of data section (linker script).             */
+extern symbol_t __end__;          /**< End of executable (linker script).               */
+extern symbol_t __rodata_start__; /**< Start of read-only data section (linker script). */
+extern symbol_t __rodata_end__;   /**< End of read-only data section (linker script).   */
+
 #endif /* ! REDSHIFT_KERNEL_H */

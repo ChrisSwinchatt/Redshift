@@ -31,4 +31,4 @@ uint32_t get_tss_base(void);
 
 size_t get_tss_size(void);
 
-#endif // ! REDSHIFT_BOOT_TSS_H
+#endif /* ! REDSHIFT_BOOT_TSS_H */

@@ -46,4 +46,4 @@ struct tar_file {
  */
 size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive, size_t size);
 
-#endif // ! REDSHIFT_UTIL_TAR_H
+#endif /* ! REDSHIFT_UTIL_TAR_H */

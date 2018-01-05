@@ -22,11 +22,10 @@
 #define REDSHIFT_SCHED_IDLE_H
 
 #include <redshift/kernel.h>
- 
+
 /**
  * Idle process.
- * \param arg Ignored.
  */
-void idle(void* arg);
+void idle(void);
 
 #endif /* ! REDSHIFT_SCHED_IDLE_H */

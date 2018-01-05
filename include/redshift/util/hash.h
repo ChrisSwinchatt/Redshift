@@ -29,4 +29,4 @@
  */
 uint32_t hash32_asciz(const char* asciz, size_t size);
 
-#endif // ! REDSHIFT_UTIL_HASH_H
+#endif /* ! REDSHIFT_UTIL_HASH_H */

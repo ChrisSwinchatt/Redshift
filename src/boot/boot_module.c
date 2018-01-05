@@ -71,7 +71,7 @@ void save_boot_modules(struct multiboot_tag* mb_tags)
                     modlist->cmdline = static_alloc(length);
                     strncpy((char*)(modlist->cmdline), module->cmdline, length); /* Ignore const modlist->cmdline; */
                 }
-                printk(PRINTK_DEBUG "Module at 0x%08lX to 0x%08lX: \"%s\"\n",
+                printk(PRINTK_DEBUG "Module: <start=0x%08lX,end=0x%08lX,cmdline=\"%s\">\n",
                        modlist->start,
                        modlist->end,
                        modlist->cmdline);

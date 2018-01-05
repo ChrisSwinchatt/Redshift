@@ -50,40 +50,45 @@ static loglevel handle_printk_level(const char** pfmt)
     return level;
 }
 
+static void set_level_formatting(loglevel level)
+{
+    switch (level) {
+        case LOGLEVEL_DEBUG:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_GRAY); break;
+        case LOGLEVEL_INFO:    console_set_foreground_color(CONSOLE_COLOR_WHITE);      break;
+        case LOGLEVEL_WARNING: console_set_foreground_color(CONSOLE_COLOR_RED);        break;
+        case LOGLEVEL_ERROR:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_RED);  break;
+        default:               UNREACHABLE("no switch case for level=%d", level);
+    }
+}
+
+static int do_print(const char* fmt, va_list ap)
+{
+    static char buffer[VPRINTK_BUFFER_SIZE];
+    int count_1 = vsnprintf(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
+    int count_2 = console_write_string(buffer);
+    DEBUG_ASSERT(count_1 == count_2);
+    return count_1;
+}
+
 int vprintk(const char* fmt, va_list ap)
 {
-    /* Print format string.
-     */
-    static char buffer[VPRINTK_BUFFER_SIZE];
-    int ret   = 0;
     int level = 0;
     if ((level = handle_printk_level(&fmt)) < MINIMUM_LOG_LEVEL) {
         return 0;
     }
-    ret = vsnprintf(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
-    /* Print coloured output.
-     */
-    {
-        const console_color_t foreground = console_get_foreground_color();
-        switch (level) {
-            case LOGLEVEL_DEBUG:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_GRAY); break;
-            case LOGLEVEL_INFO:    console_set_foreground_color(CONSOLE_COLOR_WHITE);      break;
-            case LOGLEVEL_WARNING: console_set_foreground_color(CONSOLE_COLOR_RED);        break;
-            case LOGLEVEL_ERROR:   console_set_foreground_color(CONSOLE_COLOR_LIGHT_RED);  break;
-            default:               UNREACHABLE("no switch case for level %d", level);
-        }
-        console_write_string(buffer);
-        console_set_foreground_color(foreground);
-    }
+    console_color_t foreground, background;
+    console_get_color(&foreground, &background);
+    set_level_formatting(level);
+    int ret = do_print(fmt, ap);
+    console_set_color(foreground, background);
     return ret;
 }
 
 int printk(const char* fmt, ...)
 {
-    int ret;
     va_list ap;
     va_start(ap, fmt);
-    ret = vprintk(fmt, ap);
+    int ret = vprintk(fmt, ap);
     va_end(ap);
     return ret;
 }

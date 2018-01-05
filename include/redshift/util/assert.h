@@ -23,20 +23,23 @@
 
 #include <redshift/util/macro.h>
 
-/**
- * Check an expression at runtime and trigger a kernel panic if it fails.
- * \param X The expression to check.
- */
-#define RUNTIME_CHECK(X)\
+#define __CHECK_ASSERT(NAME, X)\
     do {\
         if (!(X)) {\
-            panic("check/assert failed \"" #X "\" at " __FILE_LINE__ " in %s\n", __func__);\
+            panic(NAME " failed: \"" #X "\" at " __FILE_LINE__ " in %s\n", __func__);\
         }\
     } while (0)
 
+/**
+ * Check an expression at runtime and trigger a kernel panic if it fails.
+ * \param X The expression to check.
+ * @see __CHECK_ASSERT
+ */
+#define RUNTIME_CHECK(X) __CHECK_ASSERT("check", X)
+
 #ifndef NDEBUG
-/** Make a debugging assertion. @see RUNTIME_CHECK */
-# define DEBUG_ASSERT(X) RUNTIME_CHECK(X)
+/** Make a debugging assertion. @see __CHECK_ASSERT */
+# define DEBUG_ASSERT(X) __CHECK_ASSERT("assert", X)
 #else
 # define DEBUG_ASSERT(X) ((void)X)
 #endif /* ! NDEBUG */

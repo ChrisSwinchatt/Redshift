@@ -19,64 +19,47 @@
  */
 #include <redshift/boot/boot_module.h>
 #include <redshift/kernel.h>
+#include <redshift/mem/common.h>
+#include <redshift/mem/heap.h>
 #include <redshift/mem/static.h>
 
-extern const symbol_t __end__; /* Defined in linker script. Points after .bss and stack. */
-uint32_t heap_addr;
+uintptr_t heap_addr = 0;
 
 void static_init(void)
 {
-    uint32_t end = (uint32_t)__end__;
+    uintptr_t end = (uintptr_t)__end__;
     uintptr_t modules_end = boot_modules_end();
     if (modules_end > end) {
         end = modules_end;
     }
-    heap_addr = (end & 0xFFFFF000) + 0x1000;
+    heap_addr = (end & PAGE_MASK) + PAGE_SIZE;
 }
 
-/* Align heap_addr to a page boundary, where a page is 4 kiB. */
-static void page_align(void)
-{
-    if (heap_addr &  0xFFFFF000) {
-        heap_addr &= 0xFFFFF000;
-        heap_addr +=     0x1000;
-    }
-}
-
-/* Align heap_addr to an alignment which depends on an object's size. */
-static void size_align(size_t size)
-{
-    /* As per ABI, objects must be aligned according to their type, e.g. uint{16,32,64}_t must be aligned on 2, 4 or 8
-     * byte boundaries respectively. Structures and arrays are aligned based on overall size.
-     */
-    if (size >= 8 && (heap_addr & 0xFFFFFFF8)) {
-         heap_addr &= 0xFFFFFFF8;
-         heap_addr += 8;
-    } else if (size >= 4 && (heap_addr & 0xFFFFFFF4)) {
-         heap_addr &= 0xFFFFFFF4;
-         heap_addr += 4;
-    } else if (size >= 2 && (heap_addr & 0xFFFFFFF2)) {
-         heap_addr &= 0xFFFFFFF2;
-         heap_addr += 2;
-    }
-}
-
-uint32_t static_alloc_base(size_t size, bool align, uint32_t* phys)
+uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys)
 {
     DEBUG_ASSERT(size > 0);
-    /* Align to page boundary if required, then align according to size.
+    /* Align to page boundary if required.
      */
-    if (align && (heap_addr & 0xFFFFF000)) {
-        page_align();
+    if (align && (heap_addr & PAGE_MASK)) {
+        heap_addr &= PAGE_MASK;
+        heap_addr += PAGE_SIZE;
     }
-    size_align(size);
-    /*
+    /* As per ABI, objects must be aligned according to their type, e.g. uint{16,32,64}_t must be aligned on 2, 4 and 8
+     * byte boundaries respectively. Since anything aligned to 8 bytes is also aligned to 4 bytes and 2 bytes, we just
+     * align everything to 8 bytes.
      */
-    uint32_t addr = heap_addr;
+    if (heap_addr & 0xFFFFFFF8) {
+         heap_addr &= 0xFFFFFFF8;
+         heap_addr += 8;
+     }
+    /* Advance heap address. In debug mode, also test that we haven't overwritten the dynamic heap.
+     */
+    uintptr_t addr = heap_addr;
     heap_addr += size;
     if (phys != NULL) {
         *phys = addr;
     }
+    //DEBUG_ASSERT(__kernel_heap__ == NULL || heap_addr < __kernel_heap__->start);
     return addr;
 }
 

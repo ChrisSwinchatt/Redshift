@@ -13,32 +13,36 @@
 ; COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 ; OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [bits 32]
-STACK_SIZE equ 0x10000
+
+STACK_SIZE equ 0x8000 ; 32 kiB stack.
+
 [section .text]
 ; Entry point.
 [global _start]
 _start:
         cli
-        mov     esp, __stack_top__              ; Create the stack.
-        xor     ebp, ebp
-        push    ebp
-        push    ebx                             ; Save multiboot info.
-        push    eax                             ; Save multiboot magic number.
-        [extern __stack_chk_guard_setup]
-        call    __stack_chk_guard_setup         ; Set up the stack guard.
-        [extern _init]
-        call    _init                           ; Call constructors.
-        [extern boot]
-        call    boot                            ; Call boot. EAX and EBX are still on the stack.
-        [extern _fini]
-        call    _fini                           ; Call destructors.
+        mov        esp, __stack_top__              ; Set stack pointer.
+        xor        ebp,    ebp
+        push dword 0                               ; } Push dummy values to keep stack pointer 16-bytes aligned.
+        push dword 0                               ; } walk_stack also needs 0 values to find the top of the stack.
+        push       ebx                             ; Save multiboot info.
+        push       eax                             ; Save multiboot magic number.
+        [extern    __stack_chk_guard_setup]
+        call       __stack_chk_guard_setup         ; Set up the stack guard.
+        [extern    _init]
+        call       _init                           ; Call constructors.
+        [extern    boot]
+        call       boot                            ; Call boot. EAX and EBX are still on the stack.
+        [extern    _fini]
+        call       _fini                           ; Call destructors.
 [global hang]
 hang:
         cli
         hlt
-        jmp     hang
+        jmp hang
 [section .bss]
-[global __stack__]
-__stack__:          resb    STACK_SIZE
+align 16
+[global __stack_bottom__]
+__stack_bottom__: resb STACK_SIZE
 [global __stack_top__]
 __stack_top__:

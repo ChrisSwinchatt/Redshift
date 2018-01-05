@@ -1,5 +1,5 @@
 /**
- * \file kernel/sorted_list.c
+ * \file kernel/sorted_array.c
  * Automatically-sorted list.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
@@ -17,13 +17,13 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <redshift/util/sorted_list.h>
+#include <redshift/util/sorted_array.h>
 #include <redshift/kernel.h>
 #include <redshift/mem/static.h>
 #include <redshift/mem/heap.h>
 #include <string.h>
 
-struct sorted_list {
+struct sorted_array {
     void**          elements;
     uint8_t         freeable;
     size_t          count;
@@ -49,36 +49,42 @@ bool uint32_t_descending_order_predicate(void* pa, void* pb)
     return (a > b);
 }
 
-struct sorted_list* create_sorted_list(size_t capacity, bool static_, order_predicate predicate)
+struct sorted_array* create_sorted_array(size_t capacity, bool static_, order_predicate predicate)
 {
-    return place_sorted_list(static_alloc(sizeof(struct sorted_list*)), capacity, static_, predicate);
+    const size_t size = sizeof(struct sorted_array*);
+    void* address;
+    if (static_) {
+        address = static_alloc(size);
+    } else {
+        address = kmalloc(size);
+    }
+    DEBUG_ASSERT(address != NULL);
+    return place_sorted_array(address, capacity, static_, predicate);
 }
 
-struct sorted_list* place_sorted_list(void* address, size_t capacity, bool static_, order_predicate predicate)
+struct sorted_array* place_sorted_array(void* address, size_t capacity, bool static_, order_predicate predicate)
 {
     DEBUG_ASSERT(address != NULL);
     DEBUG_ASSERT(capacity > 0);
     DEBUG_ASSERT(predicate != NULL);
-    struct sorted_list* list = address;
-    size_t count = sizeof(*(list->elements)) * capacity;
+    struct sorted_array* list = address;
+    size_t count = sizeof(*(list->elements))*capacity;
     if (static_) {
-        list->elements = (void**)static_alloc(count);
+        list->elements = static_alloc(count);
         list->freeable = 0;
     } else {
-        list->elements = kmalloc(sizeof(*(list->elements)) * capacity);
+        list->elements = kmalloc(count);
         list->freeable = 1;
     }
-    if (!(list->elements)) {
-        return NULL;
-    }
-    memset(list->elements, 0, sizeof(*(list->elements)) * capacity);
-    list->count = 0;
-    list->capacity = capacity;
+    DEBUG_ASSERT(list->elements != NULL);
+    memset(list->elements, 0, sizeof(*(list->elements))*capacity);
+    list->count     = 0;
+    list->capacity  = capacity;
     list->predicate = predicate;
     return list;
 }
 
-void delete_sorted_list(struct sorted_list* list)
+void delete_sorted_array(struct sorted_array* list)
 {
     if (list && list->freeable) {
         kfree(list->elements);
@@ -86,38 +92,46 @@ void delete_sorted_list(struct sorted_list* list)
     }
 }
 
-size_t sorted_list_add(struct sorted_list* list, void* element)
+size_t sorted_array_add(struct sorted_array* list, void* element)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->elements != NULL);
     DEBUG_ASSERT(list->predicate != NULL);
     DEBUG_ASSERT(element != NULL);
-    size_t i;
-    for (i = 0; i < list->count && list->predicate(list->elements[i], element); ++i)
-        ;
+    if (list->count == 0) {
+        list->elements[0] = element;
+        list->count++;
+        return list->count;
+    }
+    size_t i = 0;
+    for (; i < list->count && list->predicate(list->elements[i], element); ++i) {
+        DO_NOTHING;
+    }
     if (i >= list->count) {
+        /* Append.
+         */
         list->elements[list->count++] = element;
     } else {
-        size_t j = i;
-        void* tmp = list->elements[j];
-        list->elements[j] = element;
-        for (; j < list->count; ++j) {
-            void* tmp2 = list->elements[j];
-            list->elements[j] = tmp;
-            tmp = tmp2;
-        }
+        /* Move each pointer from the ith element to the end of the list one space to the "right". Then insert the new
+         * element at position i.
+         */
+        memmove(list->elements + i + 1, list->elements + i, list->count - i - 1);
+        list->elements[i] = element;
         list->count++;
     }
+    /* Ensure we haven't run past the end of the array. TODO return failure when this happens instead of just crashing.
+     */
+    RUNTIME_CHECK(list->count <= list->capacity);
     return i;
 }
 
-void* sorted_list_get(const struct sorted_list* list, size_t index)
+void* sorted_array_get(const struct sorted_array* list, size_t index)
 {
     DEBUG_ASSERT(index < list->count);
     return list->elements[index];
 }
 
-void sorted_list_remove(struct sorted_list* list, size_t index)
+void sorted_array_remove(struct sorted_array* list, size_t index)
 {
     DEBUG_ASSERT(index < list->count);
     for (; index < list->count; ++index) {
@@ -126,7 +140,7 @@ void sorted_list_remove(struct sorted_list* list, size_t index)
     --list->count;
 }
 
-size_t sorted_list_count(const struct sorted_list* list)
+size_t sorted_array_count(const struct sorted_array* list)
 {
     return list->count;
 }

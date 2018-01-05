@@ -24,15 +24,18 @@
 
 uintptr_t __stack_chk_guard = 0xCD000AFFUL;
 
-void __stack_chk_guard_setup()
+void __stack_chk_guard_setup(void)
 {
     __stack_chk_guard = 0xCD000AFFUL;
 }
 
-void __noreturn __stack_chk_fail()
+typedef void(* fn_ptr_t)(void);
+
+void __noreturn __stack_chk_fail(void)
 {
     /* Make sure the console is initialised, in case __stack_chk_fail is tripped early in the boot process.
+     * Of course, this won't help us if console_init or panic is smashing the stack.
      */
     console_init();
-    panic("stack smashing detected.");
+    panic("stack smashing detected");
 }

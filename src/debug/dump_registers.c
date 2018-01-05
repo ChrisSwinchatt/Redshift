@@ -23,59 +23,59 @@
 
 static void dump_cr0(uint32_t cr0)
 {
-    printk("CR0:   [");
+    printk(PRINTK_INFO "CR0:   [");
     if (TEST_BIT(cr0, 31)) {
-        printk("p");
+        printk(PRINTK_INFO "p");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 30)) {
-        printk("C");
+        printk(PRINTK_INFO "C");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 29)) {
-        printk("n");
+        printk(PRINTK_INFO "n");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 18)) {
-        printk("A");
+        printk(PRINTK_INFO "A");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 16)) {
-        printk("W");
+        printk(PRINTK_INFO "W");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 5)) {
-        printk("N");
+        printk(PRINTK_INFO "N");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 4)) {
-        printk("e");
+        printk(PRINTK_INFO "e");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 3)) {
-        printk("T");
+        printk(PRINTK_INFO "T");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 2)) {
-        printk("E");
+        printk(PRINTK_INFO "E");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 1)) {
-        printk("M");
+        printk(PRINTK_INFO "M");
     } else {
         printk("-");
     }
     if (TEST_BIT(cr0, 0)) {
-        printk("P");
+        printk(PRINTK_INFO "P");
     } else {
         printk("-");
     }
@@ -84,52 +84,52 @@ static void dump_cr0(uint32_t cr0)
 
 static void dump_eflags(uint32_t eflags)
 {
-    printk("FLAGS: [%0lud", (TEST_BIT(eflags, 12) << 1) | TEST_BIT(eflags, 13));
+    printk(PRINTK_INFO "FLAGS: [%0lud", (TEST_BIT(eflags, 12) << 1) | TEST_BIT(eflags, 13));
     if (TEST_BIT(eflags, 11)) {
-        printk("O");
+        printk(PRINTK_INFO "O");
     } else {
         printk("-");
     }
     if (TEST_BIT(eflags, 10)) {
-        printk("D");
+        printk(PRINTK_INFO "D");
     } else {
         printk("-");
     }
     if (TEST_BIT(eflags, 9)) {
-        printk("I");
+        printk(PRINTK_INFO "I");
     } else {
         printk("-");
     }
     if (TEST_BIT(eflags, 8)) {
-        printk("T");
+        printk(PRINTK_INFO "T");
     } else {
         printk("-");
     }
     if (TEST_BIT(eflags, 7)) {
-        printk("S");
+        printk(PRINTK_INFO "S");
     } else {
         printk("-");
     }
     if (TEST_BIT(eflags, 6)) {
-        printk("Z");
+        printk(PRINTK_INFO "Z");
     } else {
         printk("-");
     }
     printk("-");
     if (TEST_BIT(eflags, 4)) {
-        printk("A");
+        printk(PRINTK_INFO "A");
     } else {
         printk("-");
     }
     printk("-");
     if (TEST_BIT(eflags, 2)) {
-        printk("P");
+        printk(PRINTK_INFO "P");
     } else {
         printk("-");
     }
     printk("-");
     if (TEST_BIT(eflags, 0)) {
-        printk("C");
+        printk(PRINTK_INFO "C");
     } else {
         printk("-");
     }
@@ -138,16 +138,24 @@ static void dump_eflags(uint32_t eflags)
 
 void dump_registers(const struct cpu_state* state)
 {
-    printk("EAX:   0x%08lX EBX: 0x%08lX ECX: 0x%08lX EDX: 0x%08lX\n"
-           "ESI:   0x%08lX EDI: 0x%08lX EBP: 0x%08lX ESP: 0x%08lX\n"
-           "CS:    0x%04lX     DS:  0x%04lX     ES:  0x%04lX     FS:  0x%04lX\n"
-           "GS:    0x%04lX     SS:  0x%04lX     CR2: 0x%08lX CR3: 0x%08lX\n"
-           "CR4:   0x%08lX EIP: 0x%08lX\n",
-           state->eax, state->ebx, state->ecx, state->edx,
-           state->esi, state->edi, state->ebp, state->esp,
-           state->cs,  state->ds,  state->es,  state->fs,
-           state->gs,  state->ss,  state->cr2, state->cr3,
-           state->cr4, state->eip);
+    printk(
+        "EAX: %08lX EBX: %08lX ECX: %08lX EDX: %08lX\n"
+        "ESI: %08lX EDI: %08lX EBP: %08lX ESP: %08lX\n"
+        "CS:  %04lX  EIP:    %08lX\n"
+        "DS:  %04lX  CR0:    %08lX\n"
+        "ES:  %04lX  CR2:    %08lX\n"
+        "FS:  %04lX  CR3:    %08lX\n"
+        "GS:  %04lX  CR4:    %08lX\n"
+        "SS:  %04lX  EFLAGS: %08lX\n",
+        state->eax,          state->ebx, state->ecx, state->edx,
+        state->esi,          state->edi, state->ebp, state->esp,
+        state->cs & 0xFFFF,  state->eip,
+        state->ds & 0xFFFF,  state->cr0,
+        state->es & 0xFFFF,  state->cr2,
+        state->fs & 0xFFFF,  state->cr3,
+        state->gs & 0xFFFF,  state->cr4,
+        state->ss & 0xFFFF,  state->eflags
+    );
     dump_cr0(state->cr0);
     dump_eflags(state->eflags);
 }

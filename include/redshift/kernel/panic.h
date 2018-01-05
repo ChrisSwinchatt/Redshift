@@ -24,12 +24,20 @@
 #include <redshift/util/macro.h>
 #include <stdarg.h>
 
+struct cpu_state;
+
 /**
  * Print an error message and then stop execution.
- * \param fmt Formatted error message
+ * \param fmt A formatted error message
  * \param ... Format arguments
- * \return This function never returns
  */
 void __noreturn panic(const char* fmt, ...);
+
+/**
+ * Print an error message and CPU state, then cease execution.
+ * \param fmt A formatted error message.
+ * \param ... Format arguments.
+ */
+void __noreturn panic_with_state(const struct cpu_state* state, const char* fmt, ...);
 
 #endif /* ! REDSHIFT_KERNEL_PANIC_H */

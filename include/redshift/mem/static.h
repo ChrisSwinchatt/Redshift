@@ -1,7 +1,7 @@
 /**
  * \file mem/static.h
  * Static heap allocator. Allocates memory statically.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -34,7 +34,7 @@ void static_init(void);
  * \param phys Optional. Stores the physical address of the object.
  * \return The address of the memory block is returned.
  */
-uint32_t static_alloc_base(size_t size, bool align, uint32_t* phys);
+uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys);
 
 /**
  * Allocate static memory.

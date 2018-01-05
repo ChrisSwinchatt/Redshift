@@ -1,7 +1,7 @@
 /**
  * \file mem/heap.h
  * Heap allocator.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk> 
+ * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -21,12 +21,20 @@
 #define REDSHIFT_MEM_HEAP_H 1
 
 #include <redshift/kernel.h>
+#include <redshift/util/sorted_array.h>
+
+typedef enum {
+    HEAP_FLAGS_USER_MODE = 1 << 0,
+    HEAP_FLAGS_WRITEABLE = 1 << 2
+} heap_flags_t;
 
 struct heap;
 
+extern struct heap* __kernel_heap__;
+
 int heap_init(void);
 
-struct heap* create_heap(uint32_t start, uint32_t end, size_t max, bool supervisor, bool readonly);
+struct heap* create_heap(uint32_t start, uint32_t end, size_t max, heap_flags_t flags);
 
 void* heap_alloc(struct heap* heap, size_t size, bool align);
 

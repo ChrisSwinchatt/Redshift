@@ -21,13 +21,12 @@
 #include <redshift/kernel.h>
 #include <redshift/sched/process.h>
 
-void idle(void* arg)
+void __noreturn idle(void)
 {
     /* Yield time-slice.
      */
-    printk("Idle\n");
-    process_switch(NULL);
-    /* Suppress unused parameter warning.
-     */
-    ((void)arg);
+    while (true) {
+        printk(PRINTK_INFO "Idle\n");
+        process_yield();
+    }
 }

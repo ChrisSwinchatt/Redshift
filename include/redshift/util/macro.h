@@ -25,7 +25,7 @@
 #define __STRINGIFY_HELPER(X) #X
 
 /** Stringify something. */
-#define STRINGIFY(X) __STRINGIFY_HELPER(#X)
+#define STRINGIFY(X) __STRINGIFY_HELPER(X)
 
 /** Current line number as a string. */
 #define __LINE_NO__  STRINGIFY(__LINE__)
@@ -56,7 +56,12 @@
 #undef  __noreturn
 #define __noreturn                  __attribute__((noreturn))
 
+/** Mark a function as non-reentrant. */
+#define __non_reentrant
+
 #define FALL_THROUGH                __attribute__((fallthrough))
+
+#define DO_NOTHING                 do {} while (0)
 
 /** Find the number of elements in 'array' if known at compile-time. */
 #define ARRAY_SIZE(array)            (sizeof(array)/sizeof(*(array)))

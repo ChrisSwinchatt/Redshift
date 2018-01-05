@@ -41,7 +41,7 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*),
     }
     struct timer_event* event = kmalloc(sizeof(*events));
     if (event == NULL) {
-        panic("can't allocate memory");
+        panic("%s: failed to allocate memory", __func__);
     }
     event->name         = strdup(name);
     event->name_hash    = hash32_asciz(name, strlen(name));
@@ -50,8 +50,6 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*),
     event->callback     = callback;
     event->arg          = arg;
     event->next         = NULL;
-    console_write_string(event->name);
-    hang();
     if (events) {
         /* Append the event handler.
          */
@@ -77,7 +75,7 @@ void process_timer_queue(uint32_t elapsed_time)
         if (queue->elapsed_time + elapsed_time >= queue->period) {
             /* Call event.
              */
-            printk(PRINTK_DEBUG "Event \"%s\" (fn=0x%p) raised", queue->name, queue->callback);
+            printk(PRINTK_DEBUG "Event \"%s\" (fn=0x%p) raised\n", queue->name, queue->callback);
             if (queue->callback) {
                 queue->callback(queue->arg);
             }

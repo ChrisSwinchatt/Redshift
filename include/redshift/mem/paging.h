@@ -24,8 +24,16 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/interrupt.h>
 
-#define PAGE_ENTRIES 1024
-#define PAGE_TABLES  1024
+enum {
+    PAGE_ENTRIES = 1024,
+    PAGE_TABLES  = 1024
+};
+
+typedef enum {
+    PAGE_FLAGS_PRESENT   = 1 << 0,
+    PAGE_FLAGS_USER_MODE = 1 << 1,
+    PAGE_FLAGS_WRITEABLE = 1 << 2,
+} page_flags_t;
 
 struct page;
 extern struct page_directory* kernel_directory;
@@ -51,8 +59,7 @@ void page_directory_load(struct page_directory* dir);
  */
 struct page* page_get(uint32_t addr, struct page_directory* dir, bool create);
 
-
-void frame_alloc(struct page* page, bool mode, bool write);
+void frame_alloc(struct page* page, page_flags_t flags);
 
 void frame_free(struct page* page);
 

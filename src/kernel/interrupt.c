@@ -18,9 +18,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <redshift/debug/dump_hex.h>
-#include <redshift/debug/dump_registers.h>
-#include <redshift/debug/dump_stack.h>
 #include <redshift/kernel/asm.h>
 #include <redshift/kernel/console.h>
 #include <redshift/hal/cpu.h>
@@ -48,81 +45,56 @@ static int call_interrupt_handler(const struct cpu_state* regs)
     return 0;
 }
 
-typedef enum {
-    ISR_TYPE_ABORT,
-    ISR_TYPE_FAULT,
-    ISR_TYPE_INTERRUPT,
-    ISR_TYPE_RESERVED,
-    ISR_TYPE_TRAP
-} isr_type_t;
-
-static struct isr_info {
-    isr_type_t  type;
-    bool        has_error_code;
-    const char* message;
-} isr_info[] = {
-    { ISR_TYPE_FAULT,     false,                "divide-by-zero" },
-    { ISR_TYPE_FAULT,     false,                         "debug" },
-    { ISR_TYPE_INTERRUPT, false,        "non-maskable interrupt" },
-    { ISR_TYPE_TRAP,      false,                    "breakpoint" },
-    { ISR_TYPE_TRAP,      false,                      "overflow" },
-    { ISR_TYPE_FAULT,     false,          "bound-range exceeded" },
-    { ISR_TYPE_FAULT,     false,                "invalid opcode" },
-    { ISR_TYPE_FAULT,     false,          "device not available" },
-    { ISR_TYPE_ABORT,      true,                  "double fault" },
-    { ISR_TYPE_FAULT,     false,   "coprocessor segment overrun" },
-    { ISR_TYPE_FAULT,      true,                   "invalid TSS" },
-    { ISR_TYPE_FAULT,      true,           "segment not present" },
-    { ISR_TYPE_FAULT,      true,           "stack-segment fault" },
-    { ISR_TYPE_FAULT,      true,      "general protection fault" },
-    { ISR_TYPE_FAULT,      true,                    "page fault" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_FAULT,     false,      "floating-point exception" },
-    { ISR_TYPE_FAULT,      true,               "alignment check" },
-    { ISR_TYPE_ABORT,     false,                 "machine check" },
-    { ISR_TYPE_FAULT,     false, "SIMD floating-point exception" },
-    { ISR_TYPE_FAULT,     false,      "virtualization exception" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_FAULT,     true,             "security exception" },
-    { ISR_TYPE_RESERVED,  false,                              "" },
-    { ISR_TYPE_FAULT,     false,                  "triple fault" }, /* For completeness - can't actually be reported. */
-    { ISR_TYPE_INTERRUPT, false,                     "FPU error" }
+const struct isr_info isr_info[] = {
+    { ISR_TYPE_FAULT,     false, "Divide-by-zero"                },
+    { ISR_TYPE_FAULT,     false, "Debug"                         },
+    { ISR_TYPE_INTERRUPT, false, "Non-maskable interrupt"        },
+    { ISR_TYPE_TRAP,      false, "Breakpoint"                    },
+    { ISR_TYPE_TRAP,      false, "Overflow"                      },
+    { ISR_TYPE_FAULT,     false, "Bound-range exceeded"          },
+    { ISR_TYPE_FAULT,     false, "Invalid opcode"                },
+    { ISR_TYPE_FAULT,     false, "Device not available"          },
+    { ISR_TYPE_ABORT,      true, "Double fault"                  },
+    { ISR_TYPE_FAULT,     false, "Coprocessor segment overrun"   },
+    { ISR_TYPE_FAULT,      true, "Invalid TSS"                   },
+    { ISR_TYPE_FAULT,      true, "Segment not present"           },
+    { ISR_TYPE_FAULT,      true, "Stack-segment fault"           },
+    { ISR_TYPE_FAULT,      true, "General protection fault"      },
+    { ISR_TYPE_FAULT,      true, "Page fault"                    },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_FAULT,     false, "Floating-point"                },
+    { ISR_TYPE_FAULT,      true, "Alignment check"               },
+    { ISR_TYPE_ABORT,     false, "Machine check"                 },
+    { ISR_TYPE_FAULT,     false, "SIMD floating-point"           },
+    { ISR_TYPE_FAULT,     false, "Virtualization"                },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_FAULT,     true, "Security"                       },
+    { ISR_TYPE_RESERVED,  false, ""                              },
+    { ISR_TYPE_FAULT,     false, ""                              }, /* Triple fault - uncatchable so can't be reported. */
+    { ISR_TYPE_INTERRUPT, false, "FPU error"                     }
 };
+
+static void handle_exception(const struct cpu_state* regs)
+{
+    struct isr_info info = isr_info[regs->interrupt];
+    panic_with_state(regs, "%s: <interrupt=0x%02lX,error_code=%bb>", info.message, regs->interrupt, regs->error_code);
+}
 
 void isr_handler(const struct cpu_state* regs)
 {
-    static int counter = 0;
-    if (regs->interrupt >= ARRAY_SIZE(isr_info)) {
-        counter = 0;
+    if (regs->interrupt < ARRAY_SIZE(isr_info)) {
+        handle_exception(regs);
+    } else {
         call_interrupt_handler(regs);
-        return;
     }
-    /* Exception.
-     */
-     struct isr_info info = isr_info[regs->interrupt];
-     printk(PRINTK_ERROR "Interrupt 0x%02lX - %s: ", regs->interrupt, info.message);
-     if (info.has_error_code) {
-         printk(PRINTK_ERROR "(error code=%08bb, ", regs->errorcode);
-     } else {
-         printk(PRINTK_ERROR "(");
-     }
-     printk(PRINTK_ERROR "eip=0x%08lX)\n", regs->eip);
-     printk(PRINTK_INFO "CPU state before interrupt occurred:\n");
-     dump_registers(regs);
-     dump_stack();
-     hang(); /* XXX */
-     if (counter > 1) {
-         panic("too many errors.\n");
-     }
-     ++counter;
 }
 
 void irq_handler(const struct cpu_state* regs)

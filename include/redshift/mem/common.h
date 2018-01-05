@@ -1,6 +1,4 @@
-/**
- * \file kernel/initrd.h
- * Initial ramdisk.
+/*
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -17,32 +15,12 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef REDSHIFT_KERNEL_INITRD_H
-#define REDSHIFT_KERNEL_INITRD_H
+#ifndef REDSHIFT_MEM_COMMON_H
+#define REDSHIFT_MEM_COMMON_H
 
-#include <redshift/util/tar.h>
+enum {
+    PAGE_SIZE = 0x1000UL,
+    PAGE_MASK = 0xFFFFF000UL
+};
 
-/** Maximum number of files in initrd. */
-#define INITRD_MAX_FILES    127
-
-/** Maximum length of initrd filename. */
-#define INITRD_FILENAME_MAX TAR_FILENAME_MAX
-
-/** Initrd file structure (`struct initrd_file`) */
-#define initrd_file tar_file /* util/tar.h */
-
-/**
- * Initialise initial ramdisk.
- * \param initrd A pointer to the initial ramdisk in memory.
- * \param size The size of the initial ramdisk.
- */
-void initrd_init(const char* initrd, size_t size);
-
-/**
- * Get a read-only pointer to an initial ramdisk file.
- * \param path The path to the file to find.
- * \return A read-only pointer to the file if it exists, otherwise NULL.
- */
-const struct initrd_file* initrd_get_file_by_name(const char* path);
-
-#endif /* ! REDSHIFT_KERNEL_INITRD_H */
+#endif /* ! REDSHIFT_MEM_COMMON_H */

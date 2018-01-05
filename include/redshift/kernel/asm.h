@@ -46,15 +46,16 @@ enum io_commands {
 /**
  * Disables interrupts.
  */
-void int_disable(void);
+void disable_interrupts(void);
 
 /**
  * Enables interrupts.
  */
-void int_enable(void);
+void enable_interrupts(void);
 
 /**
- * Waits until the next interrupt (be careful with int_disable()!).
+ * Waits until the next interrupt.
+ * NB: If called after disable_interrupts, the CPU will never wake up.
  */
 void int_wait(void);
 

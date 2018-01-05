@@ -35,13 +35,13 @@ void symbols_load(uintptr_t ptr, size_t size);
  * \param name The name of the symbol.
  * \return A pointer to the named symbol if it exists, otherwise NULL.
  */
-const void* resolve_symbol(const char* name);
+const void* get_symbol_address(const char* name);
 
 /**
  * Get the name of a symbol by its address.
  * \param address The address of the symbol.
  * \return The symbol's name.
  */
-const char* get_symbol(uintptr_t address);
+const char* get_symbol_name(uintptr_t address);
 
-#endif // ! REDSHIFT_KERNEL_SYMBOLS_H
+#endif /* ! REDSHIFT_KERNEL_SYMBOLS_H */

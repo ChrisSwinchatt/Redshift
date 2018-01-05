@@ -22,8 +22,6 @@
 #include <redshift/kernel.h>
 #include <string.h>
 
-extern symbol_t __stack_top__;
-
 static struct tss {
    uint32_t reserved;
    uint32_t esp0;

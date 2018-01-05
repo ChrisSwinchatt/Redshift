@@ -22,31 +22,38 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/symbols.h>
 
-static unsigned __noinline stacktrace(unsigned* array, unsigned max_frames)
-{
-    unsigned* frame = &max_frames - 2;
-    for (unsigned i = 0; i < max_frames; ++i) {
-        unsigned ip = frame[1];
-        if (ip == 0) {
-            return i;
-        }
-        array[i] = ip;
-        frame = (unsigned*)frame[0];
-    }
-    return max_frames;
-}
+enum {
+    MAX_FRAMES  = 10U, /* Maximum number of frames to rewind. */
+    SKIP_FRAMES = 0U   /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and
+                        * the calling function while 1 skips walk_stack, 2 additionally skips dump_stack and 3 skips all
+                        * three.
+                        */
+};
 
-#define MAX_FRAMES 10
+static unsigned __noinline walk_stack(unsigned* array)
+{
+    uint32_t* ebp = (uint32_t*)(&array - 2);
+    unsigned i = 0;
+    for (; i < MAX_FRAMES; ++i) {
+        uint32_t eip = ebp[1];
+        if (eip == 0) {
+            break;
+        }
+        array[i] = eip;
+        ebp = (uint32_t*)ebp[0];
+    }
+    return i;
+}
 
 void dump_stack(void)
 {
     static unsigned array[MAX_FRAMES];
-    unsigned j = stacktrace(array, MAX_FRAMES);
-    for (unsigned i = 0; i < j; ++i) {
-        const char* symbol = get_symbol(array[i]);
+    unsigned j = walk_stack(array);
+    for (unsigned i = SKIP_FRAMES; i < j; ++i) {
+        const char* symbol = get_symbol_name(array[i]);
         if (symbol == NULL) {
-            symbol = "";
+            symbol = "<unresolved symbol>";
         }
-        printk("%d. At 0x%08X (aka <%s>)\n", i + 1, array[i], symbol);
+        printk("%d. At 0x%08X in %s\n", i + 1 - SKIP_FRAMES, array[i], symbol);
     }
 }

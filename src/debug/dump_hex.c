@@ -34,7 +34,7 @@ static void write_offset(uint32_t offset)
     console_color_t foreground, background;
     console_get_color(&foreground, &background);
     console_set_color(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_RED);
-    printk("0x%08lX:", offset);
+    printk(PRINTK_INFO "0x%08lX:", offset);
     console_set_color(foreground, background);
 }
 
