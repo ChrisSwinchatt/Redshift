@@ -129,6 +129,7 @@ static void __noreturn switch_to(struct process* process)
 {
     printk(PRINTK_DEBUG "Switching process: <id=%d,eip=0x%08lX>\n", process->id, process->state.eip);
     page_directory_load(process->page_dir);
+    hang();
     set_state_and_jump(process->state);
 }
 

@@ -44,7 +44,7 @@ int sched_init(void)
     if (main_id < 0) {
         panic("unable to spawn main process");
     }
-    /* Start idle process, which gets its own stack.
+    /* Start idle process, which gets its own stack allocated by process_spawn.
      */
     int idle_id = process_spawn(
         (uintptr_t)idle,
@@ -58,5 +58,6 @@ int sched_init(void)
         panic("unable to spawn idle process");
     }
     add_timer_event("switch", SCHED_PERIOD, process_switch, &cpu_state);
+    enable_interrupts();
     return 0;
 }

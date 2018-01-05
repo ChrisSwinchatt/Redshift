@@ -20,26 +20,42 @@ STACK_SIZE equ 0x8000 ; 32 kiB stack.
 ; Entry point.
 [global _start]
 _start:
+        ; Set up the stack.
         cli
-        mov        esp, __stack_top__              ; Set stack pointer.
-        xor        ebp,    ebp
-        push dword 0                               ; } Push dummy values to keep stack pointer 16-bytes aligned.
-        push dword 0                               ; } walk_stack also needs 0 values to find the top of the stack.
-        push       ebx                             ; Save multiboot info.
-        push       eax                             ; Save multiboot magic number.
-        [extern    __stack_chk_guard_setup]
-        call       __stack_chk_guard_setup         ; Set up the stack guard.
-        [extern    _init]
-        call       _init                           ; Call constructors.
-        [extern    boot]
-        call       boot                            ; Call boot. EAX and EBX are still on the stack.
-        [extern    _fini]
-        call       _fini                           ; Call destructors.
+        mov     esp,                              __stack_top__
+        xor     ebp,                              ebp
+        ; Save bootloader magic number and tags pointer.
+        mov     [__multiboot_bootloader_magic__], eax
+        mov     [__multiboot_bootloader_tags__],  ebx
+        ; Call global constructors.
+        [extern _init]
+        call    _init
+        [extern boot]
+        call    boot
+        ; Fall through.
+[global wait_for_interrupt]
+wait_for_interrupt:
+        ; Wait for an interrupt to occur.
+        sti
+        hlt
+        jmp     wait_for_interrupt
+[global _exit]
+_exit:
+        ; Call global destructors.
+        [extern _fini]
+        call    _fini
+        ; Fall through.
 [global hang]
 hang:
         cli
         hlt
         jmp hang
+
+[section .data]
+[global __multiboot_bootloader_magic__]
+__multiboot_bootloader_magic__: dd 0
+[global __multiboot_bootloader_tags__]
+__multiboot_bootloader_tags__:  dd 0
 [section .bss]
 align 16
 [global __stack_bottom__]

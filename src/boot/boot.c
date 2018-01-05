@@ -23,6 +23,7 @@
 #include <redshift/boot/multiboot.h>
 #include <redshift/boot/pic.h>
 #include <redshift/boot/pit.h>
+#include <redshift/boot/sequence.h>
 #include <redshift/boot/sched.h>
 #include <redshift/boot/tss.h>
 #include <redshift/hal/cpu.h>
@@ -39,7 +40,18 @@
 #include <redshift/mem/static.h>
 #include <redshift/sched/process.h>
 
-static void splash(void)
+static struct multiboot_tag* mb_tags;
+
+extern uint32_t __multiboot_bootloader_magic__; /* boot/_start.asm */
+extern uint32_t __multiboot_bootloader_tags__;  /* boot/_start.asm */
+
+static void __init(BOOT_SEQUNECE_INIT_CONSOLE) init_console(void)
+{
+    console_init();
+    console_clear();
+}
+
+static void __init(BOOT_SEQUENCE_SPLASH) splash(void)
 {
     static const char* splash_text[] = {
         "                          _   __  _   _      ___  __ ___",
@@ -70,7 +82,7 @@ static void splash(void)
     F(size_t,    4)\
     F(void*,     4)
 
-static void check_boot_env(uint32_t magic, uint32_t tags)
+static void __init(BOOT_SEQUENCE_CHECK_BOOT_ENV) check_boot_env(void)
 {
     printk(PRINTK_INFO "Checking boot environment\n");
     /* Check type sizes.
@@ -80,19 +92,20 @@ static void check_boot_env(uint32_t magic, uint32_t tags)
 #undef CHECK_SIZE
     /* Check bootloader info.
      */
-    if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    if (__multiboot_bootloader_magic__ != MULTIBOOT_BOOTLOADER_MAGIC) {
         panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX)",
               (uint32_t)MULTIBOOT_BOOTLOADER_MAGIC,
-              magic);
+              __multiboot_bootloader_magic__);
     }
-    if (tags == 0) {
+    if (__multiboot_bootloader_tags__ == 0) {
         panic("bootloader has not passed system info");
     }
+    mb_tags = (struct multiboot_tag*)__multiboot_bootloader_tags__;
 }
 
 #undef TYPE_LIST
 
-static void init_interrupt_system(void)
+static void __init(BOOT_SEQUENCE_INIT_INTERRUPT_SYSTEM) init_interrupt_system(void)
 {
     printk(PRINTK_INFO "Initialising interrupt system\n");
     tss_init();
@@ -108,21 +121,21 @@ static void init_interrupt_system(void)
     printk(PRINTK_DEBUG "Initialised PIT\n");
 }
 
-static void init_boot_modules_1(struct multiboot_tag* tags)
+static void __init(BOOT_SEQUENCE_INIT_BOOT_MODULES_1) init_boot_modules_1(void)
 {
     printk(PRINTK_INFO "Discovering boot modules\n");
-    discover_boot_modules(tags);
+    discover_boot_modules(mb_tags);
 }
 
-static void init_hal(struct multiboot_tag* tags)
+static void __init(BOOT_SEQUENCE_INIT_HAL) init_hal(void)
 {
     printk(PRINTK_INFO "Initialising hardware abstraction layer\n");
     cpu_init();
     printk(PRINTK_DEBUG "Initialised CPU\n");
-    memory_init(tags);
+    memory_init(mb_tags);
 }
 
-static void init_memory(struct multiboot_tag* tags)
+static void __init(BOOT_SEQUENCE_INIT_MEMORY) init_memory(void)
 {
 
     printk(PRINTK_INFO "Initialising memory manager\n");
@@ -130,19 +143,19 @@ static void init_memory(struct multiboot_tag* tags)
     printk(PRINTK_DEBUG "Initialised static allocator\n");
     paging_init(memory_size_total());
     printk(PRINTK_DEBUG "Initialised page allocator\n");
-    memory_map_init(tags);
+    memory_map_init(mb_tags);
     printk(PRINTK_DEBUG "Parsed memory map\n");
     heap_init();
     printk(PRINTK_DEBUG "Intialised heap allocator\n");
 }
 
-static void init_boot_modules_2(struct multiboot_tag* tags)
+static void __init(BOOT_SEQUENCE_INIT_BOOT_MODULES_2) init_boot_modules_2(void)
 {
     printk(PRINTK_INFO "Processing boot modules\n");
-    save_boot_modules(tags);
+    save_boot_modules(mb_tags);
 }
 
-static void load_initrd(void)
+static void __init(BOOT_SEQUENCE_LOAD_INITRD) load_initrd(void)
 {
     /* Initial ramdisk should always be the first boot module.
      */
@@ -155,7 +168,7 @@ static void load_initrd(void)
     printk(PRINTK_DEBUG "Loaded initial ramdisk\n");
 }
 
-static void load_symbol_table(void)
+static void __init(BOOT_SEQUENCE_LOAD_SYMBOL_TABLE) load_symbol_table(void)
 {
     printk(PRINTK_INFO "Loading symbol table\n");
     const struct initrd_file* symtab = initrd_get_file_by_name("boot/redshift.map");
@@ -166,37 +179,35 @@ static void load_symbol_table(void)
     //panic("test");
 }
 
-static void init_devices(void)
+static void __init(BOOT_SEQUENCE_INIT_DEVICES) init_devices(void)
 {
     /* TODO
      */
 }
 
-static void start_scheduler(void)
+static void __init(BOOT_SEQUENCE_START_SCHEDULER) start_scheduler(void)
 {
     printk(PRINTK_INFO "Starting scheduler\n");
     sched_init();
     printk(PRINTK_DEBUG "Started scheduler\n");
 }
 
-void __noreturn boot(uint32_t magic, uint32_t tags)
+void boot(void)
 {
-    struct multiboot_tag* mb_tags = (struct multiboot_tag*)tags;
     disable_interrupts();
     console_init();
     console_clear();
     splash();
-    check_boot_env(magic, tags);
+    check_boot_env();
     init_interrupt_system();
-    init_hal(mb_tags);
-    init_boot_modules_1(mb_tags);
-    init_memory(mb_tags);
-    init_boot_modules_2(mb_tags);
+    init_hal();
+    init_boot_modules_1();
+    init_memory();
+    init_boot_modules_2();
     load_initrd();
     load_symbol_table();
     init_devices();
     start_scheduler();
     enable_interrupts();
     process_yield();
-    panic("%s should not return!", __func__);
 }

@@ -18,13 +18,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <redshift/boot/sequence.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
 #include <string.h>
 
 uintptr_t __stack_chk_guard = 0xCD000AFFUL;
 
-void __stack_chk_guard_setup(void)
+void __init(BOOT_SEQUENCE_STACK_GUARD_SETUP) __stack_chk_guard_setup(void)
 {
     __stack_chk_guard = 0xCD000AFFUL;
 }

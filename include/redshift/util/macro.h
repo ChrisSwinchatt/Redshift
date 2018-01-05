@@ -59,6 +59,18 @@
 /** Mark a function as non-reentrant. */
 #define __non_reentrant
 
+/**
+ * Mark a function as a constructor. Constructors are called in sequence during boot, before the scheduler is started.
+ * \param PRIORITY Controls the order in which constructors are called (smallest first).
+ */
+#define __init(PRIORITY)            __attribute__((constructor(PRIORITY)))
+
+/**
+ * Mark a function as a destructor. Destructor are called in sequence during shutdown.
+ * \param PRIORITY Controls the order in which destructors are called (largest first).
+ */
+#define __fini(PRIORITY)            __attribute__((destructor(PRIORITY)))
+
 #define FALL_THROUGH                __attribute__((fallthrough))
 
 #define DO_NOTHING                 do {} while (0)

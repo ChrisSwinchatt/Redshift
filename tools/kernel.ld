@@ -15,9 +15,9 @@ SECTIONS
     __data_start__ = .;
 	.data BLOCK(4K) : ALIGN(4K) {
 		*(.data)
-        *(.gnu.linkonce.d*)
         *(.ctors)
         *(.dtors)
+        *(.gnu.linkonce.d*)
         *(.jcr)
 	}
     __data_end__ = .;
@@ -25,8 +25,6 @@ SECTIONS
 	.rodata BLOCK(4K) : ALIGN(4K) {
 		*(.rodata*)
 		*(.gnu.linkonce.r*)
-		*(.common)
-		*(.gnu.linkonce.c*)
 	}
     __rodata_end__ = .;
 	.eh_frame BLOCK(4K) : ALIGN(4K) {
@@ -35,13 +33,15 @@ SECTIONS
 	}
     __bss_start__ = .;
 	.bss BLOCK(4K) : ALIGN(4K) {
-        *(COMMON)
 		*(.bss)
 		*(.gnu.linkonce.b*)
+        *(COMMON)
+		*(.common)
+		*(.gnu.linkonce.c*)
 	}
     __bss_end__ = .;
 	__end__     = .;
-	.debug BLOCK(4K) : ALIGN(4K) {
+	.debug : {
 	    *(.debug*)
 	    *(.stab*)
 	    *(.line*)
