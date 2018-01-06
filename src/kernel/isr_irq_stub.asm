@@ -25,7 +25,8 @@
 %macro ISR 1
     [global isr%1]
     isr%1:
-        push dword 0                ; Push dummy error code. CPU has pushed SS, ESP, EFLAGS, CS and EIP.
+        ; CPU has pushed SS and ESP (if we changed PL), EFLAGS, CS and EIP.
+        push dword 0                ; Push dummy error code.
         push dword %1               ; Push ISR number.
         jmp        isr_stub         ; Jump to ISR stub.
 %endmacro
@@ -72,11 +73,12 @@
 [extern cpu_state_error_code]
 
 %macro prologue 0
-    ; Save GP registers into cpu_state (except esp).
+    ; Save GP registers into cpu_state.
     mov   [cpu_state_eax],        eax
     mov   [cpu_state_ebx],        ebx
     mov   [cpu_state_ecx],        ecx
     mov   [cpu_state_edx],        edx
+    mov   [cpu_state_esp],        esp
     mov   [cpu_state_ebp],        ebp
     mov   [cpu_state_esi],        esi
     mov   [cpu_state_edi],        edi
@@ -92,12 +94,11 @@
     mov   [cpu_state_cs],         eax
     pop   eax
     mov   [cpu_state_eflags],     eax
-    pop   eax
-    mov   [cpu_state_esp],        eax
-    pop   eax
-    mov   [cpu_state_ss],         eax
+    ;pop   eax
+    ;mov   [cpu_state_esp],        eax
+    ;pop   eax
+    ;mov   [cpu_state_ss],         eax
     ; Save data segment selectors.
-    xor   eax,                    eax
     mov   eax,                    ds
     mov   [cpu_state_ds],         eax
     mov   eax,                    es
@@ -105,6 +106,8 @@
     mov   eax,                    fs
     mov   [cpu_state_fs],         eax
     mov   eax,                    gs
+    mov   [cpu_state_gs],         eax
+    mov   eax,                    ss
     mov   [cpu_state_gs],         eax
     ; Save control registers.
     mov   eax,                    cr0
@@ -152,9 +155,9 @@
     mov  fs,   eax
     mov  eax,  [cpu_state_gs]
     mov  gs,   eax
-    ; Put the values the CPU pushes back onto the stack.
-    push dword [cpu_state_ss]
-    push dword [cpu_state_esp]
+    ; Put back the values the CPU pushed on the stack.
+    ;push dword [cpu_state_ss]
+    ;push dword [cpu_state_esp]
     push dword [cpu_state_eflags]
     push dword [cpu_state_cs]
     push dword [cpu_state_eip]

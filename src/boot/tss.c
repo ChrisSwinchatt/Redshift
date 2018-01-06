@@ -57,14 +57,6 @@ void tss_init(void)
     memset(&tss, 0, sizeof(tss));
     tss.esp0 = (uint32_t)__stack_top__;
     tss.ss0  = 0x10;
-/* XXX
-    tss.cs   = 0x0B;
-    tss.ds   = 0x13;
-    tss.es   = 0x13;
-    tss.fs   = 0x13;
-    tss.gs   = 0x13;
-    tss.ss   = 0x13;
-*/
     tss.iobt = sizeof(tss);
 }
 

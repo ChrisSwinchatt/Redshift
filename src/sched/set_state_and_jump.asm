@@ -21,49 +21,52 @@
 [bits 32]
 [section .text]
 
+IF_MASK equ (1 << 9)
+
 [global set_state_and_jump]
 set_state_and_jump:
-    cli
-    ; Pop registers from the stack. We have to pop them in reverse order of struct cpu_state (hal/cpu/state.h).
-    sub   esp,       8    ; Skip interrupt and error_code.
-    pop   eax
-    mov   cr4,       eax
-    pop   eax
-    mov   cr3,       eax
-    pop   eax
-    mov   cr2,       eax
-    pop   eax
-    mov   cr0,       eax
-    popfd
-    cli
-    pop   eax
-    mov   [__eip__], eax  ; Save EIP for later.
-    pop   eax
-    mov   ax,        cs
-    pop   eax
-    mov   ax,        ds
-    pop   eax
-    mov   ax,        es
-    pop   eax
-    mov   ax,        fs
-    pop   eax
-    mov   ax,        gs
-    pop   eax
-    mov   ax,        ss
-    pop   edi             ; Can't use POPAD here because cpu_state has a different ordering for GP registers.
-    pop   esi
-    pop   ebp
-    pop   eax
-    mov   [__esp__], eax  ; Save ESP for later.
-    pop   edx
-    pop   ecx
-    pop   ebx
-    pop   eax
-    ; Set stack pointer & interrupt flag and jump!
-    mov   esp,       [__esp__]
-    sti
-    jmp  [__eip__]
+    ; Restore state of interrupted program, then jump to it. We store EFLAGS, CS:EIP and SS:ESP in variables to be
+    ; restored right before resuming the program with IRET as these registers either can't be changed directly (EIP),
+    ; trigger a GPF if we change them (CS, SS) or would be modified by other instructions before the jump (EFLAGS).
+    ; Since we're not returning control, we don't set up a stack frame.
+    ; NB: The offsets here have to match struct cpu_state (hal/cpu/state.h)
+    add   esp,      4           ; Skip return address.
+    mov   ebx,      [esp]       ; Pointer to register state in EBX.
+    mov   eax,      [ebx + 60]
+    mov   [_flags], eax
+    mov   eax,      [ebx + 56]
+    mov   [_eip],   eax
+    mov   eax,      [ebx + 52]  ; SS
+    mov   [_ss],    eax
+    ;mov   eax,      [ebx - 48]  ; FS
+    ;mov   gs,       ax
+    ;mov   eax,      [ebx - 44]  ; FS
+    ;mov   fs,       ax
+    ;mov   eax,      [ebx - 40]  ; ES
+    ;mov   es,       ax
+    ;mov   eax,      [ebx - 36]  ; DS
+    ;mov   ds,       ax
+    mov   eax,      [ebx + 32]  ; CS
+    mov   [_cs],    eax
+    mov   edi,      [ebx + 28]
+    mov   esi,      [ebx + 24]
+    mov   ebp,      [ebx + 20]
+    mov   eax,      [ebx + 16]
+    mov   [_esp],   eax
+    mov   edx,      [ebx + 12]
+    mov   ecx,      [ebx +  8]
+    mov   eax,      [ebx +  0]
+    mov   ebx,      [ebx +  4]  ; Restore EBX last for obvious reasons.
+    push  dword [_ss]
+    push  dword [_esp]
+    push  dword [_flags]
+    push  dword [_cs]
+    push  dword [_eip]
+    iret
 
 [section .data]
-__eip__: dd 0
-__esp__: dd 0
+_cs:    dd 0
+_eip:   dd 0
+_flags: dd 0
+_ss:    dd 0
+_esp:   dd 0

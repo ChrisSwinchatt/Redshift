@@ -143,11 +143,11 @@ const void* get_symbol_address(const char* name)
 
 const char* get_symbol_name(uintptr_t address)
 {
-    const struct symbol* symbol  = __symbols__;
-    const struct symbol* closest = symbol;
     if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
         return NULL;
     }
+    const struct symbol* symbol  = __symbols__;
+    const struct symbol* closest = symbol;
     do {
         /* Find the symbol with the highest address which is
          */

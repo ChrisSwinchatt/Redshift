@@ -76,7 +76,6 @@ static void cpuid_get_vendor_string(struct cpuid* info)
     memcpy(info->vendor_string + 4, &regs[EDX], 4);
     memcpy(info->vendor_string + 8, &regs[ECX], 4);
     info->vendor_string[CPUID_VENDOR_STRING_MAX - 1] = 0;
-    printk(PRINTK_DEBUG "Vendor ID: %s ", info->vendor_string);
 }
 
 static void cpuid_get_vendor(struct cpuid* info)
@@ -108,7 +107,6 @@ static void cpuid_get_vendor(struct cpuid* info)
     } else {
         strncpy(info->vendor, "Unknown", CPUID_VENDOR_MAX);
     }
-    printk(PRINTK_DEBUG "(%s)\n", info->vendor);
 }
 
 
@@ -122,8 +120,6 @@ static void cpuid_get_features(struct cpuid* info)
     info->type         = (regs[EAX] >> 12);
     info->features     = regs[ECX];
     info->features_ext = regs[EDX];
-    printk(PRINTK_DEBUG "Type: %d\n * Family: %d\n * Model: %d\n * Stepping: %d\n",
-           info->type, info->family, info->model, info->stepping);
 }
 
 static void cpuid_get_brand_string(struct cpuid* info)
@@ -147,50 +143,32 @@ static void cpuid_get_brand_string(struct cpuid* info)
     strncpy(info->brand_string + 39, (const char*)&regs[ECX], 4);
     strncpy(info->brand_string + 43, (const char*)&regs[EDX], 4);
     info->brand_string[47] = 0;
-    printk(PRINTK_DEBUG "Brand string: %s\n", info->brand_string);
-}
-
-static void cpuid_get_model(struct cpuid* info)
-{
-    UNUSED(info);
 }
 
 static void cpuid_get_cache(struct cpuid* info)
 {
+    /* TODO.
+     */
     UNUSED(info);
 }
 
 static void cpuid_get_frequency(struct cpuid* info)
 {
-    static const uint64_t period = 10; /* ms */
-    uint64_t ticks1, ticks2;
-    ticks1 = read_ticks();
+    static const uint64_t period = 10ULL; /* ms */
+    uint64_t ticks1 = read_ticks();
     msleep(period);
     disable_interrupts(); /* msleep enables interrupts, but we don't want them any more during the boot process. */
-    ticks2 = read_ticks();
-    info->frequency = (uint32_t)((ticks2 - ticks1) * 1000 / period);
+    uint64_t ticks2 = read_ticks();
+    info->frequency = (uint64_t)((ticks2 - ticks1)*1000ULL/period);
     if (info->frequency == 0) {
         info->frequency = 1;
-    }
-    {
-        uint32_t freq = info->frequency;
-        const char* unit = "Hz";
-        if (info->frequency >= 1000000000UL) {
-            freq /= 1000000000UL;
-            unit = "GHz";
-        } else if (info->frequency >= 1000000UL) {
-            freq /= 1000UL;
-            unit = "MHz";
-        } else if (info->frequency >= 1000UL) {
-            freq /= 1000UL;
-            unit = "kHz";
-        }
-        printk(PRINTK_DEBUG "Clock rate: %lu %s\n", freq, unit);
     }
 }
 
 static void cpuid_get_cores(struct cpuid* info)
 {
+    /* TODO.
+     */
     UNUSED(info);
 }
 
@@ -203,9 +181,11 @@ int cpuid_init(struct cpuid* info)
     cpuid_get_vendor(info);
     cpuid_get_features(info);
     cpuid_get_brand_string(info);
-    cpuid_get_model(info);
     cpuid_get_cache(info);
     cpuid_get_frequency(info);
     cpuid_get_cores(info);
+    printk(PRINTK_DEBUG "CPU info: %s %s (%s)\n", info->brand_string, info->vendor, info->vendor_string);
+    printk(PRINTK_DEBUG "CPU info: <type=%d,family=%d,model=%d,stepping=%d>\n",
+           info->type, info->family, info->model, info->stepping);
     return 0;
 }

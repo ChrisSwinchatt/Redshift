@@ -100,7 +100,12 @@ int process_spawn(
         process->state.gs = 0x10;
         process->state.ss = 0x10;
     } else {
-        panic("user-mode processes not supported");
+        process->state.cs = 0x1B;
+        process->state.ds = 0x23;
+        process->state.es = 0x23;
+        process->state.fs = 0x23;
+        process->state.gs = 0x23;
+        process->state.ss = 0x23;
     }
     process->state.eip = entry_point;
     process->state.esp = (uintptr_t)process->stack + process->stack_size; /* Top of the stack. */
@@ -109,8 +114,9 @@ int process_spawn(
     if (queue->last == NULL) {
         /* Initialise the queue with the process.
          */
-        queue->last   = process;
-        process->next = process;
+        queue->last     = process;
+        process->next   = process;
+        current_process = process;
     } else {
         /* Add the process after whatever executed last, then set it to be last in the queue.
          */
@@ -123,14 +129,13 @@ int process_spawn(
     return process->id;
 }
 
-extern void __noreturn set_state_and_jump(struct cpu_state regs);
+extern void __noreturn set_state_and_jump(const struct cpu_state* regs);
 
 static void __noreturn switch_to(struct process* process)
 {
     printk(PRINTK_DEBUG "Switching process: <id=%d,eip=0x%08lX>\n", process->id, process->state.eip);
     page_directory_load(process->page_dir);
-    hang();
-    set_state_and_jump(process->state);
+    set_state_and_jump(&(process->state));
 }
 
 void __non_reentrant process_switch(void* regs)
