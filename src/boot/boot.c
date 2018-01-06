@@ -210,4 +210,5 @@ void boot(void)
     start_scheduler();
     enable_interrupts();
     process_yield();
+    UNREACHABLE("%s should not return!", __func__);
 }

@@ -85,7 +85,13 @@ const struct isr_info isr_info[] = {
 static void handle_exception(const struct cpu_state* regs)
 {
     struct isr_info info = isr_info[regs->interrupt];
-    panic_with_state(regs, "%s: <interrupt=0x%02lX,error_code=%bb>", info.message, regs->interrupt, regs->error_code);
+    panic_with_state(
+        regs,
+        "%s: <interrupt=0x%02lX,error_code=%03bb>",
+        info.message,
+        regs->interrupt,
+        regs->error_code & 0x7 /* 3 LSBs contain the EXT (bit 0), IDT (1) and TI (2) flags. */
+    );
 }
 
 void isr_handler(const struct cpu_state* regs)
