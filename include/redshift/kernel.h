@@ -42,9 +42,6 @@
  */
 #define TICK_RATE 100
 
-/** Hang the computer forever. */
-extern void __noreturn hang(void);
-
 /** Type for linker script symbols. Linker symbols are just addresses, so we define it as an array type because arrays
  * are handled as just addresses by default. */
 typedef int symbol_t[];

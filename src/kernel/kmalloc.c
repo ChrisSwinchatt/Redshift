@@ -57,12 +57,17 @@ kfree_fn_t   kfree_fn   = pre_init_kfree;
 
 void* kmalloc(size_t size)
 {
-    return kmalloc_fn(size);
+    SAVE_INTERRUPT_STATE;
+    void* ptr = kmalloc_fn(size);
+    RESTORE_INTERRUPT_STATE;
+    return ptr;
 }
 
 void kfree(void* ptr)
 {
+    SAVE_INTERRUPT_STATE;
     kfree_fn(ptr);
+    RESTORE_INTERRUPT_STATE;
 }
 
 void enable_kmalloc(void)

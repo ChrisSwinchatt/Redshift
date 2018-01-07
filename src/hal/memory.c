@@ -38,6 +38,7 @@ static struct memory {
 
 void memory_init(struct multiboot_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)mb_tags + 8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
@@ -65,10 +66,12 @@ void memory_init(struct multiboot_tag* mb_tags)
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 void memory_map_init(struct multiboot_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     struct multiboot_mmap_entry* mmap = NULL;
     struct memory_map* memmap = NULL;
@@ -124,6 +127,7 @@ void memory_map_init(struct multiboot_tag* mb_tags)
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 const struct memory_map* memory_map_head(void)

@@ -72,6 +72,7 @@ static int do_print(const char* fmt, va_list ap)
 
 int vprintk(const char* fmt, va_list ap)
 {
+    SAVE_INTERRUPT_STATE;
     int level = 0;
     if ((level = handle_printk_level(&fmt)) < MINIMUM_LOG_LEVEL) {
         return 0;
@@ -81,14 +82,17 @@ int vprintk(const char* fmt, va_list ap)
     set_level_formatting(level);
     int ret = do_print(fmt, ap);
     console_set_color(foreground, background);
+    RESTORE_INTERRUPT_STATE;
     return ret;
 }
 
 int printk(const char* fmt, ...)
 {
+    SAVE_INTERRUPT_STATE;
     va_list ap;
     va_start(ap, fmt);
     int ret = vprintk(fmt, ap);
     va_end(ap);
+    RESTORE_INTERRUPT_STATE;
     return ret;
 }

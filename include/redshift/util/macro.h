@@ -22,16 +22,18 @@
 #define REDSHIFT_UTIL_MACRO_H
 
 /** Stringify helper. */
-#define __STRINGIFY_HELPER(X) #X
+#define __STRINGIFY_HELPER(X)       #X
 
 /** Stringify something. */
-#define STRINGIFY(X) __STRINGIFY_HELPER(X)
+#define STRINGIFY(X)                __STRINGIFY_HELPER(X)
 
 /** Current line number as a string. */
-#define __LINE_NO__  STRINGIFY(__LINE__)
+#define __LINE_NO__                 STRINGIFY(__LINE__)
 
 /** Current file and line number as a colon-delimited string. */
-#define __FILE_LINE__ __FILE__ ":" __LINE_NO__
+#define __FILE_LINE__               __FILE__ ":" __LINE_NO__
+
+#define CONCAT(A, B)                A ## B
 
 /** Suppress unused parameter/variable warning. */
 #define UNUSED(X)                   ((void)(X))
@@ -71,12 +73,22 @@
  */
 #define __fini(PRIORITY)            __attribute__((destructor(PRIORITY)))
 
+/** Fall through e.g. to the next case label without triggering a warning. */
 #define FALL_THROUGH                __attribute__((fallthrough))
 
-#define DO_NOTHING                 do {} while (0)
+/** Do nothing descriptively. Use for "NOP" instead of ;. */
+#define DO_NOTHING                  do {} while (0)
+
+/**
+ * Save interrupt state. Can only be done once per function, ideally before doing anything else.
+ */
+#define SAVE_INTERRUPT_STATE        int __saved_interrupt_state__ = get_interrupt_state(); disable_interrupts()
+
+/** Restore previous interrupt state. Can only be done after SAVE_INTERRUPT_STATE. */
+#define RESTORE_INTERRUPT_STATE     do { if (__saved_interrupt_state__) { enable_interrupts(); } } while (0)
 
 /** Find the number of elements in 'array' if known at compile-time. */
-#define ARRAY_SIZE(array)            (sizeof(array)/sizeof(*(array)))
+#define ARRAY_SIZE(array)           (sizeof(array)/sizeof(*(array)))
 
 /** Check if a flag is present in a bitflags variable. */
 #define TEST_FLAG(var, flag)        ((var & flag) == flag)

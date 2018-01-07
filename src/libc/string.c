@@ -33,7 +33,7 @@ char* itos(long i, int base, char* buf, size_t n)
     do {
         int rem = u % base;
         *buf++ = (rem < 10) ? '0' + rem : 'a' + rem;
-    } while (u /= base && n--);
+    } while (u /= base && n --> 0);
     return strreverse(buf);
 }
 
@@ -72,11 +72,9 @@ void* memmove(void* dst, const void* src, size_t n)
 {
     /* Do nothing if dst and src are the same. Copy backwards if dst and src overlap. Otherwise, copy forwards.
      */
-    if (dst == src) {
-        return dst;
-    } else if (src < dst) {
+    if (src < dst) {
         BACKWARD_COPY(dst, src, n);
-    } else {
+    } else if (src > dst) {
         FORWARD_COPY(dst, src, n);
     }
     return dst;
@@ -84,9 +82,9 @@ void* memmove(void* dst, const void* src, size_t n)
 
 void* memset(void* array, int c, size_t n)
 {
-    char* parray = array;
+    uint8_t* parray = array;
     while (n --> 0) {
-        *parray++ = (char)c;
+        *parray++ = (uint8_t)c;
     }
     return array;
 }
@@ -110,7 +108,7 @@ char* strchr(const char* s, int c)
 {
     for (; *s != 0; ++s) {
         if (*s == c) {
-            return (char* ) s;
+            return (char*)s;
         }
     }
     return NULL;
@@ -143,8 +141,9 @@ char* strerror(int errnum)
 size_t strlen(const char* s)
 {
     size_t count;
-    for (count = 0; *s != 0; ++s, ++count)
-        ;
+    for (count = 0; *s != 0; ++s, ++count) {
+        DO_NOTHING;
+    }
     return count;
 }
 
@@ -190,8 +189,9 @@ char* strstr(const char* dst, const char* src)
     while ((c = *dst++) != 0) {
         const char* pdst = dst;
         const char* psrc = src;
-        while ((*pdst++ == *psrc++) && *pdst && *psrc)
-            ;
+        while ((*pdst++ == *psrc++) && *pdst && *psrc) {
+            DO_NOTHING;
+        }
         if (*psrc == 0) {
             return (char*)dst;
         }
@@ -218,7 +218,6 @@ char* stoupper(char* s)
 char* strdup(const char* s)
 {
     size_t size = strlen(s);
-    //printk("strlen(%s)=%lu\n", s, size);
     char* dup = kmalloc(size) + 1;
     if (dup == NULL) {
         panic("%s: failed to allocate memory", __func__);

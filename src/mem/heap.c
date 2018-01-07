@@ -26,9 +26,10 @@
 #include <redshift/mem/static.h>
 
 enum {
-    HEAP_SIZE_MIN  = 0x00070000,
-    BLOCKLIST_SIZE = 0x00002000,
-    BLOCK_MAGIC    = 0x600DB10C
+    HEAP_SIZE_MIN      = 0x00070000UL,
+    HEAP_SIZE_INIT     = 0x00100000UL,
+    BLOCKLIST_SIZE     = 0x00002000UL,
+    BLOCK_MAGIC        = 0x600DB10CUL
 };
 
 typedef enum {
@@ -41,8 +42,8 @@ struct heap {
     uintptr_t           start;        /* Heap start address.                              */
     uintptr_t           end;          /* Heap end address.                                */
     size_t              max_size;     /* Maximum size of heap (end - start).              */
-    int                 alloc_count;  /* Number of times memory was allocated.            */
-    int                 free_count;   /* Number of times memory was freed.                */
+    unsigned            alloc_count;  /* Number of times memory was allocated.            */
+    unsigned            free_count;   /* Number of times memory was freed.                */
     uint64_t            bytes_allocd; /* Number of bytes currently allocated.             */
     int                 flags;        /* Heap flags.                                      */
 };
@@ -61,10 +62,6 @@ struct blockfooter {
 } __packed;
 
 struct heap* __kernel_heap__ = NULL;
-
-enum {
-    HEAP_SIZE_INIT = 0x00100000UL
-};
 
 /* Scan the memory map for a region big enough to store the heap. */
 static uint32_t get_heap_region(uint64_t size)
@@ -118,6 +115,7 @@ static bool blockheader_ascending_predicate(void* pa, void* pb)
 
 struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_flags_t flags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(start % PAGE_SIZE == 0);
     DEBUG_ASSERT(end   % PAGE_SIZE == 0);
     struct heap* heap = static_alloc(sizeof(*heap));
@@ -143,6 +141,7 @@ struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_fla
     hole->magic = BLOCK_MAGIC;
     hole->flags = BLOCK_FLAGS_IS_HOLE;
     sorted_array_add(heap->blocklist, (void*)hole);
+    RESTORE_INTERRUPT_STATE;
     return heap;
 }
 
@@ -275,6 +274,8 @@ static struct blockheader* create_hole(struct heap* heap, uintptr_t address, siz
     return header;
 }
 
+#define MINIMUM_BLOCK_SIZE sizeof(struct blockheader) + sizeof(struct blockfooter)
+
 static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, size_t new_size, bool page_align)
 {
     DEBUG_ASSERT(hole >= 0);
@@ -283,7 +284,7 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
     DEBUG_ASSERT(original_header != NULL);
     uintptr_t original_addr = (uintptr_t)original_header;
     size_t    original_size = original_header->size;
-    if (original_size - new_size < sizeof(struct blockheader) + sizeof(struct blockfooter)) {
+    if (original_size - new_size <= MINIMUM_BLOCK_SIZE) {
         /* If there is space left over, but not enough to create a hole, expand the allocated memory to include the
          * extra space.
          */
@@ -322,6 +323,7 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
 
 void* heap_alloc(struct heap* heap, size_t size, bool page_align)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(heap != NULL);
     DEBUG_ASSERT(size != 0);
     /* Try to find a hole big enough to contain the memory block.
@@ -331,6 +333,7 @@ void* heap_alloc(struct heap* heap, size_t size, bool page_align)
     if (hole < 0) {
         /* No hole big enough - try to create a new hole.
          */
+        RESTORE_INTERRUPT_STATE;
         return create_hole_and_alloc(heap, size, new_size, page_align);
     }
     /* Allocate using the hole we found.
@@ -340,6 +343,7 @@ void* heap_alloc(struct heap* heap, size_t size, bool page_align)
      */
     heap->alloc_count++;
     heap->bytes_allocd += header->size;
+    RESTORE_INTERRUPT_STATE;
     return (void*)((uintptr_t)header + sizeof(*header));
 }
 
@@ -405,8 +409,10 @@ static int unify_holes(struct heap* heap, struct blockheader** header, struct bl
 
 void heap_free(struct heap* heap, void* ptr)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(heap != NULL);
     if (ptr == NULL) {
+        RESTORE_INTERRUPT_STATE;
         return;
     }
     /* Find the block's header and footer and mark it as a hole.
@@ -458,11 +464,13 @@ void heap_free(struct heap* heap, void* ptr)
     heap->bytes_allocd -= original_size;
     DEBUG_ASSERT(heap->free_count <= heap->alloc_count);         /* Check for double-free. */
     DEBUG_ASSERT(heap->bytes_allocd <= heap->end - heap->start); /* Check we haven't allocated more bytes than available. */
+    RESTORE_INTERRUPT_STATE;
 }
 
 
 void heap_init(void)
 {
+    SAVE_INTERRUPT_STATE;
     const uint32_t start = get_heap_region(HEAP_SIZE_INIT);
     DEBUG_ASSERT(UINT32_MAX - HEAP_SIZE_INIT > start);
     /* Try to create the heap.
@@ -474,4 +482,5 @@ void heap_init(void)
     /* Enable kmalloc/kfree.
      */
     enable_kmalloc();
+    RESTORE_INTERRUPT_STATE;
 }

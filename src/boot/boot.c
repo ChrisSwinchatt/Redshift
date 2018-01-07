@@ -176,13 +176,14 @@ static void __init(BOOT_SEQUENCE_LOAD_SYMBOL_TABLE) load_symbol_table(void)
         panic("initial ramdisk does not contain the symbol table");
     }
     symbols_load(symtab->start, symtab->size);
-    //panic("test");
 }
 
 static void __init(BOOT_SEQUENCE_INIT_DEVICES) init_devices(void)
 {
     /* TODO
      */
+    dump_stack();
+    hang();
 }
 
 static void __init(BOOT_SEQUENCE_START_SCHEDULER) start_scheduler(void)

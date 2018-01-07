@@ -34,7 +34,7 @@ struct symbol {
     struct symbol* next;
 };
 
-static struct symbol* __symbols__ = NULL;
+static struct symbol* symbol_table = NULL;
 
 static uintptr_t parse_address(const char* p, const char* q)
 {
@@ -61,9 +61,10 @@ enum { ADDRESS = 0, SYMBOL = 1 };
 
 void symbols_load(uintptr_t ptr, size_t size)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(ptr != 0);
-    __symbols__  = static_alloc(sizeof(*__symbols__));
-    struct symbol* symbol = __symbols__;
+    symbol_table  = static_alloc(sizeof(*symbol_table));
+    struct symbol* symbol = symbol_table;
     const  char*   file   = (const char*)ptr;
     char address[ADDRESS_MAX];
     char name[NAME_MAX];
@@ -127,34 +128,48 @@ void symbols_load(uintptr_t ptr, size_t size)
             }
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 const void* get_symbol_address(const char* name)
 {
-    const struct symbol* symbol = __symbols__;
+    SAVE_INTERRUPT_STATE;
+    const struct symbol* symbol = symbol_table;
     while (symbol) {
         if (strcmp(symbol->name, name) == 0) {
             return (const void*)symbol->address;
         }
         symbol = symbol->next;
     }
+    RESTORE_INTERRUPT_STATE;
     return NULL;
 }
 
 const char* get_symbol_name(uintptr_t address)
 {
+    SAVE_INTERRUPT_STATE;
     if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
+        printk(
+            PRINT_DEBUG "Can't resolve symbol outside code section: <address=0x%lX,code_start=0x%p,code_end=0x%p>",
+            address,
+            __code_start__,
+            __code_end__
+        );
         return NULL;
     }
-    const struct symbol* symbol  = __symbols__;
-    const struct symbol* closest = symbol;
+    const struct symbol* symbol  = symbol_table;
+    const struct symbol* largest = NULL;
     do {
-        /* Find the symbol with the highest address which is
+        /* Find the symbol with the largest address which is below or equal to the given address.
          */
-        if (symbol->address >= closest->address && symbol->address <= address) {
-            closest  = symbol;
+        if (symbol->address == address) {
+            break;
+        }
+        if (symbol->address >= largest->address && symbol->address < address) {
+            largest = symbol;
         }
         symbol = symbol->next;
     } while (symbol);
-    return closest->name;
+    RESTORE_INTERRUPT_STATE;
+    return largest->name;
 }

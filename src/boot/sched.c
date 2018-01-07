@@ -31,13 +31,14 @@ extern void kernel_main(void);
 
 int sched_init(void)
 {
+    disable_interrupts();
     /* Start main process, which uses the main kernel stack.
      */
     int main_id = process_spawn(
         (uintptr_t)kernel_main,
         kernel_directory,
-        0,
-        (uintptr_t)__stack_bottom__,
+        PROCESS_PRIORITY_LOW,
+        (uintptr_t)__stack_top__,
         STACK_SIZE,
         PROCESS_FLAGS_SUPERVISOR
     );
@@ -49,7 +50,7 @@ int sched_init(void)
     int idle_id = process_spawn(
         (uintptr_t)idle,
         kernel_directory,
-        0,
+        PROCESS_PRIORITY_MIN,
         0,
         STACK_SIZE,
         PROCESS_FLAGS_SUPERVISOR
@@ -57,7 +58,9 @@ int sched_init(void)
     if (idle_id < 0) {
         panic("unable to spawn idle process");
     }
-    add_timer_event("switch", SCHED_PERIOD, process_switch, &cpu_state);
+    /* Add timer event and enable interrupts.
+     */
+    add_timer_event("sched", SCHED_PERIOD, process_switch, &cpu_state);
     enable_interrupts();
     return 0;
 }

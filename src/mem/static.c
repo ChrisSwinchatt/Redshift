@@ -27,16 +27,19 @@ uintptr_t heap_addr = 0;
 
 void static_init(void)
 {
+    SAVE_INTERRUPT_STATE;
     uintptr_t end = (uintptr_t)__end__;
     uintptr_t modules_end = boot_modules_end();
     if (modules_end > end) {
         end = modules_end;
     }
     heap_addr = (end & PAGE_MASK) + PAGE_SIZE;
+    RESTORE_INTERRUPT_STATE;
 }
 
 uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(size > 0);
     /* Align to page boundary if required.
      */
@@ -59,7 +62,7 @@ uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys)
     if (phys != NULL) {
         *phys = addr;
     }
-    //DEBUG_ASSERT(__kernel_heap__ == NULL || heap_addr < __kernel_heap__->start);
+    RESTORE_INTERRUPT_STATE;
     return addr;
 }
 

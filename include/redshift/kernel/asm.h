@@ -22,6 +22,7 @@
 #define REDSHIFT_KERNEL_ASM_H
 
 #include <stdint.h>
+#include <redshift/util/macro.h>
 
 /** I/O ports. */
 enum io_ports {
@@ -57,7 +58,16 @@ void enable_interrupts(void);
  * Waits until the next interrupt.
  * NB: If called after disable_interrupts, the CPU will never wake up.
  */
-void int_wait(void);
+void wait_for_interrupt(void);
+
+/**
+ * Get the current interrupt state.
+ * \return 1 if interrupts are enabled, otherwise 0.
+ */
+int get_interrupt_state(void);
+
+/** Hang the computer forever. */
+extern void __noreturn hang(void);
 
 /**
  * Reads the timestamp counter.
