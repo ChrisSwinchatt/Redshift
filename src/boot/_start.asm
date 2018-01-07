@@ -13,6 +13,7 @@
 ; COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 ; OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [bits 32]
+align 4
 
 STACK_SIZE equ 0x8000 ; 32 kiB stack.
 
@@ -20,7 +21,7 @@ STACK_SIZE equ 0x8000 ; 32 kiB stack.
 ; Entry point.
 [global _start]
 _start:
-        ; Set up the stack.
+        ; Set up the stack. NB: Stack must be 16-bytes aligned when we call _init and _boot.
         cli
         mov     esp,                              __stack_top__
         xor     ebp,                              ebp
@@ -33,29 +34,20 @@ _start:
         [extern boot]
         call    boot
         ; Fall through.
-[global wait_for_interrupt]
-wait_for_interrupt:
-        ; Wait for an interrupt to occur.
-        sti
-        hlt
-        jmp     wait_for_interrupt
 [global _exit]
 _exit:
         ; Call global destructors.
         [extern _fini]
         call    _fini
-        ; Fall through.
-[global hang]
-hang:
-        cli
-        hlt
-        jmp hang
+        [extern hang]
+        call    hang
 
 [section .data]
 [global __multiboot_bootloader_magic__]
 __multiboot_bootloader_magic__: dd 0
 [global __multiboot_bootloader_tags__]
 __multiboot_bootloader_tags__:  dd 0
+
 [section .bss]
 align 16
 [global __stack_bottom__]
