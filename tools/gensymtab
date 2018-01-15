@@ -15,4 +15,4 @@ EOF
     exit 1
 fi
 
-nm "$binfile" | grep " T " | sed "s/ T / /" >"$mapfile"
+nm "$binfile" | grep " T " | sed "s/ T / /" | sort -r >"$mapfile"

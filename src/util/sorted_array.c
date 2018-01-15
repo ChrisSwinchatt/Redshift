@@ -1,6 +1,6 @@
 /**
  * \file kernel/sorted_array.c
- * Automatically-sorted list.
+ * Automatically-sorted array.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
  * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
  *
@@ -24,11 +24,11 @@
 #include <string.h>
 
 struct sorted_array {
-    void**          elements;
-    uint8_t         freeable;
-    size_t          count;
-    size_t          capacity;
-    order_predicate predicate;
+    void**               elements;
+    sorted_array_flags_t flags;
+    size_t               count;
+    size_t               capacity;
+    order_predicate      predicate;
 };
 
 bool uint32_t_ascending_order_predicate(void* pa, void* pb)
@@ -37,7 +37,7 @@ bool uint32_t_ascending_order_predicate(void* pa, void* pb)
     DEBUG_ASSERT(pb != NULL);
     uint32_t a = *(uint32_t*)pa;
     uint32_t b = *(uint32_t*)pb;
-    return (a < b);
+    return a < b;
 }
 
 bool uint32_t_descending_order_predicate(void* pa, void* pb)
@@ -46,101 +46,114 @@ bool uint32_t_descending_order_predicate(void* pa, void* pb)
     DEBUG_ASSERT(pb != NULL);
     uint32_t a = *(uint32_t*)pa;
     uint32_t b = *(uint32_t*)pb;
-    return (a > b);
+    return a > b;
 }
 
-struct sorted_array* create_sorted_array(size_t capacity, bool static_, order_predicate predicate)
+struct sorted_array* create_sorted_array(size_t capacity, sorted_array_flags_t flags, order_predicate predicate)
 {
     const size_t size = sizeof(struct sorted_array*);
     void* address;
-    if (static_) {
-        address = static_alloc(size);
-    } else {
+    if (TEST_FLAG(flags, SORTED_ARRAY_DYNAMIC)) {
         address = kmalloc(size);
+    } else {
+        address = static_alloc(size);
     }
     DEBUG_ASSERT(address != NULL);
-    return place_sorted_array(address, capacity, static_, predicate);
+    return place_sorted_array(address, capacity, flags, predicate);
 }
 
-struct sorted_array* place_sorted_array(void* address, size_t capacity, bool static_, order_predicate predicate)
+struct sorted_array* place_sorted_array(void* address, size_t capacity, sorted_array_flags_t flags, order_predicate predicate)
 {
     DEBUG_ASSERT(address != NULL);
     DEBUG_ASSERT(capacity > 0);
     DEBUG_ASSERT(predicate != NULL);
-    struct sorted_array* list = address;
-    size_t count = sizeof(*(list->elements))*capacity;
-    if (static_) {
-        list->elements = static_alloc(count);
-        list->freeable = 0;
+    DEBUG_ASSERT((uintptr_t)predicate >= (uintptr_t)__code_start__ && (uintptr_t)predicate <= (uintptr_t)__code_end__);
+    struct sorted_array* array = address;
+    memset(array, 0, sizeof(array));
+    const size_t bytes = sizeof(*(array->elements))*capacity;
+    if (TEST_FLAG(flags, SORTED_ARRAY_DYNAMIC)) {
+        array->elements = kmalloc(bytes);
     } else {
-        list->elements = kmalloc(count);
-        list->freeable = 1;
+        array->elements = static_alloc(bytes);
     }
-    DEBUG_ASSERT(list->elements != NULL);
-    memset(list->elements, 0, sizeof(*(list->elements))*capacity);
-    list->count     = 0;
-    list->capacity  = capacity;
-    list->predicate = predicate;
-    return list;
+    DEBUG_ASSERT(array->elements != NULL);
+    memset(array->elements, 0, bytes);
+    array->count     = 0;
+    array->capacity  = capacity;
+    array->predicate = predicate;
+    array->flags     = flags;
+    return array;
 }
 
-void delete_sorted_array(struct sorted_array* list)
+void delete_sorted_array(struct sorted_array* array)
 {
-    if (list && list->freeable) {
-        kfree(list->elements);
-        kfree(list);
+    if (array && TEST_FLAG(array->flags, SORTED_ARRAY_DYNAMIC)) {
+        kfree(array->elements);
+        array->elements = NULL;
+        kfree(array);
     }
 }
 
-size_t sorted_array_add(struct sorted_array* list, void* element)
+intmax_t sorted_array_add(struct sorted_array* array, void* element)
 {
-    DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->elements != NULL);
-    DEBUG_ASSERT(list->predicate != NULL);
+    DEBUG_ASSERT(array != NULL);
+    DEBUG_ASSERT(array->elements != NULL);
+    DEBUG_ASSERT(array->predicate != NULL);
     DEBUG_ASSERT(element != NULL);
-    if (list->count == 0) {
-        list->elements[0] = element;
-        list->count++;
-        return list->count;
+    if (array->count == 0) {
+        array->elements[0] = element;
+        array->count++;
+        return (intmax_t)array->count;
     }
     size_t i = 0;
-    for (; i < list->count && list->predicate(list->elements[i], element); ++i) {
-        DO_NOTHING;
+    for (i = 0; i < array->count; ++i) {
+        DEBUG_ASSERT(array->elements[i] != NULL);
+        /* Break if the order predicate says element should come before the current element in the array.
+         */
+        if (!(array->predicate(array->elements[i], element))) {
+            break;
+        }
     }
-    if (i >= list->count) {
+    if (i >= array->count) {
         /* Append.
          */
-        list->elements[list->count++] = element;
+        array->elements[array->count] = element;
     } else {
-        /* Move each pointer from the ith element to the end of the list one space to the "right". Then insert the new
-         * element at position i.
+        /* Copy each pointer after the ith element right one space. Then insert the new element at position i.
          */
-        memmove(list->elements + i + 1, list->elements + i, list->count - i - 1);
-        list->elements[i] = element;
-        list->count++;
+        void* tmp = array->elements[i];
+        array->elements[i] = element;
+        for (++i; i < array->count; ++i) {
+            void* tmp2 = array->elements[i];
+            array->elements[i] = tmp;
+            tmp = tmp2;
+        }
+        array->elements[i] = element;
     }
+    array->count++;
+    DEBUG_ASSERT(array->elements[i] != NULL);
     /* Ensure we haven't run past the end of the array. TODO return failure when this happens instead of just crashing.
      */
-    RUNTIME_CHECK(list->count <= list->capacity);
-    return i;
+    RUNTIME_CHECK(array->count <= array->capacity);
+    return (intmax_t)i;
 }
 
-void* sorted_array_get(const struct sorted_array* list, size_t index)
+void* sorted_array_get(const struct sorted_array* array, size_t index)
 {
-    DEBUG_ASSERT(index < list->count);
-    return list->elements[index];
+    DEBUG_ASSERT(index < array->count);
+    return array->elements[index];
 }
 
-void sorted_array_remove(struct sorted_array* list, size_t index)
+void sorted_array_remove(struct sorted_array* array, size_t index)
 {
-    DEBUG_ASSERT(index < list->count);
-    for (; index < list->count; ++index) {
-        list->elements[index] = list->elements[index + 1];
+    DEBUG_ASSERT(index < array->count);
+    for (; index < array->count; ++index) {
+        array->elements[index] = array->elements[index + 1];
     }
-    --list->count;
+    --array->count;
 }
 
-size_t sorted_array_count(const struct sorted_array* list)
+size_t sorted_array_count(const struct sorted_array* array)
 {
-    return list->count;
+    return array->count;
 }

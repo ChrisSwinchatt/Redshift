@@ -1,8 +1,4 @@
-/**
- * \file redshift/mem/kmalloc.h
- * \brief Heap allocator.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018 Chris Swinchatt.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -17,28 +13,21 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef REDSHIFT_MEM_KMALLOC_H
-#define REDSHIFT_MEM_KMALLOC_H
+#ifndef REDSHIFT_UTIL_TYPES_H
+#define REDSHIFT_UTIL_TYPES_H
 
-#include <redshift/kernel.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
-/**
- * Allocate a block of dynamic memory on the kernel heap.
- * \param size The size of the block to allocate.
- * \return A pointer to the allocated block if successful. Panics on failure.
- */
-extern void*(* kmalloc)(size_t size);
-
-/**
- * Free a block of memory from the kernel heap.
- * \param ptr The memory block.
- */
-extern void(* kfree)(void* ptr);
+/** Void pointer type that can be used in function pointer type declarations. */
+typedef void* void_ptr;
 
 /**
- * Enable kmalloc/kfree. Called by create_heap (mem/heap.c) after the kernel heap is initialised. Prior to this, kmalloc
- * and kfree will trigger a kernel panic.
+ * Type for linker script symbols. Linker symbols are just addresses, so we define it as an array type because arrays
+ * are handled as just addresses by default.
  */
-void enable_kmalloc(void);
+typedef int symbol_t[];
 
-#endif /* ! REDSHIFT_MEM_KMALLOC_H */
+#endif /* ! REDSHIFT_UTIL_TYPES_H */

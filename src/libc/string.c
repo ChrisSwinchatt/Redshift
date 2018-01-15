@@ -72,9 +72,9 @@ void* memmove(void* dst, const void* src, size_t n)
 {
     /* Do nothing if dst and src are the same. Copy backwards if dst and src overlap. Otherwise, copy forwards.
      */
-    if (src < dst) {
+    if (src < dst && dst < src + n) {
         BACKWARD_COPY(dst, src, n);
-    } else if (src > dst) {
+    } else if (dst < src) {
         FORWARD_COPY(dst, src, n);
     }
     return dst;

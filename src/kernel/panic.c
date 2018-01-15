@@ -35,17 +35,17 @@ static bool in_panic = false;
 
 static void vpanic_common_start(const char* fmt, va_list ap)
 {
+    disable_interrupts();
     if (in_panic) {
         hang();
     }
     in_panic = true;
-    disable_interrupts();
     const size_t size = ARRAY_SIZE(PRINTK_ERROR) + strlen(fmt);
     char* buffer      = static_alloc(size + 1);
     memset(buffer,  0,            size + 1);
     strncpy(buffer, PRINTK_ERROR, size);
     strncat(buffer, fmt,          strlen(fmt));
-    printk(PRINTK_ERROR "\n\aKernel panic - ");
+    printk(PRINTK_ERROR "\aKernel panic - ");
     vprintk(buffer, ap);
 }
 
@@ -65,7 +65,7 @@ static void vpanic(const char* fmt, va_list ap)
 static void vpanic_with_state(const struct cpu_state* state, const char* fmt, va_list ap)
 {
     vpanic_common_start(fmt, ap);
-    printk(PRINTK_ERROR "\n\nCPU state:\n");
+    printk(PRINTK_ERROR "\nCPU state:\n");
     dump_registers(state);
     vpanic_common_end();
 }

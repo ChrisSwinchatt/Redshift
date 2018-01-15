@@ -22,19 +22,33 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/symbols.h>
 #include <redshift/mem/static.h>
+#include <redshift/util/sorted_array.h>
 #include <string.h>
 
 #define SYNTAX_ERROR(FMT, ...)     panic("syntax error in symbol table: %lu:%lu: " FMT, line, column, __VA_ARGS__)
 
 #define UNEXPECTED_TOKEN(EXPECTED) SYNTAX_ERROR("expected %s, got \"%c\"", EXPECTED, file[i])
 
-struct symbol {
-    char*          name;
-    uintptr_t      address;
-    struct symbol* next;
+enum {
+    MAX_SYMBOLS = 512
 };
 
-static struct symbol* symbol_table = NULL;
+struct symbol {
+    char*     name;
+    uintptr_t address;
+};
+
+static struct sorted_array* symbol_table;
+
+/* Sorting predicate for symbol_table. Sorts symbols by descending address. */
+static bool symbol_order_predicate(void* pa, void* pb)
+{
+    DEBUG_ASSERT(pa != NULL);
+    DEBUG_ASSERT(pb != NULL);
+    struct symbol* a = pa;
+    struct symbol* b = pb;
+    return a->address < b->address;
+}
 
 static uintptr_t parse_address(const char* p, const char* q)
 {
@@ -42,12 +56,12 @@ static uintptr_t parse_address(const char* p, const char* q)
     for (; p < q; ++p) {
         unsigned value = 0;
         if (isdigit(*p)) {
-            value = *p - '0';      /* '0' -> 0, '1' -> 1, etc. */
+            value = *p - '0';      /* '0' -> 0, '1' -> 1, etc.   */
         } else if (isalpha(*p)) {
             value = *p - 'A' + 10; /* 'A' -> 10, 'B' -> 11, etc. */
         }
-        address *= 16;
-        address += value;
+        address <<= 4;
+        address +=  value;
     }
     return address;
 }
@@ -59,12 +73,11 @@ enum {
 
 enum { ADDRESS = 0, SYMBOL = 1 };
 
-void symbols_load(uintptr_t ptr, size_t size)
+void load_symbol_table(uintptr_t ptr, size_t size)
 {
     SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(ptr != 0);
-    symbol_table  = static_alloc(sizeof(*symbol_table));
-    struct symbol* symbol = symbol_table;
+    symbol_table = create_sorted_array(MAX_SYMBOLS, SORTED_ARRAY_STATIC, symbol_order_predicate);
     const  char*   file   = (const char*)ptr;
     char address[ADDRESS_MAX];
     char name[NAME_MAX];
@@ -72,6 +85,7 @@ void symbols_load(uintptr_t ptr, size_t size)
     size_t column = 1;
     int    state  = ADDRESS;
     char*  p      = address;
+    struct symbol* symbol = kmalloc(sizeof(*symbol));
     for (size_t i = 0; i < size && file[i] != 0; ++i, ++column) {
         if (isspace(file[i])) {
             if (file[i] == '\n') {
@@ -95,16 +109,16 @@ void symbols_load(uintptr_t ptr, size_t size)
                     /* Copy symbol name and advance to the next symbol.
                      */
                     if (name[0] != '_' && !(isalpha(name[0]))) {
-                        *++p = 0;
                         SYNTAX_ERROR("invalid symbol name \"%s\"", name);
                     }
-                    symbol->name = static_alloc(p - name);
-                    strncpy(symbol->name, name, p - name);
-                    symbol->next = static_alloc(sizeof(*(symbol->next)));
-                    memset(symbol->next, 0, sizeof(*(symbol->next)));
-                    symbol = symbol->next;
+                    size_t size = p - name;
+                    symbol->name = kmalloc(size);
+                    strncpy(symbol->name, name, size);
+                    printk(PRINTK_DEBUG "Symbol: <address=0x%08lX,name=%s>\n", symbol->address, symbol->name);
+                    sorted_array_add(symbol_table, symbol);
                     state  = ADDRESS;
                     p      = address;
+                    symbol = kmalloc(sizeof(*symbol));
                     break;
                 default:
                     UNREACHABLE("no switch case for state %d", state);
@@ -134,12 +148,11 @@ void symbols_load(uintptr_t ptr, size_t size)
 const void* get_symbol_address(const char* name)
 {
     SAVE_INTERRUPT_STATE;
-    const struct symbol* symbol = symbol_table;
-    while (symbol) {
+    for (size_t i = 0; i < sorted_array_count(symbol_table); ++i) {
+        struct symbol* symbol = sorted_array_get(symbol_table, i);
         if (strcmp(symbol->name, name) == 0) {
-            return (const void*)symbol->address;
+            return (const void*)(symbol->address);
         }
-        symbol = symbol->next;
     }
     RESTORE_INTERRUPT_STATE;
     return NULL;
@@ -147,29 +160,20 @@ const void* get_symbol_address(const char* name)
 
 const char* get_symbol_name(uintptr_t address)
 {
-    SAVE_INTERRUPT_STATE;
     if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
-        printk(
-            PRINT_DEBUG "Can't resolve symbol outside code section: <address=0x%lX,code_start=0x%p,code_end=0x%p>",
-            address,
-            __code_start__,
-            __code_end__
-        );
         return NULL;
     }
-    const struct symbol* symbol  = symbol_table;
-    const struct symbol* largest = NULL;
-    do {
-        /* Find the symbol with the largest address which is below or equal to the given address.
-         */
-        if (symbol->address == address) {
-            break;
+    /* Find the symbol with the largest address which is below or equal to the given address. Since our symbol table is
+     * in descending order we can just find the first symbol whose address <= the search address.
+     */
+    SAVE_INTERRUPT_STATE;
+    for (size_t i = 0; i < sorted_array_count(symbol_table); ++i) {
+        struct symbol* symbol = sorted_array_get(symbol_table, i);
+        if (symbol->address <= address) {
+            RESTORE_INTERRUPT_STATE;
+            return symbol->name;
         }
-        if (symbol->address >= largest->address && symbol->address < address) {
-            largest = symbol;
-        }
-        symbol = symbol->next;
-    } while (symbol);
+    }
     RESTORE_INTERRUPT_STATE;
-    return largest->name;
+    return NULL;
 }

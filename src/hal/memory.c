@@ -60,7 +60,7 @@ void memory_init(struct multiboot_tag* mb_tags)
                 } else {
                     prefix = 'k';
                 }
-                printk(PRINTK_DEBUG "System has %lu %ciB RAM\n", mem, prefix);
+                printk(PRINTK_DEBUG "Installed memory: %lu %ciB\n", mem, prefix);
                 break;
             default:
                 break;
@@ -80,7 +80,6 @@ void memory_map_init(struct multiboot_tag* mb_tags)
          tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
             case MULTIBOOT_TAG_TYPE_MMAP:
-                printk(PRINTK_DEBUG "Memory map:\n");
                 for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
                      (uint8_t*)mmap < (uint8_t*)tag + tag->size;
                      mmap = (struct multiboot_mmap_entry*)((uint32_t)mmap +
@@ -115,11 +114,13 @@ void memory_map_init(struct multiboot_tag* mb_tags)
                           case MEMORY_TYPE_RECLAIMABLE: type_str = "reclaimable"; break;
                           default:                      type_str = "unavailable"; break;
                         }
-                        printk(PRINTK_DEBUG "%9Lu kiB at 0x%016LX - 0x%016LX: %s\n",
-                               kib,
-                               memmap->start,
-                               memmap->end,
-                               type_str);
+                        printk(
+                            PRINTK_DEBUG "Memory map: %6LuK from 0x%016LX to 0x%016LX (%s)\n",
+                            kib,
+                            memmap->start,
+                            memmap->end,
+                            type_str
+                        );
                     }
                 }
                 break;

@@ -23,11 +23,11 @@
 
 #include <redshift/util/macro.h>
 
-#define __CHECK_ASSERT(NAME, X)\
-    do {\
-        if (!(X)) {\
+#define __CHECK_ASSERT(NAME, X)                                                      \
+    do {                                                                             \
+        if (!(X)) {                                                                  \
             panic(NAME " failed: \"" #X "\" at " __FILE_LINE__ " in %s\n", __func__);\
-        }\
+        }                                                                            \
     } while (0)
 
 /**
@@ -47,6 +47,10 @@
 /**
  * Report error caused by code that should be unreachable e.g. switch-case statements.
  */
-#define UNREACHABLE(msg, ...) panic(__FILE_LINE__ ": in %s: " #msg, __func__, __VA_ARGS__)
+#define UNREACHABLE(msg, ...)                                        \
+    do {                                                             \
+        panic(__FILE_LINE__ ": in %s: " #msg, __func__, __VA_ARGS__);\
+    } while (0)
+
 
 #endif /* ! REDSHIFT_UTIL_ASSERT_H */

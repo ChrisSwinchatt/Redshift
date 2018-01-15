@@ -34,10 +34,11 @@ typedef void(* fn_ptr_t)(void);
 
 void __noreturn __stack_chk_fail(void)
 {
-    /* Make sure the console is initialised, in case __stack_chk_fail is tripped early in the boot process.
-     * Of course, this won't help us if console_init or panic is smashing the stack.
+    /* Make sure the console is initialised, in case __stack_chk_fail is tripped early in the boot process. Obviously
+     * doesn't help if console_init is smashing the stack.
      */
     disable_interrupts();
     console_init();
+    console_clear();
     panic("stack smashing detected");
 }

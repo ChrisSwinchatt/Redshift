@@ -18,34 +18,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <redshift/debug/dump_stack.h>
-#include <redshift/kernel.h>
-#include <redshift/kernel/symbols.h>
-#include <string.h>
+#ifndef REDSHIFT_UTIL_CONSTANTS_H
+#define REDSHIFT_UTIL_CONSTANTS_H
+
+/** Size of the kernel stack. */
+#define STACK_SIZE ((size_t)(((uintptr_t)__stack_top__) - ((uintptr_t)__stack_bottom__)))
 
 enum {
-    /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and  the calling
-     * function while 1 skips walk_stack, 2 additionally skips dump_stack and 3 skips all three.
-     */
-    SKIP_FRAMES = 0U,
-    /* Maximum number of frames to rewind. */
-    MAX_FRAMES  = SKIP_FRAMES + 10U
+    /** Timer tick rate. */
+    TICK_RATE = 100
 };
 
-extern unsigned walk_stack(unsigned* addresses, unsigned max);
-
-void dump_stack(void)
-{
-    SAVE_INTERRUPT_STATE;
-    static unsigned addresses[MAX_FRAMES];
-    memset(addresses, 0, MAX_FRAMES*sizeof(addresses[0]));
-    unsigned j = walk_stack(addresses, MAX_FRAMES);
-    for (unsigned i = SKIP_FRAMES; i < j; ++i) {
-        const char* symbol = get_symbol_name(addresses[i]);
-        if (symbol == NULL) {
-            symbol = "??";
-        }
-        printk("%d. At 0x%08X in %s\n", i + 1 - SKIP_FRAMES, addresses[i], symbol);
-    }
-    RESTORE_INTERRUPT_STATE;
-}
+#endif /* ! REDSHIFT_UTIL_CONSTANTS_H */

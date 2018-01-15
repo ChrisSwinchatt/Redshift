@@ -27,7 +27,7 @@
 typedef enum {
     HEAP_FLAGS_SUPERVISOR = 0,      /**< Create supervisor mode heap. */
     HEAP_FLAGS_USER_MODE  = 1 << 0, /**< Create user mode heap.       */
-    HEAP_FLAGS_WRITEABLE  = 1 << 2  /**< Create writeable heap. */
+    HEAP_FLAGS_WRITEABLE  = 1 << 1  /**< Create writeable heap. */
 } heap_flags_t;
 
 /* Forward declaration for struct heap (mem/heap.c). */
@@ -50,7 +50,7 @@ void heap_init(void);
  * \param Heap flags.
  * \return The new heap.
  */
-struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_flags_t flags);
+struct heap* create_heap(uintptr_t start, uintptr_t end, size_t max_size, heap_flags_t flags);
 
 /**
  * Allocate a block of memory on a heap.

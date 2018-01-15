@@ -28,32 +28,22 @@ uintptr_t heap_addr = 0;
 void static_init(void)
 {
     SAVE_INTERRUPT_STATE;
-    uintptr_t end = (uintptr_t)__end__;
-    uintptr_t modules_end = boot_modules_end();
-    if (modules_end > end) {
-        end = modules_end;
-    }
-    heap_addr = (end & PAGE_MASK) + PAGE_SIZE;
+    heap_addr = MAX((uintptr_t)__kernel_end__, boot_modules_end());
+    MAKE_PAGE_ALIGNED(heap_addr);
     RESTORE_INTERRUPT_STATE;
 }
 
-uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys)
+uintptr_t static_alloc_base(size_t size, alloc_flags_t flags, uintptr_t* phys)
 {
     SAVE_INTERRUPT_STATE;
+    DEBUG_ASSERT(heap_addr >= (uintptr_t)__kernel_end__);
     DEBUG_ASSERT(size > 0);
-    /* Align to page boundary if required.
+    /* Align to page boundary if required. Otherwise, align according to the requirements of the object to be allocated.
      */
-    if (align && (heap_addr & PAGE_MASK)) {
-        heap_addr &= PAGE_MASK;
-        heap_addr += PAGE_SIZE;
-    }
-    /* As per ABI, objects must be aligned according to their type, e.g. uint{16,32,64}_t must be aligned on 2, 4 and 8
-     * byte boundaries respectively. Since anything aligned to 8 bytes is also aligned to 4 bytes and 2 bytes, we just
-     * align everything to 8 bytes.
-     */
-    if (heap_addr & 0xFFFFFFF8) {
-         heap_addr &= 0xFFFFFFF8;
-         heap_addr += 8;
+    if (TEST_FLAG(flags, ALLOC_PAGE_ALIGN)) {
+        MAKE_PAGE_ALIGNED(heap_addr);
+    } else {
+        MAKE_ALLOC_ALIGNED(heap_addr, size);
      }
     /* Advance heap address. In debug mode, also test that we haven't overwritten the dynamic heap.
      */
@@ -68,5 +58,5 @@ uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys)
 
 void* static_alloc(size_t size)
 {
-    return (void*)static_alloc_base(size, true, NULL);
+    return (void*)static_alloc_base(size, ALLOC_SIZE_ALIGN, NULL);
 }

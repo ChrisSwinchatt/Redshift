@@ -38,7 +38,7 @@ int sched_init(void)
         (uintptr_t)kernel_main,
         kernel_directory,
         PROCESS_PRIORITY_LOW,
-        (uintptr_t)__stack_top__,
+        0,
         STACK_SIZE,
         PROCESS_FLAGS_SUPERVISOR
     );

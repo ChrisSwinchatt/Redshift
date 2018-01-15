@@ -63,7 +63,7 @@ run-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
 debug-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb -s "$(DEBUG)" -ex "target remote localhost:1234"
+	@gdb -s "$(DEBUG)" -q -ex "target remote localhost:1234" -ex "b hang"
 statistics:
 	@tools/kstats
 analyse:

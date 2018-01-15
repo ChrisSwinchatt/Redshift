@@ -52,26 +52,12 @@ typedef void* void_ptr;
 typedef void_ptr(* kmalloc_fn_t)(size_t);
 typedef void(* kfree_fn_t)(void*);
 
-kmalloc_fn_t kmalloc_fn = pre_init_kmalloc;
-kfree_fn_t   kfree_fn   = pre_init_kfree;
+void_ptr(* kmalloc)(size_t) = pre_init_kmalloc;
+void    (* kfree)(void*)    = pre_init_kfree;
 
-void* kmalloc(size_t size)
-{
-    SAVE_INTERRUPT_STATE;
-    void* ptr = kmalloc_fn(size);
-    RESTORE_INTERRUPT_STATE;
-    return ptr;
-}
-
-void kfree(void* ptr)
-{
-    SAVE_INTERRUPT_STATE;
-    kfree_fn(ptr);
-    RESTORE_INTERRUPT_STATE;
-}
 
 void enable_kmalloc(void)
 {
-   kmalloc_fn = real_kmalloc;
-   kfree_fn   = real_kfree;
+   kmalloc = real_kmalloc;
+   kfree   = real_kfree;
 }
