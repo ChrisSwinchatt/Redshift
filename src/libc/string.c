@@ -32,7 +32,7 @@ char* itos(long i, int base, char* buf, size_t n)
     }
     do {
         int rem = u % base;
-        *buf++ = (rem < 10) ? '0' + rem : 'a' + rem;
+        *buf++ = (rem < 10) ? '0' + rem : 'A' + rem;
     } while (u /= base && n--);
     return strreverse(buf);
 }
