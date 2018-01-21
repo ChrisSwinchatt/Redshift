@@ -9,7 +9,7 @@ all: bin/sorted_array
 
 bin/sorted_array: unit/test_sorted_array.c ../src/util/sorted_array.c
 	@echo "\033[1;37mTesting `basename $@`... \033[0m"
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-	@#$@
-	@#echo rm -f $@ $(subst .c,.o,$^)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	@$@
+	@rm -f $@ $(subst .c,.o,$^)
 .PHONY: all

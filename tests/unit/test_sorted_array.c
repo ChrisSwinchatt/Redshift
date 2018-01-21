@@ -71,28 +71,26 @@ END_TEST
 BEGIN_TEST(sorted_array_remove)
     sorted_array_remove(array_asc,  0);
     sorted_array_remove(array_desc, 0);
-    const size_t count_asc  = sorted_array_count(array_asc);
-    const size_t count_desc = sorted_array_count(array_desc);
+    size_t count_asc  = sorted_array_count(array_asc);
+    size_t count_desc = sorted_array_count(array_desc);
     ASSERT_EQUAL_ULONG(2UL, count_asc);
     ASSERT_EQUAL_ULONG(2UL, count_desc);
     uint32_t asc1  = *(uint32_t*)sorted_array_get(array_asc,  0);
     uint32_t desc1 = *(uint32_t*)sorted_array_get(array_desc, 0);
     ASSERT_EQUAL_UINT(value2, asc1);
     ASSERT_EQUAL_UINT(value2, desc1);
-END_TEST
-
-BEGIN_TEST(sorted_array_add2)
-    for (size_t i = 2; i < CAPACITY; ++i) {
-        const size_t count_asc  = sorted_array_count(array_asc);
-        const size_t count_desc = sorted_array_count(array_desc);
-        ASSERT_EQUAL_ULONG(i, count_asc);
-        ASSERT_EQUAL_ULONG(i, count_desc);
-        sorted_array_add(array_asc,  &value1);
-        sorted_array_add(array_desc, &value1);
-    }
-    WANT_FAIL;
-
-    WANT_PASS;
+    sorted_array_remove(array_asc,  0);
+    sorted_array_remove(array_desc, 0);
+    count_asc  = sorted_array_count(array_asc);
+    count_desc = sorted_array_count(array_desc);
+    ASSERT_EQUAL_ULONG(1UL, count_asc);
+    ASSERT_EQUAL_ULONG(1UL, count_desc);
+    sorted_array_remove(array_asc,  0);
+    sorted_array_remove(array_desc, 0);
+    count_asc  = sorted_array_count(array_asc);
+    count_desc = sorted_array_count(array_desc);
+    ASSERT_EQUAL_ULONG(0UL, count_asc);
+    ASSERT_EQUAL_ULONG(0UL, count_desc);
 END_TEST
 
 #define TEST_LIST(F)        \
@@ -100,8 +98,7 @@ END_TEST
     F(sorted_array_count);  \
     F(sorted_array_add);    \
     F(sorted_array_get);    \
-    F(sorted_array_remove); \
-    F(sorted_array_add2);
+    F(sorted_array_remove);
 
 int main(void)
 {

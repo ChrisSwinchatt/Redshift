@@ -136,7 +136,7 @@
         }                                           \
         fprintf(                                    \
             stderr,                                 \
-            "%d passed and %d failed of %d total",  \
+            "%d passed and %d failed (out of %d)\n",\
             __tests_passed__,                       \
             __tests_failed__,                       \
             __tests_executed__                      \
