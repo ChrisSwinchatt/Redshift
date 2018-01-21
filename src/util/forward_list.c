@@ -48,7 +48,7 @@ static struct forward_list_node* get_node_by_index(struct forward_list* list, si
         return list->last;
     }
     struct forward_list_node* node = list->head;
-    for (size_t i = 0; i <= index; ++i) {
+    for (size_t i = 0; i < index; ++i) {
         DEBUG_ASSERT(node->next != NULL);
         DEBUG_ASSERT(node->next != list->last);
         node = node->next;
@@ -56,29 +56,29 @@ static struct forward_list_node* get_node_by_index(struct forward_list* list, si
     return node;
 }
 
-struct forward_list* forward_list_create(alloc_fn_t alloc_fn, free_fn_t free_fn, size_t size, void* data)
+struct forward_list* forward_list_create(alloc_fn_t alloc_fn, free_fn_t free_fn, size_t size, const void* data)
 {
     DEBUG_ASSERT(alloc_fn != NULL);
     struct forward_list* list = alloc_fn(sizeof(*list));
-    list->head  = NULL;
-    list->last  = NULL;
-    list->size  = 0;
+    list->head     = NULL;
+    list->last     = NULL;
+    list->size     = 0;
     list->alloc_fn = alloc_fn;
     list->free_fn  = free_fn;
-    list->flags = 0;
+    list->flags    = 0;
     while (list->size < size) {
         forward_list_append(list, data);
     }
     return list;
 }
 
-struct forward_list* forward_list_append(struct forward_list* list, void* data)
+struct forward_list* forward_list_append(struct forward_list* list, const void* data)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->alloc_fn != NULL);
     struct forward_list_node* node = list->alloc_fn(sizeof(*node));
     RUNTIME_CHECK(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     node->next = NULL;
     if (NULL == list->head) {
         list->head = node;
@@ -90,20 +90,20 @@ struct forward_list* forward_list_append(struct forward_list* list, void* data)
     return list;
 }
 
-struct forward_list* forward_list_prepend(struct forward_list* list, void* data)
+struct forward_list* forward_list_prepend(struct forward_list* list,const  void* data)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->alloc_fn != NULL);
     struct forward_list_node* node = list->alloc_fn(sizeof(*node));
     RUNTIME_CHECK(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     node->next = list->head;
     list->head = node;
     list->size += 1;
     return list;
 }
 
-struct forward_list* forward_list_insert(struct forward_list* list, void* data, size_t index)
+struct forward_list* forward_list_insert(struct forward_list* list, const void* data, size_t index)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->alloc_fn != NULL);
@@ -115,24 +115,26 @@ struct forward_list* forward_list_insert(struct forward_list* list, void* data, 
     }
     /* Insert replaces the element at the index given, so we need the element before that.
      */
+    DEBUG_ASSERT(0 < index);
+    DEBUG_ASSERT(index < list->size);
     struct forward_list_node* node = get_node_by_index(list, index - 1);
     struct forward_list_node* next = node->next;
     node->next = list->alloc_fn(sizeof(*node));
     RUNTIME_CHECK(node->next != NULL);
-    node->next->data = data;
+    node->next->data = (void*)data;
     node->next->next = next;
     list->size += 1;
     return list;
 }
 
-struct forward_list* forward_list_update(struct forward_list* list, size_t index, void* data)
+struct forward_list* forward_list_update(struct forward_list* list, size_t index, const void* data)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->head != NULL);
     RUNTIME_CHECK(index < list->size);
     struct forward_list_node* node = get_node_by_index(list, index);
     DEBUG_ASSERT(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     return list;
 }
 
