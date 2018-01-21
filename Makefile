@@ -82,7 +82,7 @@ run-qemu:
 
 debug-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb -s "$(DEBUG)" -ex "target remote localhost:1234"
+	@gdb -s "$(DEBUG)" -ex "target remote localhost:1234" -ex "b hang"
 
 statistics:
 	@tools/kstats
@@ -94,7 +94,7 @@ analyse:
 xgcc:
 	@cd out && ../tools/build-xgcc $(ARGS) $(TARGET)
 
-test:
+tests:
 	@$(MAKE) -C tests
 
-.PHONY: all clean image $(IMAGE) kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse test
+.PHONY: all clean image $(IMAGE) kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse tests
