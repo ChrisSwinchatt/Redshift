@@ -1,51 +1,54 @@
-export VERSION_MAJOR := 0
-export VERSION_MINOR := 1
-ARCH                 := i686
-TARGET               := $(ARCH)-elf
-PREFIX               := $(TARGET)
-KERNEL_NAME          := redshift
-VERSION              := $(VERSION_MAJOR).$(VERSION_MINOR)
-AS                   := nasm
-AFLAGS               := -felf32 -g
-CC                   := $(PREFIX)-gcc
-INCLUDES             := -Iinclude -Iinclude/libc
-CFLAGS               := -Wall -Wextra -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all -nostdlib\
-                        -fno-omit-frame-pointer $(INCLUDES)\
-                        -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)" -DVERSION_MINOR="$(VERSION_MINOR)"\
-                        -DVERSION_STR="\"$(VERSION)\"" -DARCH="\"$(ARCH)\""
-LD                   := $(PREFIX)-ld
-LDFLAGS              := -Ttools/kernel.ld -nostdlib -g
-SOURCES              := $(shell find src/ -name "*.asm") $(shell find src/ -name "*.c")
-CRTI				 := src/abi/crti.o
-CRTBEGIN             := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-CRTEND				 := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
-CRTN				 := src/abi/crtn.o
-OBJECTS              := $(subst .asm,.o,$(subst .c,.o,$(SOURCES)))
-KERNEL               := out/isofs/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR)
-INITRD               := out/isofs/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR)
-MAP                  := out/initrd/boot/$(KERNEL_NAME).map
-IMAGE                := out/$(KERNEL_NAME)-$(ARCH).iso
-DEBUG                := out/$(KERNEL_NAME)-kernel-$(ARCH)-$(VERSION_MAJOR).$(VERSION_MINOR).debug
+export VERSION_MAJOR  := 0
+export VERSION_MINOR  := 1
+export ARCH           := i686
+export TARGET         := $(ARCH)-elf
+export PREFIX         := $(TARGET)
+export KERNEL_NAME    := redshift
+export KERNEL_VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
+export ARCH_DIR       := $(PWD)/arch/$(ARCH)
+export OUTPUT_DIR     := $(PWD)/out
+export INITRD_DIR     := $(OUTPUT_DIR)/initrd
+export ISO_DIR        := $(OUTPUT_DIR)/isofs
+export LIB_DIR        := $(OUTPUT_DIR)/lib
+export AS             := $(PREFIX)-as
+export AFLAGS         := -felf32 -g
+export CC             := $(PREFIX)-gcc
+export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -g -O2 -ffreestanding -fstack-protector-all -nostdlib        \
+                         -fno-omit-frame-pointer -I "$(PWD)/include"                                                   \
+                         -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"                                  \
+                         -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\"" -DARCH="\"$(ARCH)\""
+export LDFLAGS        := -Ttools/kernel.ld -nostdlib -g
+CRTI                  := $(ARCH_DIR)/abi/crti.o
+CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTN                  := $(ARCH_DIR)/abi/crtn.o
+SOURCES               := $(shell find arch/$(ARCH) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find src/ -name "*.c")
+OBJECTS               := $(subst .S,.o,$(subst .c,.o,$(SOURCES)))
+LIBRARIES             := -lk -lgcc
+KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
+INITRD                := $(INITRD_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
+MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
+IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
+DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
 src/abi/stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 %.o: %.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
-%.o: %.asm
-	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
-	@$(AS) $(AFLAGS)  -o $@ $<
 %.o: %.c
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 all: image
 image: $(IMAGE)
-kernel: $(KERNEL)
+libk:
+	@$(MAKE) -C libk -s
+kernel: libk $(KERNEL)
 initrd: $(INITRD)
 $(IMAGE): $(INITRD)
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37mLinking `basename $@`... \033[0m"
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o "$@" $^ $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o "$@" $^ $(LIBRARIES)
 	@echo "\033[1;37mGenerating symbol table... \033[0m"
 	@tools/gensymtab "$@" "$(MAP)"
 	@echo "\033[1;37mCreating debug file `basename $(DEBUG)`... \033[0m"
@@ -74,4 +77,4 @@ xgcc:
 clean:
 	@echo "\033[1;37mCleaning redshift... \033[0m"
 	@rm -f $(OBJECTS)
-.PHONY: all image $(IMAGE) kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse
+.PHONY: all image $(IMAGE) libk kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse

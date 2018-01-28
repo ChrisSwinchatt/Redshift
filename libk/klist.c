@@ -18,36 +18,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <redshift/kernel.h>
-#include <redshift/util/container.h>
-#include <redshift/util/forward_list.h>
+#include <libk/kassert.h>
+#include <libk/kextern.h>
+#include <libk/klist.h>
+#include <libk/kmacro.h>
+#include <libk/ktypes.h>
 
-struct forward_list_node {
-    void*                     data;
-    struct forward_list_node* next;
+struct klist_node {
+    void*              data;
+    struct klist_node* next;
 };
 
-enum {
-    IS_DUPLICATE = 1 << 0
+struct klist {
+    struct klist_node* head;
+    struct klist_node* last;
+    size_t             size;
+    klist_flags_t      flags;
 };
 
-struct forward_list {
-    struct forward_list_node* head;
-    struct forward_list_node* last;
-    size_t                    size;
-    alloc_fn_t                alloc_fn;
-    free_fn_t                 free_fn;
-    uint32_t                  flags;
-};
-
-static struct forward_list_node* get_node_by_index(struct forward_list* list, size_t index)
+static struct klist_node* get_node_by_index(struct klist* list, size_t index)
 {
     if (index == 0) {
         return list->head;
     } else if (index + 1 == list->size) {
         return list->last;
     }
-    struct forward_list_node* node = list->head;
+    struct klist_node* node = list->head;
     for (size_t i = 0; i <= index; ++i) {
         DEBUG_ASSERT(node->next != NULL);
         DEBUG_ASSERT(node->next != list->last);
@@ -56,27 +52,34 @@ static struct forward_list_node* get_node_by_index(struct forward_list* list, si
     return node;
 }
 
-struct forward_list* forward_list_create(alloc_fn_t alloc_fn, free_fn_t free_fn, size_t size, void* data)
+struct klist* klist_create(klist_flags_t flags, size_t size, void* data)
 {
-    DEBUG_ASSERT(alloc_fn != NULL);
-    struct forward_list* list = alloc_fn(sizeof(*list));
+    struct klist* list = NULL;
+    if (TEST_FLAG(flags, KLIST_FLAGS_DYNAMIC)) {
+        list = kextern_dynamic_allocate(sizeof(*list));
+    } else {
+        list = kextern_static_allocate(sizeof(*list));
+    }
+    RUNTIME_CHECK(list != NULL);
     list->head  = NULL;
     list->last  = NULL;
     list->size  = 0;
-    list->alloc_fn = alloc_fn;
-    list->free_fn  = free_fn;
-    list->flags = 0;
+    list->flags = flags;
     while (list->size < size) {
-        forward_list_append(list, data);
+        klist_append(list, data);
     }
     return list;
 }
 
-struct forward_list* forward_list_append(struct forward_list* list, void* data)
+struct klist* klist_append(struct klist* list, void* data)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->alloc_fn != NULL);
-    struct forward_list_node* node = list->alloc_fn(sizeof(*node));
+    struct klist_node* node = NULL;
+    if (TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)) {
+        node = kextern_dynamic_allocate(sizeof(*node));
+    } else {
+        node = kextern_static_allocate(sizeof(*node));
+    }
     RUNTIME_CHECK(node != NULL);
     node->data = data;
     node->next = NULL;
@@ -90,11 +93,15 @@ struct forward_list* forward_list_append(struct forward_list* list, void* data)
     return list;
 }
 
-struct forward_list* forward_list_prepend(struct forward_list* list, void* data)
+struct klist* klist_prepend(struct klist* list, void* data)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->alloc_fn != NULL);
-    struct forward_list_node* node = list->alloc_fn(sizeof(*node));
+    struct klist_node* node = NULL;
+    if (TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)) {
+        node = kextern_dynamic_allocate(sizeof(*node));
+    } else {
+        node = kextern_static_allocate(sizeof(*node));
+    }
     RUNTIME_CHECK(node != NULL);
     node->data = data;
     node->next = list->head;
@@ -103,21 +110,24 @@ struct forward_list* forward_list_prepend(struct forward_list* list, void* data)
     return list;
 }
 
-struct forward_list* forward_list_insert(struct forward_list* list, void* data, size_t index)
+struct klist* klist_insert(struct klist* list, void* data, size_t index)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->alloc_fn != NULL);
     RUNTIME_CHECK(index <= list->size);
     if (index == 0) {
-        return forward_list_prepend(list, data);
+        return klist_prepend(list, data);
     } else if (index == list->size) {
-        return forward_list_append(list, data);
+        return klist_append(list, data);
     }
     /* Insert replaces the element at the index given, so we need the element before that.
      */
-    struct forward_list_node* node = get_node_by_index(list, index - 1);
-    struct forward_list_node* next = node->next;
-    node->next = list->alloc_fn(sizeof(*node));
+    struct klist_node* node = get_node_by_index(list, index - 1);
+    struct klist_node* next = node->next;
+    if (TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)) {
+        node->next = kextern_dynamic_allocate(sizeof(*node));
+    } else {
+        node->next = kextern_static_allocate(sizeof(*node));
+    }
     RUNTIME_CHECK(node->next != NULL);
     node->next->data = data;
     node->next->next = next;
@@ -125,56 +135,56 @@ struct forward_list* forward_list_insert(struct forward_list* list, void* data, 
     return list;
 }
 
-struct forward_list* forward_list_update(struct forward_list* list, size_t index, void* data)
+struct klist* klist_update(struct klist* list, size_t index, void* data)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->head != NULL);
     RUNTIME_CHECK(index < list->size);
-    struct forward_list_node* node = get_node_by_index(list, index);
+    struct klist_node* node = get_node_by_index(list, index);
     DEBUG_ASSERT(node != NULL);
     node->data = data;
     return list;
 }
 
-struct forward_list* forward_list_grow(struct forward_list* list, size_t size)
+struct klist* klist_grow(struct klist* list, size_t size)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->alloc_fn != NULL);
     RUNTIME_CHECK(size > list->size);
     for (size_t i = 0; i < size; ++i) {
-        forward_list_append(list, NULL);
+        klist_append(list, NULL);
     }
     DEBUG_ASSERT(list->size == size);
     return list;
 }
 
-struct forward_list* forward_list_shallow_shrink(struct forward_list* list, size_t size)
+struct klist* klist_shallow_shrink(struct klist* list, size_t size)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
     RUNTIME_CHECK(list->size > size);
     while (list->size > size) {
-        forward_list_pop(list);
+        klist_pop(list);
     }
     return list;
 }
 
-struct forward_list* forward_list_deep_shrink(struct forward_list* list, size_t size)
+struct klist* klist_deep_shrink(struct klist* list, size_t size)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
     RUNTIME_CHECK(list->size > size);
     while (list->size > size) {
-        void* data = forward_list_pop(list);
-        list->free_fn(data);
+        void* data = klist_pop(list);
+        DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
+        kextern_dynamic_free(data);
     }
     return list;
 }
 
-void* forward_list_pop(struct forward_list* list)
+void* klist_pop(struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
     DEBUG_ASSERT(list->last != NULL);
     if (list->size == 1 || list->head == list->last) {
         /* Delete the only element in the list but don't delete the list.
@@ -182,14 +192,14 @@ void* forward_list_pop(struct forward_list* list)
         DEBUG_ASSERT(list->size == 1);
         DEBUG_ASSERT(list->head == list->last);
         void* data = list->head->data;
-        list->free_fn(list->head);
+        kextern_dynamic_free(list->head);
         list->head = NULL;
         list->last = NULL;
         return data;
     }
     /* Find the penultimate node.
      */
-    struct forward_list_node* node = list->head;
+    struct klist_node* node = list->head;
     void* data = list->last->data;
     while (node->next != list->last) {
         DEBUG_ASSERT(node->next != NULL);
@@ -197,121 +207,123 @@ void* forward_list_pop(struct forward_list* list)
     }
     node->next = NULL;
     list->last->data = NULL;
-    list->free_fn(list->last);
+    kextern_dynamic_free(list->last);
     list->last = node;
     list->size -= 1;
     return data;
 }
 
-struct forward_list* forward_list_shallow_remove(struct forward_list* list, size_t index)
+struct klist* klist_shallow_remove(struct klist* list, size_t index)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
     DEBUG_ASSERT(list->head != NULL);
     RUNTIME_CHECK(index < list->size);
-    struct forward_list_node* node = get_node_by_index(list, index);
-    struct forward_list_node* next = node->next->next;
+    struct klist_node* node = get_node_by_index(list, index);
+    struct klist_node* next = node->next->next;
     node->next->data = NULL;
     node->next->next = NULL;
-    list->free_fn(node->next);
+    kextern_dynamic_free(node->next);
     node->next = next;
     list->size -= 1;
     return list;
 }
 
-struct forward_list* forward_list_deep_remove(struct forward_list* list, size_t index)
+struct klist* klist_deep_remove(struct klist* list, size_t index)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
     DEBUG_ASSERT(list->head != NULL);
     RUNTIME_CHECK(index < list->size);
-    struct forward_list_node* node = get_node_by_index(list, index);
-    struct forward_list_node* next = node->next->next;
+    struct klist_node* node = get_node_by_index(list, index);
+    struct klist_node* next = node->next->next;
     node->next->next = NULL;
-    list->free_fn(node->next->data);
+    kextern_dynamic_free(node->next->data);
     node->next->data = NULL;
-    list->free_fn(node->next);
+    kextern_dynamic_free(node->next);
     node->next = next;
     list->size -= 1;
     return list;
 }
 
-void forward_list_shallow_free(struct forward_list* list)
+void klist_shallow_free(struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
-    if (!(TEST_FLAG(list->flags, IS_DUPLICATE))) {
-        struct forward_list_node* node = list->head;
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
+    if (!(TEST_FLAG(list->flags, KLIST_FLAGS_IS_DUPLICATE))) {
+        struct klist_node* node = list->head;
         while (node != NULL) {
-            struct forward_list_node* next = node->next;
+            struct klist_node* next = node->next;
             node->data = NULL;
             node->next = NULL;
-            list->free_fn(node);
+            kextern_dynamic_free(node);
             node = next;
         }
     }
     list->head = NULL;
     list->last = NULL;
     list->size = 0;
-    list->free_fn(list);
+    kextern_dynamic_free(list);
 }
 
-void forward_list_deep_free(struct forward_list* list)
+void klist_deep_free(struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
-    if (!(TEST_FLAG(list->flags, IS_DUPLICATE))) {
-        struct forward_list_node* node = list->head;
+    DEBUG_ASSERT(!(TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)));
+    if (!(TEST_FLAG(list->flags, KLIST_FLAGS_IS_DUPLICATE))) {
+        struct klist_node* node = list->head;
         while (node != NULL) {
-            struct forward_list_node* next = node->next;
+            struct klist_node* next = node->next;
             node->next = NULL;
-            list->free_fn(node->data);
+            kextern_dynamic_free(node->data);
             node->data = NULL;
-            list->free_fn(node);
+            kextern_dynamic_free(node);
             node = next;
         }
     }
     list->head = NULL;
     list->last = NULL;
     list->size = 0;
-    list->free_fn(list);
+    kextern_dynamic_free(list);
 }
 
-void* forward_list_head(const struct forward_list* list)
+void* klist_head(const struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->head != NULL);
     return list->head->data;
 }
 
-struct forward_list* forward_list_tail(const struct forward_list* list)
+struct klist* klist_tail(const struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->alloc_fn != NULL);
-    DEBUG_ASSERT(list->free_fn != NULL);
     DEBUG_ASSERT(list->head != NULL);
     DEBUG_ASSERT(list->last != NULL);
     if (list->size == 1) {
         DEBUG_ASSERT(list->head == list->last);
         return NULL;
     }
-    struct forward_list* tail = list->alloc_fn(sizeof(*tail));
-    tail->alloc_fn = list->alloc_fn;
-    tail->free_fn  = list->free_fn;
+    struct klist* tail = NULL;
+    if (TEST_FLAG(list->flags, KLIST_FLAGS_DYNAMIC)) {
+        tail = kextern_dynamic_allocate(sizeof(*tail));
+    } else {
+        tail = kextern_static_allocate(sizeof(*tail));
+    }
+    RUNTIME_CHECK(tail != NULL);
     tail->head  = list->head->next;
     tail->last  = list->last;
     tail->size  = list->size - 1;
-    tail->flags |= IS_DUPLICATE;
+    tail->flags = tail->flags | KLIST_FLAGS_IS_DUPLICATE;
     return tail;
 }
 
-size_t forward_list_size(const struct forward_list* list)
+size_t klist_size(const struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
     return list->size;
 }
 
-void* forward_list_index(const struct forward_list* list, size_t index)
+void* klist_index(const struct klist* list, size_t index)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->head != NULL);
@@ -320,7 +332,7 @@ void* forward_list_index(const struct forward_list* list, size_t index)
     if (index + 1 == list->size) {
         return list->last->data;
     }
-    struct forward_list_node* node = list->head;
+    struct klist_node* node = list->head;
     for (size_t i = 0; i < index; ++i) {
         DEBUG_ASSERT(node->next != NULL);
         node = node->next;
@@ -328,7 +340,7 @@ void* forward_list_index(const struct forward_list* list, size_t index)
     return node->data;
 }
 
-void* forward_list_last(const struct forward_list* list)
+void* klist_last(const struct klist* list)
 {
     DEBUG_ASSERT(list != NULL);
     DEBUG_ASSERT(list->last != NULL);
