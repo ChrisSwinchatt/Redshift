@@ -21,6 +21,8 @@
 #include <libk/kchar.h>
 #include <libk/kmacro.h>
 
+#include <libk/ktypes.h>
+
 enum {
     ALNUM  = 1 <<  0,
     ALPHA  = 1 <<  1,
@@ -229,7 +231,7 @@ bool kchar_is_hex_digit(int c)
 
 int kchar_to_lower_case(int c)
 {
-    if (!(kchar_is_alpha(c)) || kchar_is_lower(c)) {
+    if (!(kchar_is_alpha(c)) || kchar_is_lower_case(c)) {
         return c;
     }
     return ((c - 'A') + 'a');
@@ -237,7 +239,7 @@ int kchar_to_lower_case(int c)
 
 int kchar_to_upper_case(int c)
 {
-    if (!(kchar_is_alpha(c)) || kchar_is_upper(c)) {
+    if (!(kchar_is_alpha(c)) || kchar_is_upper_case(c)) {
         return c;
     }
     return ((c - 'a') + 'A');

@@ -32,9 +32,9 @@
  * \param i Integer to convert.
  * \param base The numeric base to use to represent the number. Must be >= 2.
  * \param case_ Whether to use upper or lower case.
- * \return A pointer to buf is returned.
+ * \return The number of digits written.
  */
-char* kstring_format_intmax(char* buf, size_t n, intmax_t i, int base, kchar_case_t case_);
+ssize_t kstring_format_intmax(char* buffer, size_t n, intmax_t i, int base, kchar_case_t case_);
 
 /**
  * Convert an unsigned integer to a string.
@@ -43,9 +43,9 @@ char* kstring_format_intmax(char* buf, size_t n, intmax_t i, int base, kchar_cas
  * \param u Unsigned integer to convert.
  * \param base The numeric base to use to represent the number. Must be >= 2.
  * \param case_ Whether to use upper or lower case.
- * \return A pointer to buf is returned.
+ * \return The number of digits written.
  */
-char* kstring_format_uintmax(char* buf, size_t n, uintmax_t u, int base, kchar_case_t case_);
+ssize_t kstring_format_uintmax(char* buffer, size_t n, uintmax_t value, int base, kchar_case_t case_);
 
 /**
  * Parse an integer encoded as a string.
@@ -156,7 +156,7 @@ char* kstring_copy(char* dst, const char* src, size_t n);
  * \return The string is returned.
  * \note Destination buffer is always zero-terminated.
  */
-char* kstring_reverse(char* s);
+char* kstring_reverse(char* s, size_t n);
 
 /**
  * Find the first instance of 's2' in 's1'.
@@ -173,7 +173,7 @@ char* kstring_find_str(const char* s1, const char* s2);
  * \return A pointer to s is returned.
  * \note Destination buffer is always zero-terminated.
  */
-char* kstring_to_lower(char* s);
+char* kstring_to_lower_case(char* s);
 
 /**
  * Converts any lower-case characters in a string to upper-case.
@@ -181,7 +181,7 @@ char* kstring_to_lower(char* s);
  * \return A pointer to s is returned.
  * \note Destination buffer is always zero-terminated.
  */
-char* kstring_to_upper(char* s);
+char* kstring_to_upper_case(char* s);
 
 /**
  * Duplicate a string.

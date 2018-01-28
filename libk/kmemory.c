@@ -26,9 +26,9 @@
 void kmemory_copy(void* dst, const void* src, size_t n)
 {
     if (dst < src) {
-        KCOPY_BACKWARD(dst, src, n);
+        kcopy(dst, src, n, COPY_BACKWARD);
     } else if (dst > src) {
-        KCOPY_FORWARD(dst, src, n);
+        kcopy(dst, src, n, COPY_FORWARD);
     }
 }
 
@@ -44,15 +44,30 @@ void kmemory_fill8(void* ptr, uint8_t value, size_t n)
 
 void kmemory_fill16(void* ptr, uint16_t value, size_t n)
 {
-    kfill16((uint16_t*)ptr, value, n);
+    kfill16((uint16_t**)&ptr, value, n);
 }
 
 void kmemory_fill32(void* ptr, uint32_t value, size_t n)
 {
-    kfill32((uint32_t*)ptr, value, n);
+    kfill32((uint32_t**)&ptr, value, n);
 }
 
 void kmemory_fill64(void* ptr, uint64_t value, size_t n)
 {
-    kfill64((uint64_t*)ptr, value, n);
+    kfill64((uint64_t**)&ptr, value, n);
+}
+
+int kmemory_compare(const void* p1, const void* p2, size_t n)
+{
+    if (p1 != p2) {
+        const uint8_t* a1 = p1;
+        const uint8_t* a2 = p2;
+        for (; n > 0; ++a1, ++a2, --n) {
+            int cmp = *(int*)a1 - *(int*)a2;
+            if (cmp) {
+                return cmp;
+            }
+        }
+    }
+    return 0;
 }

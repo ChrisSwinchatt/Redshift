@@ -18,11 +18,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kabort.h>
+#include <libk/kextern.h>
+#include <libk/kmacro.h>
+#include <libk/kmemory.h>
 #include <libk/kchar.h>
 #include <libk/kstring.h>
-#include <libk/kmemory.h>
 
-char* kstring_format_intmax(char* buf, size_t n, intmax_t i, int base, kchar_case_t case_)
+ssize_t kstring_format_intmax(char* buf, size_t n, intmax_t i, int base, kchar_case_t case_)
 {
     uintmax_t u = (uintmax_t)i;
     char* p = buf;
@@ -34,7 +37,7 @@ char* kstring_format_intmax(char* buf, size_t n, intmax_t i, int base, kchar_cas
     return kstring_format_uintmax(p, n, u, base, case_);
 }
 
-size_t kstring_format_uintmax(char* buffer, size_t n, uintmax_t value, int base, kchar_case_t case_)
+ssize_t kstring_format_uintmax(char* buffer, size_t n, uintmax_t value, int base, kchar_case_t case_)
 {
     if (base < 2) {
         return 0;
@@ -172,18 +175,18 @@ char* kstring_find_str(const char* dst, const char* src)
     return NULL;
 }
 
-char* kstring_to_lower(char* s)
+char* kstring_to_lower_case(char* s)
 {
     for (char* p = s; *p != 0; ++p) {
-        *p = kchar_to_lower(*p);
+        *p = kchar_to_lower_case(*p);
     }
     return s;
 }
 
-char* kstring_to_upper(char* s)
+char* kstring_to_upper_case(char* s)
 {
     for (char* p = s; *p != 0; ++p) {
-        *p = kchar_to_upper(*p);
+        *p = kchar_to_upper_case(*p);
     }
     return s;
 }
@@ -191,9 +194,9 @@ char* kstring_to_upper(char* s)
 char* kstring_duplicate(const char* s)
 {
     size_t size = kstring_length(s);
-    char* dup = kmalloc(size) + 1;
+    char* dup = kextern_dynamic_allocate(size + 1);
     if (dup == NULL) {
-        panic("%s: failed to allocate memory", __func__);
+        KABORT("failed to allocate memory", NULL);
     }
     kstring_copy(dup, s, size);
     return dup;

@@ -36,25 +36,42 @@
 /** Suppress unused parameter/variable warning. */
 #define UNUSED(X)                   ((void)(X))
 
+/** Hint to the compiler that X will usually evaluate true. */
+#define likely(X)                   __builtin_expect((X), 1)
+
+/** Hint to the compiler that X will usually evaluate false. */
+#define unlikely(X)                 __builtin_expect((X), 0)
+
+/** Find the larger of the values A and B. */
+#define MIN(A, B)                   ((A) < (B) ? (A) : (B))
+
+/** Find the smaller of the values A and B. */
+#define MAX(A, B)                   ((A) < (B) ? (B) : (A))
+
 /** Mark a structure as having packed storage. */
-#undef  __packed
-#define __packed                    __attribute__((packed))
+#ifndef __packed
+# define __packed                   __attribute__((packed))
+#endif
 
 /** Mark a function as using printf-like formatting. */
-#undef  __printf
-#define __printf(FMT, ARGS)         __attribute__((format(printf,FMT,ARGS)))
+#ifndef __printf
+# define __printf(FMT, ARGS)        __attribute__((format(printf, FMT, ARGS)))
+#endif
 
 /** Mark a function as "always inline". */
-#undef  __always_inline
-#define __always_inline             __attribute__((always_inline))
+#ifndef __always_inline
+# define __always_inline            __attribute__((always_inline))
+#endif
 
 /** Mark a function as "no inline". */
-#undef  __noinline
-#define __noinline                  __attribute__((noinline))
+#ifndef __noinline
+# define __noinline                 __attribute__((noinline))
+#endif
 
 /** Mark a function as "no return". */
-#undef  __noreturn
-#define __noreturn                  __attribute__((noreturn))
+#ifndef __noreturn
+# define __noreturn                 __attribute__((noreturn))
+#endif
 
 /** Mark a function as non-reentrant. */
 #define __non_reentrant

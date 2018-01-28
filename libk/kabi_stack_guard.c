@@ -18,20 +18,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_LIBK_KEXTFUN_H
-#define REDSHIFT_LIBK_KEXTFUN_H
-
+#include <libk/kextern.h>
 #include <libk/kmacro.h>
+#include <libk/ktypes.h>
 
-/**
- * Function to call when abort is triggered (e.g. upon failed assertion)
- */
-extern void __noreturn kextfun_abort(void);
+uintptr_t __stack_chk_guard = 0xCD000AFFUL;
 
-/**
- * Function to call to print a string.
- * \param s The string to print.
- */
-extern void kextfun_print_string(const char* s);
+void __stack_chk_guard_setup(void)
+{
+    __stack_chk_guard = 0xCD000AFFUL;
+}
 
-#endif /* ! REDSHIFT_LIBK_KEXTFUN_H */
+void __noreturn __stack_chk_fail(void)
+{
+    kextern_print_string("*** Stack smashing attempt detected ***");
+    kextern_abort();
+}

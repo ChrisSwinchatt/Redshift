@@ -23,126 +23,64 @@
 
 #include <stdint.h>
 
-/**************************************
- * KCOPY_FORWARD                       *
- **************************************/
-/** Forwards byte-wise copy. */
-#define KCOPY_FORWARD_8(DST, SRC, N)                            \
-    do {                                                        \
-        uint8_t* dst8 = (uint8_t*)(DST);                        \
-        const uint8_t* src8 = (const uint8_t*)(SRC);            \
-        for (size_t i8 = 0; i8 < (N); ++i8, ++dst8, ++src8) {   \
-            *dst8 = *src8;                                      \
-        }                                                       \
-    } while (0)
+enum {
+    COPY_FORWARD  = +1,
+    COPY_BACKWARD = -1
+};
 
-/** Forwards word-wise copy. */
-#define KCOPY_FORWARD_16(DST, SRC, N)                                               \
-    do {                                                                            \
-        uint16_t* dst16 = (uint16_t*)(DST);                                         \
-        const uint16_t* src16 = (const uint16_t*)(SRC);                             \
-        for (size_t i16 = 0; i16 < (N)/sizeof(uint16_t); ++i16, ++dst16, ++src16) { \
-            *dst16 = *src16;                                                        \
-        }                                                                           \
-        KCOPY_FORWARD_8(dst16, src16, N%sizeof(uint16_t));                          \
-    } while (0)
+#define KCOPY_TYPE_LIST(F)  \
+    F(64)             \
+    F(32)             \
+    F(16)             \
+    F(8)
 
-/** Forwards dword-wise copy. */
-#define KCOPY_FORWARD_32(DST, SRC, N)                                               \
-    do {                                                                            \
-        uint32_t* dst32 = (uint32_t*)(DST);                                         \
-        const uint32_t* src32 = (const uint32_t*)(SRC);                             \
-        for (size_t i32 = 0; i32 < (N)/sizeof(uint32_t); ++i32, ++dst32, ++src32) { \
-            *dst32 = *src32;                                                        \
-        }                                                                           \
-        KCOPY_FORWARD_16(dst32, src32, N%sizeof(uint32_t));                         \
-    } while (0)
+#define DEFINE_KCOPY_FUNCTION(X)                                                                        \
+    static inline void kcopy##X(uint##X##_t** pdst, const uint##X##_t** psrc, size_t n, int direction)  \
+    {                                                                                                   \
+        uint##X##_t*       dst = *pdst;                                                                 \
+        const uint##X##_t* src = *psrc;                                                                 \
+        for (; n > 0; --n, src += direction, dst += direction) {                                        \
+            *dst = *src;                                                                                \
+        }                                                                                               \
+        *pdst = dst;                                                                                    \
+        *psrc = src;                                                                                    \
+    }
 
-/** Forwards qword-wise copy. */
-#define KCOPY_FORWARD_64(DST, SRC, N)                                               \
-    do {                                                                            \
-        uint64_t* dst64 = (uint64_t*)(DST);                                         \
-        const uint64_t* src64 = (const uint64_t*)(SRC);                             \
-        for (size_t i64 = 0; i64 < (N)/sizeof(uint64_t); ++i64, ++dst64, ++src64) { \
-            *dst64 = *src64;                                                        \
-        }                                                                           \
-        KCOPY_FORWARD_32(dst64, src64, N%sizeof(uint64_t));                         \
-    } while (0)
+KCOPY_TYPE_LIST(DEFINE_KCOPY_FUNCTION)
 
-/**
- * Forwards copy. Copies N bytes of memory forwards from SRC to DST. Reduces number of loop iterations by copying
- * qwords, dwords, words and finally bytes.
- * \param DST Destination buffer.
- * \param SRC Source buffer.
- * \param N Number of bytes to copy.
- */
-#define KCOPY_FORWARD(DST, SRC, N)                          \
-    do {                                                    \
-        for (; ((DST) & 3) != 0; ++(DST), ++(SRC), --(N)) { \
-            *(DST) = *(SRC);                                \
-        }                                                   \
-        KCOPY_FORWARD_64((DST), (SRC), (N))                 \
-    } while (0)
+#undef DEFINE_KCOPY_FUNCTION
+#undef KCOPY_TYPE_LIST
 
-/**************************************
- * KCOPY_BACKWARD                      *
- **************************************/
- /** Backwards byte-wise copy. */
-#define KCOPY_BACKWARD_8(DST, SRC, N)                                               \
-    do {                                                                            \
-        uint8_t* dst8 = ((uint8_t*)(DST) + (N));                                    \
-        const uint8_t* src8 = (const uint8_t*)((SRC) + (N));                        \
-        for (size_t i8 = 0; i8 < (N); ++i8, --dst8, --src8) {                       \
-            *dst8 = *src8;                                                          \
-        }                                                                           \
-    } while (0)
-
-/** Backwards word-wise copy. */
-#define KCOPY_BACKWARD_16(DST, SRC, N)                                              \
-    do {                                                                            \
-        uint16_t* dst16 = ((uint16_t*)(DST) + (N));                                 \
-        const uint16_t* src16 = (const uint16_t*)((SRC) + (N));                     \
-        for (size_t i16 = 0; i16 < (N)/sizeof(uint16_t); ++i16, --dst16, --src16) { \
-            *dst16 = *src16;                                                        \
-        }                                                                           \
-        KCOPY_BACKWARD_8((DST), (SRC), N%sizeof(uint16_t));                         \
-    } while (0)
-
-/** Backwards dword-wise copy. */
-#define KCOPY_BACKWARD_32(DST, SRC, N)                                              \
-    do {                                                                            \
-        uint32_t* dst32 = ((uint32_t*)(DST) + (N));                                 \
-        const uint32_t* src32 = (const uint32_t*)((SRC) + (N));                     \
-        for (size_t i32 = 0; i32 < (N)/sizeof(uint32_t); ++i32, --dst32, --src32) { \
-            *dst32 = *src32;                                                        \
-        }                                                                           \
-        KCOPY_BACKWARD_16((DST), (SRC), N%sizeof(uint32_t));                        \
-    } while (0)
-
-/** Backwards qword-wise copy. */
-#define KCOPY_BACKWARD_64(DST, SRC, N)                                              \
-    do {                                                                            \
-        uint64_t* dst64 = ((uint64_t*)(DST) + (N));                                 \
-        const uint64_t* src64 = (const uint64_t*)((SRC) + (N));                     \
-        for (size_t i64 = 0; i64 < (N)/sizeof(uint64_t); ++i64, --dst64, --src64) { \
-            *dst64 = *src64;                                                        \
-        }                                                                           \
-        KCOPY_BACKWARD_32((DST), (SRC), N%sizeof(uint64_t));                        \
-    } while (0)
-
-/**
- * Forwards copy. Copies N bytes of memory backwards from SRC to DST. Reduces number of loop iterations by copying
- * qwords, dwords, words and finally bytes.
- * \param DST Destination buffer.
- * \param SRC Source buffer.
- * \param N Number of bytes to copy.
- */
-#define KCOPY_BACKWARD(DST, SRC, N)                         \
-    do {                                                    \
-        for (; ((DST) & 3) != 0; --(DST), --(SRC), --(N)) { \
-            *(DST) = *(SRC);                                \
-        }                                                   \
-        KCOPY_BACKWARD_64((DST), (SRC), (N))                \
-    } while (0)
+static inline void kcopy(char* dst, const char* src, size_t n, int direction)
+{
+    /* Byte copy to align at 4 bytes.
+     */
+    for (uintptr_t address = (uintptr_t)dst;
+        (address & 3) != 0 && n > 0;
+        address += direction, dst += direction, src += direction, --n)
+    {
+        *dst = *src;
+    }
+    /* Try to copy 8, 4 and 2 bytes at a time.
+     */
+    if (n >= 8) {
+        n >>= 3;
+        kcopy64((uint64_t**)&dst, (const uint64_t**)&src, n, direction);
+        n &= 7;
+    }
+    if (n >= 4) {
+        n >>= 2;
+        kcopy32((uint32_t**)&dst, (const uint32_t**)&src, n, direction);
+        n &= 3;
+    }
+    if (n >= 2) {
+        n >>= 1;
+        kcopy16((uint16_t**)&dst, (const uint16_t**)&src, n, direction);
+        n &= 1;
+    }
+    /* Byte-copy until the end of the array.
+     */
+    kcopy8((uint8_t**)&dst, (const uint8_t**)&src, n, direction);
+}
 
 #endif /* ! REDSHIFT_LIBK_KCOPY_H */

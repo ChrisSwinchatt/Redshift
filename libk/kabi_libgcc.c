@@ -22,20 +22,23 @@
 
 void* memset(void* p, int c, size_t n)
 {
-    return kmemory_fill8(p, (uint8_t)c, n);
+    kmemory_fill8(p, (uint8_t)c, n);
+    return p;
 }
 
 void* memcpy(void* dst, const void* src, size_t n)
 {
-    return kmemory_copy(dst, src, n);
+    kmemory_copy(dst, src, n);
+    return dst;
 }
 
 void* memmove(void* dst, const void* src, size_t n)
 {
-    return kmemory_copy(dst, src, n);
+    kmemory_copy(dst, src, n);
+    return dst;
 }
 
-void* memcmp(const void* p1, const void* p2, size_t n)
+int memcmp(const void* p1, const void* p2, size_t n)
 {
-    return kmemory_compare(p1, p2);
+    return kmemory_compare(p1, p2, n);
 }

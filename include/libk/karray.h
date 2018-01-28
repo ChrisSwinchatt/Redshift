@@ -18,18 +18,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_LIBK_KTYPES_H
-#define REDSHIFT_LIBK_KTYPES_H
+#ifndef REDSHIFT_LIBK_KARRAY_H
+#define REDSHIFT_LIBK_KARRAY_H
 
-#include <limits.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+/** karray forward declaration. */
+struct karray;
 
-/** Signed size_t. */
-typedef intmax_t ssize_t;
-
-/** Pointer to void. */
-typedef void*    void_ptr_t;
-
-#endif /* ! REDSHIFT_LIBK_KTYPES_H */
+#endif /* ! REDSHIFT_LIBK_KARRAY_H */

@@ -21,6 +21,8 @@
 #ifndef REDSHIFT_LIBK_KCHAR_H
 #define REDSHIFT_LIBK_KCHAR_H
 
+#include <libk/ktypes.h>
+
 typedef enum {
     KCHAR_UPPER_CASE,
     KCHAR_LOWER_CASE

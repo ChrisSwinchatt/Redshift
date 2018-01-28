@@ -18,10 +18,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kabort.h>
 #include <libk/kchar.h>
 #include <libk/kmacro.h>
 #include <libk/kstring.h>
-#include <libk/types.h>
+#include <libk/ktypes.h>
 #include <libk/kvariadic.h>
 
 enum {

@@ -75,7 +75,8 @@ void kmemory_fill64(void* ptr, uint64_t value, size_t n);
  * \param p1 The first memory region.
  * \param p2 The second memory region.
  * \param n The number of bytes to compare.
- * \return
+ * \return 0 if the two regions are identical; <0 if the first pair of unequal values is greater in p2; >0 if the first
+ * pair of unequal values is greater in p1.
  */
 int kmemory_compare(const void* p1, const void* p2, size_t n);
 
