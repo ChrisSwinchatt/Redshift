@@ -21,7 +21,7 @@
 #include <redshift/boot/sequence.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
-#include <string.h>
+#include <libk/kstring.h>
 
 uintptr_t __stack_chk_guard = 0xCD000AFFUL;
 

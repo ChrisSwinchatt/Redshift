@@ -17,10 +17,11 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <ctype.h>
+#include <libk/kchar.h>
+#include <libk/kmemory.h>
+#include <libk/kstring.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
-#include <string.h>
 
 static struct console {
     struct {
@@ -101,7 +102,7 @@ void console_write_char(int c)
             console.cursor.x = (console.cursor.x + CONSOLE_DEFAULT_TAB_SIZE) & ~(CONSOLE_DEFAULT_TAB_SIZE - 1);
             break;
         default:
-            if (isprint(c)) {
+            if (kchar_is_printable(c)) {
                 set_buffer_char(c);
                 ++console.cursor.x;
             }
@@ -136,7 +137,7 @@ long console_write_line(const char* line)
 
 void console_scroll(void)
 {
-    memcpy(
+    kmemory_copy(
         console.screen.buffer + ORIGIN,
         console.screen.buffer + ORIGIN + console.screen.columns,
         BUFFER_SIZE - ORIGIN - console.screen.columns
@@ -149,7 +150,7 @@ void console_scroll(void)
 
 void console_clear_line(void)
 {
-    memsetw(
+    kmemory_fill16(
         console.screen.buffer + (console.cursor.y - 1)*console.screen.columns + console.cursor.x_origin,
         BLANK,
         console.screen.columns - console.cursor.x_origin
@@ -160,7 +161,7 @@ void console_clear_line(void)
 
 void console_clear(void)
 {
-    memsetw(console.screen.buffer + ORIGIN, BLANK, BUFFER_SIZE - ORIGIN);
+    kmemory_fill16(console.screen.buffer + ORIGIN, BLANK, BUFFER_SIZE - ORIGIN);
     console.cursor.x = console.cursor.x_origin;
     console.cursor.y = console.cursor.y_origin;
     console_update_cursor();

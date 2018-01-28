@@ -21,7 +21,7 @@
 #define REDSHIFT_MEM_HEAP_H 1
 
 #include <redshift/kernel.h>
-#include <redshift/util/sorted_array.h>
+#include <libk/ksorted_array.h>
 
 /** Heap flags. */
 typedef enum {

@@ -18,30 +18,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_LIBC__CSTDIO_H
-#define REDSHIFT_LIBC__CSTDIO_H
-
+#include <libk/kextern.h>
 #include <redshift/kernel.h>
-#include <stdarg.h>
+#include <redshift/kernel/console.h>
+#include <redshift/kernel/kmalloc.h>
+#include <redshift/mem/static.h>
 
-/**
- * Write formatted text to a string
- * \param buffer Buffer to store formatted string
- * \param n Maximum characters to write
- * \param fmt Formatted string
- * \param ap Variable list of arguments
- * \return The number of characters actually written is returned
- */
-int vsnprintf(char* buffer, uint32_t n, const char* fmt, va_list ap);
+void __noreturn kextern_abort(void)
+{
+    panic("abort called");
+}
 
-/**
- * Write formatted text to a string
- * \param buffer Buffer to store formatted string
- * \param n Maximum characters to write
- * \param fmt Formatted string
- * \param ... Variable list of arguments
- * \return The number of characters actually written is returned
- */
-int __printf(3,4) snprintf(char* buffer, uint32_t n, const char* fmt, ...);
+void kextern_print_string(const char* s)
+{
+    console_write_string(s);
+}
 
-#endif /* ! REDSHIFT_LIBC__STDIO_H */
+void* kextern_static_allocate(size_t size)
+{
+    return static_alloc(size);
+}
+
+void* kextern_dynamic_allocate(size_t size)
+{
+    return kmalloc(size);
+}
+
+void kextern_dynamic_free(void* ptr)
+{
+    kfree(ptr);
+}

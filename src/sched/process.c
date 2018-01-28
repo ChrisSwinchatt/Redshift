@@ -18,12 +18,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kstring.h>
+#include <libk/kmemory.h>
 #include <redshift/hal/cpu/state.h>
 #include <redshift/kernel.h>
 #include <redshift/mem/heap.h>
 #include <redshift/mem/paging.h>
 #include <redshift/sched/process.h>
-#include <string.h>
 
 /**
  * Process table entry.
@@ -73,8 +74,8 @@ int process_spawn(
     if (!(process)) {
         panic("failed to create process: out of memory");
     }
-    memset(process, 0, sizeof(*process));
-    memset(&(process->state), 0, sizeof(process->state));
+    kmemory_fill8(process, 0, sizeof(*process));
+    kmemory_fill8(&(process->state), 0, sizeof(process->state));
     process->id       = num_processes++;
     process->blocked  = false;
     process->page_dir = page_dir;
@@ -144,7 +145,7 @@ void __non_reentrant process_switch(void* regs)
     /* Update the register state of the process we just switched from.
      */
     if (regs != NULL && current_process != NULL) {
-        memcpy(&(current_process->state), regs, sizeof(current_process->state));
+        kmemory_copy(&(current_process->state), regs, sizeof(current_process->state));
     }
     /* Select a process queue, starting at the highest.
      */

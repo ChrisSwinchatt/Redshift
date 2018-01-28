@@ -14,7 +14,7 @@ all: $(BINARY)
 
 clean:
 	@echo "\033[1;37mCleaning libk... \033[0m"
-	@rm -f $(OBJECTS)
+	@rm -f $(OBJECTS) $(BINARY)
 
 $(BINARY): $(OBJECTS)
 	@echo "\033[1;37mLinking `basename $@`"

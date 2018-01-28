@@ -54,7 +54,7 @@ KSORTED_ARRAY_PREDICATE_TYPE_LIST(DEFINE_ORDER_PREDICATES)
 
 #undef DEFINE_ORDER_PREDICATES
 
-struct ksorted_array* create_ksorted_array(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate)
+struct ksorted_array* ksorted_array_create(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate)
 {
     const size_t size = sizeof(struct ksorted_array*);
     void* address;
@@ -64,10 +64,10 @@ struct ksorted_array* create_ksorted_array(size_t capacity, ksorted_array_flags_
         address = kextern_static_allocate(size);
     }
     DEBUG_ASSERT(address != NULL);
-    return place_ksorted_array(address, capacity, flags, predicate);
+    return ksorted_array_place(address, capacity, flags, predicate);
 }
 
-struct ksorted_array* place_ksorted_array(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate)
+struct ksorted_array* ksorted_array_place(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate)
 {
     DEBUG_ASSERT(address != NULL);
     DEBUG_ASSERT(capacity > 0);
@@ -95,7 +95,7 @@ struct ksorted_array* place_ksorted_array(void* address, size_t capacity, ksorte
     return list;
 }
 
-void delete_ksorted_array(struct ksorted_array* list)
+void ksorted_array_delete(struct ksorted_array* list)
 {
     if (list && list->freeable) {
         kextern_dynamic_free(list->elements);

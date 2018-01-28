@@ -21,7 +21,7 @@
 #include <redshift/boot/multiboot2.h>
 #include <redshift/boot/boot_module.h>
 #include <redshift/mem/static.h>
-#include <string.h>
+#include <libk/kstring.h>
 
 static struct {
     struct boot_module* head;
@@ -66,10 +66,10 @@ void save_boot_modules(struct multiboot2_tag* mb_tags)
                 struct multiboot2_tag_module* module = (struct multiboot2_tag_module*)tag;
                 modlist->start = module->start;
                 modlist->end   = module->end;
-                size_t length  = strlen(module->cmdline);
+                size_t length  = kstring_length(module->cmdline);
                 if (length > 0) {
                     modlist->cmdline = static_alloc(length);
-                    strncpy((char*)(modlist->cmdline), module->cmdline, length); /* Ignore const modlist->cmdline; */
+                    kstring_copy((char*)(modlist->cmdline), module->cmdline, length); /* Ignore const modlist->cmdline; */
                 }
                 printk(PRINTK_DEBUG "Module: <start=0x%08lX,end=0x%08lX,cmdline=\"%s\">\n",
                        modlist->start,

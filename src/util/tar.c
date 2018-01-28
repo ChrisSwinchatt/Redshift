@@ -18,9 +18,9 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <redshift/kernel.h>
-#include <redshift/util/hash.h>
+#include <libk/kstring.h>
 #include <redshift/util/tar.h>
-#include <string.h>
+#include <libk/kstring.h>
 
 #define TAR_HEADER_SIZE 512UL /* TAR headers are padded to 512 bytes. */
 
@@ -78,8 +78,8 @@ size_t tar_extract(struct tar_file* files, size_t max_files, const char* archive
         }
         /* Copy fields.
          */
-        strncpy(files[index].filename, header->filename, TAR_FILENAME_MAX);
-        files[index].hash     = hash32_asciz(files[index].filename, TAR_FILENAME_MAX);
+        kstring_copy(files[index].filename, header->filename, TAR_FILENAME_MAX);
+        files[index].hash     = kstring_hash32(files[index].filename, TAR_FILENAME_MAX);
         files[index].start    = (uintptr_t)header + TAR_HEADER_SIZE;
         files[index].mode     = tar_get_mode(header);
         files[index].size     = tar_get_size(header);

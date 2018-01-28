@@ -21,7 +21,7 @@
 #ifndef REDSHIFT_KERNEL_PANIC_H
 #define REDSHIFT_KERNEL_PANIC_H
 
-#include <redshift/util/macro.h>
+#include <libk/kmacro.h>
 #include <stdarg.h>
 
 struct cpu_state;

@@ -18,7 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <ctype.h>
+#include <libk/kchar.h>
+#include <libk/kstring.h>
 #include <redshift/debug/dump_registers.h>
 #include <redshift/debug/dump_stack.h>
 #include <redshift/kernel/asm.h>
@@ -29,7 +30,6 @@
 #include <redshift/kernel/printk.h>
 #include <redshift/kernel/sleep.h>
 #include <redshift/mem/static.h>
-#include <string.h>
 
 static bool in_panic = false;
 
@@ -40,11 +40,12 @@ static void vpanic_common_start(const char* fmt, va_list ap)
     }
     in_panic = true;
     disable_interrupts();
-    const size_t size = ARRAY_SIZE(PRINTK_ERROR) + strlen(fmt);
-    char* buffer      = static_alloc(size + 1);
-    memset(buffer,  0,            size + 1);
-    strncpy(buffer, PRINTK_ERROR, size);
-    strncat(buffer, fmt,          strlen(fmt));
+    const size_t fmt_len = kstring_length(fmt);
+    const size_t size    = ARRAY_SIZE(PRINTK_ERROR) + fmt_len;
+    char* buffer         = static_alloc(size + 1);
+    kmemory_zero(buffer, size + 1);
+    kstring_copy(buffer, PRINTK_ERROR, size);
+    kstring_concatenate(buffer, fmt, fmt_len);
     printk(PRINTK_ERROR "\n\aKernel panic - ");
     vprintk(buffer, ap);
 }

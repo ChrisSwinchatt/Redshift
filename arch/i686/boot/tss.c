@@ -18,9 +18,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kstring.h>
+#include <libk/kmemory.h>
 #include <redshift/boot/tss.h>
 #include <redshift/kernel.h>
-#include <string.h>
 
 static struct tss {
    uint32_t reserved;
@@ -54,7 +55,7 @@ static struct tss {
 
 void tss_init(void)
 {
-    memset(&tss, 0, sizeof(tss));
+    kmemory_fill8(&tss, 0, sizeof(tss));
     tss.esp0 = (uint32_t)__stack_top__;
     tss.ss0  = 0x10;
     tss.iobt = sizeof(tss);

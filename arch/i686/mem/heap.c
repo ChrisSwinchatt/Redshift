@@ -19,7 +19,7 @@
  */
 #include <redshift/hal/memory.h>
 #include <redshift/kernel.h>
-#include <redshift/util/sorted_array.h>
+#include <libk/ksorted_array.h>
 #include <redshift/mem/common.h>
 #include <redshift/mem/heap.h>
 #include <redshift/mem/paging.h>
@@ -37,7 +37,7 @@ typedef enum {
 } block_flags_t;
 
 struct heap {
-    struct sorted_array* blocklist;   /* List of blocks ordered from smallest to largest. */
+    struct ksorted_array* blocklist;   /* List of blocks ordered from smallest to largest. */
     uintptr_t           start;        /* Heap start address.                              */
     uintptr_t           end;          /* Heap end address.                                */
     size_t              max_size;     /* Maximum size of heap (end - start).              */
@@ -85,8 +85,8 @@ static int32_t get_smallest_hole(struct heap* heap, size_t size, bool aligned)
 {
     DEBUG_ASSERT(heap != NULL);
     DEBUG_ASSERT(size != 0);
-    for (uint32_t i = 0, j = sorted_array_count(heap->blocklist); i < j; ++i) {
-        struct blockheader* header = (struct blockheader*)sorted_array_get(heap->blocklist, i);
+    for (uint32_t i = 0, j = ksorted_array_count(heap->blocklist); i < j; ++i) {
+        struct blockheader* header = (struct blockheader*)ksorted_array_get(heap->blocklist, i);
         if (aligned) {
             uintptr_t address = (uintptr_t)header;
             int32_t offset = 0;
@@ -122,8 +122,8 @@ struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_fla
     DEBUG_ASSERT(end   % PAGE_SIZE == 0);
     struct heap* heap = static_alloc(sizeof(*heap));
     DEBUG_ASSERT(heap != NULL);
-    memset(heap, 0, sizeof(*heap));
-    heap->blocklist = place_sorted_array((void*)start, BLOCKLIST_SIZE, true, blockheader_ascending_predicate);
+    kmemory_fill8(heap, 0, sizeof(*heap));
+    heap->blocklist = ksorted_array_place((void*)start, BLOCKLIST_SIZE, true, blockheader_ascending_predicate);
     DEBUG_ASSERT(heap->blocklist != NULL);
     if (heap->blocklist == NULL) {
         panic("failed to allocate memory.\n");
@@ -142,7 +142,7 @@ struct heap* create_heap(uint32_t start, uint32_t end, size_t max_size, heap_fla
     hole->size  = end - start;
     hole->magic = BLOCK_MAGIC;
     hole->flags = BLOCK_FLAGS_IS_HOLE;
-    sorted_array_add(heap->blocklist, (void*)hole);
+    ksorted_array_add(heap->blocklist, (void*)hole);
     return heap;
 }
 
@@ -188,7 +188,7 @@ static void heap_expand(struct heap* heap, size_t new_size)
 static struct blockheader* place_header(uint32_t addr, size_t size, block_flags_t flags)
 {
     struct blockheader* header = (struct blockheader*)addr;
-    memset(header, 0, sizeof(*header));
+    kmemory_fill8(header, 0, sizeof(*header));
     header->magic = BLOCK_MAGIC;
     header->flags = (uint32_t)flags;
     header->size  = size;
@@ -198,7 +198,7 @@ static struct blockheader* place_header(uint32_t addr, size_t size, block_flags_
 static struct blockfooter* place_footer(uint32_t addr, struct blockheader* header)
 {
     struct blockfooter* footer = (struct blockfooter*)addr;
-    memset(footer, 0, sizeof(*footer));
+    kmemory_fill8(footer, 0, sizeof(*footer));
     footer->magic  = BLOCK_MAGIC;
     footer->header = header;
     return footer;
@@ -208,8 +208,8 @@ static int32_t get_last_block(const struct heap* heap)
 {
     uint32_t last_value = 0;
     int32_t  last_index = -1;
-    for (uint32_t i = 0, j = sorted_array_count(heap->blocklist); i < j; ++i) {
-        uint32_t value = (uint32_t)sorted_array_get(heap->blocklist, i);
+    for (uint32_t i = 0, j = ksorted_array_count(heap->blocklist); i < j; ++i) {
+        uint32_t value = (uint32_t)ksorted_array_get(heap->blocklist, i);
         if (value > last_value) {
             DEBUG_ASSERT(i < (uint32_t)INT32_MAX);
             last_value = value;
@@ -231,12 +231,12 @@ static struct blockheader* create_or_update_block(
     if (index < 0) {
         header = place_header(address, size, flags);
     } else {
-        header = sorted_array_get(heap->blocklist, index);
+        header = ksorted_array_get(heap->blocklist, index);
     }
     DEBUG_ASSERT(header != NULL);
     struct blockfooter* footer = place_footer(address + header->size - sizeof(*footer), header);
     DEBUG_ASSERT(footer != NULL);
-    sorted_array_add(heap->blocklist, (void*)header);
+    ksorted_array_add(heap->blocklist, (void*)header);
     return header;
 }
 
@@ -271,7 +271,7 @@ static struct blockheader* create_hole(struct heap* heap, uintptr_t address, siz
         footer->magic  = BLOCK_MAGIC;
         footer->header = header;
     }
-    sorted_array_add(heap->blocklist, (void*)header);
+    ksorted_array_add(heap->blocklist, (void*)header);
     return header;
 }
 
@@ -279,7 +279,7 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
 {
     DEBUG_ASSERT(hole >= 0);
     DEBUG_ASSERT(new_size > old_size);
-    struct blockheader* original_header = (struct blockheader*)sorted_array_get(heap->blocklist, hole);
+    struct blockheader* original_header = (struct blockheader*)ksorted_array_get(heap->blocklist, hole);
     DEBUG_ASSERT(original_header != NULL);
     uintptr_t original_addr = (uintptr_t)original_header;
     size_t    original_size = original_header->size;
@@ -302,7 +302,7 @@ static void* alloc_with_hole(struct heap* heap, int32_t hole, size_t old_size, s
     } else {
         /* Delete the hole.
          */
-        sorted_array_remove(heap->blocklist, hole);
+        ksorted_array_remove(heap->blocklist, hole);
     }
     /* Create the block.
      */
@@ -391,13 +391,13 @@ static int unify_holes(struct heap* heap, struct blockheader** header, struct bl
         /* Remove the header from the blocklist.
         */
         uint32_t i, j;
-        for (i = 0, j = sorted_array_count(heap->blocklist); i < j; ++i) {
-            if (sorted_array_get(heap->blocklist, i) == (void*)test_header) {
+        for (i = 0, j = ksorted_array_count(heap->blocklist); i < j; ++i) {
+            if (ksorted_array_get(heap->blocklist, i) == (void*)test_header) {
                break;
             }
         }
         DEBUG_ASSERT(i < j);
-        sorted_array_remove(heap->blocklist, i);
+        ksorted_array_remove(heap->blocklist, i);
         ret += 2;
     }
     return ret;
@@ -439,18 +439,18 @@ void heap_free(struct heap* heap, void* ptr)
             /* Current block will no longer exist: remove it from the blocklist.
              */
             uint32_t i, j;
-            for (i = 0, j = sorted_array_count(heap->blocklist); i < j; ++i) {
-                if (sorted_array_get(heap->blocklist, i) == (void*)header) {
+            for (i = 0, j = ksorted_array_count(heap->blocklist); i < j; ++i) {
+                if (ksorted_array_get(heap->blocklist, i) == (void*)header) {
                     break;
                 }
             }
             if (i < j) {
-                sorted_array_remove(heap->blocklist, i);
+                ksorted_array_remove(heap->blocklist, i);
             }
         }
     }
     if (add_to_list) {
-        sorted_array_add(heap->blocklist, (void*)header);
+        ksorted_array_add(heap->blocklist, (void*)header);
     }
     /* Update heap statistics.
      */

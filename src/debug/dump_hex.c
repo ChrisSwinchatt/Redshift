@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <ctype.h>
+#include <libk/kchar.h>
 #include <redshift/debug/dump_hex.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
@@ -59,7 +59,7 @@ static void write_ascii(uint32_t offset, uint32_t count)
     console_set_color(CONSOLE_COLOR_WHITE, CONSOLE_COLOR_BLUE);
     for (uint32_t i = 0; i < count; ++i) {
         int c = (int)memory[offset + i];
-        printk("%c", iscntrl(c) ? '.' : c);
+        printk("%c", kchar_is_control(c) ? '.' : c);
     }
     console_set_color(foreground, background);
 }

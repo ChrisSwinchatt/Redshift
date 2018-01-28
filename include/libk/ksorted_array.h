@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_LIBK_Kksorted_array_H
-#define REDSHIFT_LIBK_Kksorted_array_H
+#ifndef REDSHIFT_LIBK_Ksorted_array_H
+#define REDSHIFT_LIBK_Ksorted_array_H
 
 #include <libk/ktypes.h>
 
@@ -62,11 +62,11 @@ KSORTED_ARRAY_PREDICATE_TYPE_LIST(DECLARE_ORDER_PREDICATES)
 
 #undef DECLARE_ORDER_PREDICATES
 
-struct ksorted_array* create_ksorted_array(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
+struct ksorted_array* ksorted_array_create(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
 
-struct ksorted_array* place_ksorted_array(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
+struct ksorted_array* ksorted_array_place(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
 
-void delete_ksorted_array(struct ksorted_array* list);
+void ksorted_array_delete(struct ksorted_array* list);
 
 size_t ksorted_array_add(struct ksorted_array* list, void* element);
 
@@ -76,4 +76,4 @@ void ksorted_array_remove(struct ksorted_array* list, size_t index);
 
 size_t ksorted_array_count(const struct ksorted_array* list);
 
-#endif /* ! REDSHIFT_LIBK_Kksorted_array_H */
+#endif /* ! REDSHIFT_LIBK_Ksorted_array_H */

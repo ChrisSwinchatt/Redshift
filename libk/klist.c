@@ -81,7 +81,7 @@ struct klist* klist_append(struct klist* list, void* data)
         node = kextern_static_allocate(sizeof(*node));
     }
     RUNTIME_CHECK(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     node->next = NULL;
     if (NULL == list->head) {
         list->head = node;
@@ -103,7 +103,7 @@ struct klist* klist_prepend(struct klist* list, void* data)
         node = kextern_static_allocate(sizeof(*node));
     }
     RUNTIME_CHECK(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     node->next = list->head;
     list->head = node;
     list->size += 1;
@@ -129,7 +129,7 @@ struct klist* klist_insert(struct klist* list, void* data, size_t index)
         node->next = kextern_static_allocate(sizeof(*node));
     }
     RUNTIME_CHECK(node->next != NULL);
-    node->next->data = data;
+    node->next->data = (void*)data;
     node->next->next = next;
     list->size += 1;
     return list;
@@ -142,7 +142,7 @@ struct klist* klist_update(struct klist* list, size_t index, void* data)
     RUNTIME_CHECK(index < list->size);
     struct klist_node* node = get_node_by_index(list, index);
     DEBUG_ASSERT(node != NULL);
-    node->data = data;
+    node->data = (void*)data;
     return list;
 }
 

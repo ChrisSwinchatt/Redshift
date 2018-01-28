@@ -19,7 +19,7 @@
  */
 #include <redshift/kernel/initrd.h>
 #include <redshift/util/tar.h>
-#include <redshift/util/hash.h>
+#include <libk/kstring.h>
 
 static struct initrd_file initrd_files[INITRD_MAX_FILES];
 
@@ -30,7 +30,7 @@ void initrd_init(const char* initrd, size_t size)
 
 const struct initrd_file* initrd_get_file_by_name(const char* path)
 {
-    uint32_t hash = hash32_asciz(path, INITRD_FILENAME_MAX);
+    uint32_t hash = kstring_hash32(path, INITRD_FILENAME_MAX);
     for (size_t i = 0; i < INITRD_MAX_FILES; ++i) {
         if (initrd_files[i].hash == hash) {
             return initrd_files + i;

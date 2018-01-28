@@ -21,8 +21,9 @@
 #ifndef REDSHIFT_HAL_CPU_STATE_H
 #define REDSHIFT_HAL_CPU_STATE_H
 
+#include <libk/kmemory.h>
+#include <libk/kstring.h>
 #include <redshift/kernel.h>
-#include <string.h>
 
 /**
  * CPU registers state.
@@ -60,7 +61,7 @@ struct cpu_state {
  */
 static inline void __always_inline get_cpu_state(struct cpu_state* regs)
 {
-    memsetw(regs, 0xBAAD, sizeof(*regs));
+    kmemory_fill8(regs, 0xCD, sizeof(*regs));
     asm(
         "call __get_cpu_state_inner_label_%=\n" /* Push current EIP. */
         "__get_cpu_state_inner_label_%=:\n"

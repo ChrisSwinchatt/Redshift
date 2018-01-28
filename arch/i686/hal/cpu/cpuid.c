@@ -24,7 +24,7 @@
 #include <redshift/hal/cpu/vendor.h>
 #include <redshift/kernel/asm.h>
 #include <redshift/kernel/sleep.h>
-#include <string.h>
+#include <libk/kstring.h>
 
 enum cpuid_requests {
     CPUID_VENDOR_STRING,
@@ -72,40 +72,40 @@ static void cpuid_get_vendor_string(struct cpuid* info)
 {
     uint32_t regs[4] = {0};
     cpuid(&regs);
-    memcpy(info->vendor_string + 0, &regs[EBX], 4);
-    memcpy(info->vendor_string + 4, &regs[EDX], 4);
-    memcpy(info->vendor_string + 8, &regs[ECX], 4);
+    kmemory_copy(info->vendor_string + 0, &regs[EBX], 4);
+    kmemory_copy(info->vendor_string + 4, &regs[EDX], 4);
+    kmemory_copy(info->vendor_string + 8, &regs[ECX], 4);
     info->vendor_string[CPUID_VENDOR_STRING_MAX - 1] = 0;
 }
 
 static void cpuid_get_vendor(struct cpuid* info)
 {
-    if ((strcmp(info->vendor_string, VENDOR_AMD_NEW) == 0) ||
-            strcmp(info->vendor_string, VENDOR_AMD_OLD) == 0) {
-        strncpy(info->vendor, "AMD", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_CENTAUR) == 0) {
-        strncpy(info->vendor, "Centaur", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_CYRIX) == 0) {
-        strncpy(info->vendor, "Cyrix", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_INTEL) == 0) {
-        strncpy(info->vendor, "Intel", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_TRANSMETA1) == 0 ||
-               strcmp(info->vendor_string, VENDOR_TRANSMETA2) == 0) {
-        strncpy(info->vendor, "Transmeta", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_NSC) == 0) {
-        strncpy(info->vendor, "NSC", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_NEXGEN) == 0) {
-        strncpy(info->vendor, "NexGen", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_RISE) == 0) {
-        strncpy(info->vendor, "Rise", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_SIS) == 0) {
-        strncpy(info->vendor, "SiS", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_UMC) == 0) {
-        strncpy(info->vendor, "UMC", CPUID_VENDOR_MAX);
-    } else if (strcmp(info->vendor_string, VENDOR_VIA) == 0) {
-        strncpy(info->vendor, "VIA", CPUID_VENDOR_MAX);
+    if ((kstring_compare(info->vendor_string, VENDOR_AMD_NEW, CPUID_VENDOR_STRING_MAX) == 0) ||
+            kstring_compare(info->vendor_string, VENDOR_AMD_OLD, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "AMD", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_CENTAUR, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "Centaur", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_CYRIX, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "Cyrix", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_INTEL, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "Intel", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_TRANSMETA1, CPUID_VENDOR_STRING_MAX) == 0 ||
+               kstring_compare(info->vendor_string, VENDOR_TRANSMETA2, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "Transmeta", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_NSC, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "NSC", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_NEXGEN, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "NexGen", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_RISE, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "Rise", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_SIS, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "SiS", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_UMC, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "UMC", CPUID_VENDOR_MAX);
+    } else if (kstring_compare(info->vendor_string, VENDOR_VIA, CPUID_VENDOR_STRING_MAX) == 0) {
+        kstring_copy(info->vendor, "VIA", CPUID_VENDOR_MAX);
     } else {
-        strncpy(info->vendor, "Unknown", CPUID_VENDOR_MAX);
+        kstring_copy(info->vendor, "Unknown", CPUID_VENDOR_MAX);
     }
 }
 
@@ -126,22 +126,22 @@ static void cpuid_get_brand_string(struct cpuid* info)
 {
     uint32_t regs[4] = {CPUID_EXTENDED_BRANDSTRING_1, 0, 0, 0};
     cpuid(&regs);
-    strncpy(info->brand_string +  0, (const char*)&regs[EAX], 4);
-    strncpy(info->brand_string +  3, (const char*)&regs[EBX], 4);
-    strncpy(info->brand_string +  7, (const char*)&regs[ECX], 4);
-    strncpy(info->brand_string + 11, (const char*)&regs[EDX], 4);
+    kstring_copy(info->brand_string +  0, (const char*)&regs[EAX], 4);
+    kstring_copy(info->brand_string +  3, (const char*)&regs[EBX], 4);
+    kstring_copy(info->brand_string +  7, (const char*)&regs[ECX], 4);
+    kstring_copy(info->brand_string + 11, (const char*)&regs[EDX], 4);
     regs[EAX] = CPUID_EXTENDED_BRANDSTRING_2;
     cpuid(&regs);
-    strncpy(info->brand_string + 15, (const char*)&regs[EAX], 4);
-    strncpy(info->brand_string + 19, (const char*)&regs[EBX], 4);
-    strncpy(info->brand_string + 23, (const char*)&regs[ECX], 4);
-    strncpy(info->brand_string + 27, (const char*)&regs[EDX], 4);
+    kstring_copy(info->brand_string + 15, (const char*)&regs[EAX], 4);
+    kstring_copy(info->brand_string + 19, (const char*)&regs[EBX], 4);
+    kstring_copy(info->brand_string + 23, (const char*)&regs[ECX], 4);
+    kstring_copy(info->brand_string + 27, (const char*)&regs[EDX], 4);
     regs[EAX] = CPUID_EXTENDED_BRANDSTRING_3;
     cpuid(&regs);
-    strncpy(info->brand_string + 31, (const char*)&regs[EAX], 4);
-    strncpy(info->brand_string + 35, (const char*)&regs[EBX], 4);
-    strncpy(info->brand_string + 39, (const char*)&regs[ECX], 4);
-    strncpy(info->brand_string + 43, (const char*)&regs[EDX], 4);
+    kstring_copy(info->brand_string + 31, (const char*)&regs[EAX], 4);
+    kstring_copy(info->brand_string + 35, (const char*)&regs[EBX], 4);
+    kstring_copy(info->brand_string + 39, (const char*)&regs[ECX], 4);
+    kstring_copy(info->brand_string + 43, (const char*)&regs[EDX], 4);
     info->brand_string[47] = 0;
 }
 

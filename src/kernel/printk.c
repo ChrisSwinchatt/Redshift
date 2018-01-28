@@ -18,11 +18,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <ctype.h>
+#include <libk/kchar.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
-#include <stdio.h>
-#include <string.h>
+#include <libk/kstring.h>
+#include <libk/kstring.h>
 
 #define VPRINTK_BUFFER_SIZE 2048
 
@@ -43,7 +43,7 @@ static loglevel handle_printk_level(const char** pfmt)
 {
     const char* fmt = (*pfmt);
     loglevel level  = 1;
-    if (strlen(fmt) >= 3 && fmt[0] == '<' && isdigit(fmt[1]) && fmt[2] == '>') {
+    if (kstring_length(fmt) >= 3 && fmt[0] == '<' && kchar_is_digit(fmt[1]) && fmt[2] == '>') {
         level = fmt[1] - '0';
         *pfmt += 3;
     }
@@ -64,7 +64,7 @@ static void set_level_formatting(loglevel level)
 static int do_print(const char* fmt, va_list ap)
 {
     static char buffer[VPRINTK_BUFFER_SIZE];
-    int count_1 = vsnprintf(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
+    int count_1 = kstring_vformat(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
     int count_2 = console_write_string(buffer);
     DEBUG_ASSERT(count_1 == count_2);
     return count_1;

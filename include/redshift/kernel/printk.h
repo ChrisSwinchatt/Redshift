@@ -21,7 +21,7 @@
 #ifndef REDSHIFT_KERNEL_PRINTK_H
 #define REDSHIFT_KERNEL_PRINTK_H
 
-#include <redshift/util/macro.h>
+#include <libk/kmacro.h>
 #include <stdarg.h>
 
 /** Print debug-level message. */

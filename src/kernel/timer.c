@@ -21,8 +21,8 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/timer.h>
 #include <redshift/mem/heap.h>
-#include <redshift/util/hash.h>
-#include <string.h>
+#include <libk/kstring.h>
+#include <libk/kstring.h>
 
 static struct timer_event {
     const char* name;
@@ -43,8 +43,8 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*),
     if (event == NULL) {
         panic("%s: failed to allocate memory", __func__);
     }
-    event->name         = strdup(name);
-    event->name_hash    = hash32_asciz(name, strlen(name));
+    event->name         = kstring_duplicate(name);
+    event->name_hash    = kstring_hash32(name, kstring_length(name));
     event->period       = period;
     event->elapsed_time = 0;
     event->callback     = callback;

@@ -30,8 +30,8 @@
 #include <redshift/kernel/kmalloc.h>
 #include <redshift/kernel/panic.h>
 #include <redshift/kernel/printk.h>
-#include <redshift/util/assert.h>
-#include <redshift/util/macro.h>
+#include <libk/kassert.h>
+#include <libk/kmacro.h>
 
 /** Size of the kernel stack. */
 #define STACK_SIZE ((size_t)(((uintptr_t)__stack_top__) - ((uintptr_t)__stack_bottom__)))

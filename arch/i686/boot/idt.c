@@ -18,10 +18,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kmemory.h>
+#include <libk/kstring.h>
 #include <redshift/kernel.h>
 #include <redshift/boot/idt.h>
 #include <redshift/kernel/asm.h>
-#include <string.h>
 
 enum {
     IDT_ENTRIES_SIZE = 256
@@ -55,7 +56,7 @@ void idt_init(void)
 {
     pidt.limit = (sizeof(struct idt_entry) * IDT_ENTRIES_SIZE) - 1;
     pidt.base = (uint32_t)&idt_entries;
-    memset(&idt_entries, 0, sizeof(struct idt_entry) * IDT_ENTRIES_SIZE);
+    kmemory_fill8(&idt_entries, 0, sizeof(struct idt_entry) * IDT_ENTRIES_SIZE);
     idt_entry( 0,  (uint32_t)isr0, 0x08, 0x8E);
     idt_entry( 1,  (uint32_t)isr1, 0x08, 0x8E);
     idt_entry( 2,  (uint32_t)isr2, 0x08, 0x8E);

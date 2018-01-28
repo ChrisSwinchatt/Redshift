@@ -119,7 +119,7 @@ size_t kstring_length(const char* s)
     return p - s;
 }
 
-char* kstring_concat(char* dst, const char* src, size_t n)
+char* kstring_concatenate(char* dst, const char* src, size_t n)
 {
     const size_t offset = kstring_length(dst);
     return kstring_copy(dst + offset, src, n);

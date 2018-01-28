@@ -23,7 +23,7 @@
 #include <redshift/kernel/interrupt.h>
 #include <redshift/mem/heap.h>
 #include <redshift/mem/static.h>
-#include <string.h>
+#include <libk/kstring.h>
 
 #define BIT_INDEX(a)  ((a)/(8*4))
 #define BIT_OFFSET(a) ((a)%(8*4))
@@ -165,7 +165,7 @@ struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
     } else if (create) {
         uint32_t tmp;
         dir->tables[i] = (struct page_table*)static_alloc_base(sizeof(struct page_table), true, &tmp);
-        memset(dir->tables[i], 0, PAGE_SIZE);
+        kmemory_fill8(dir->tables[i], 0, PAGE_SIZE);
         dir->physical_tables[i] = tmp | 0x07;
         return &(dir->tables[i]->pages[addr % PAGE_ENTRIES]);
     }
@@ -182,11 +182,11 @@ int paging_init(uint32_t mem_size)
     uint64_t mem_end = (uint64_t)mem_size * 1024ULL;
     frames_count = (uint32_t)(mem_end / 0x1000ULL);
     frames = (uint32_t*)static_alloc(BIT_INDEX(frames_count));
-    memset(frames, 0, BIT_INDEX(frames_count));
+    kmemory_fill8(frames, 0, BIT_INDEX(frames_count));
     /* Create kernel page directory.
      */
     kernel_directory = static_alloc(sizeof(*kernel_directory));
-    memset(kernel_directory, 0, sizeof(*kernel_directory));
+    kmemory_fill8(kernel_directory, 0, sizeof(*kernel_directory));
     /* Identity map pages up to heap address. We make the first page non-present so that NULL-pointer dereferences cause
      * a page fault.
      */
