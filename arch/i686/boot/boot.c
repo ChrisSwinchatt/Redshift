@@ -20,7 +20,7 @@
 #include <redshift/boot/boot_module.h>
 #include <redshift/boot/gdt.h>
 #include <redshift/boot/idt.h>
-#include <redshift/boot/multiboot.h>
+#include <redshift/boot/multiboot2.h>
 #include <redshift/boot/pic.h>
 #include <redshift/boot/pit.h>
 #include <redshift/boot/sequence.h>
@@ -40,7 +40,7 @@
 #include <redshift/mem/static.h>
 #include <redshift/sched/process.h>
 
-static struct multiboot_tag* mb_tags;
+static struct multiboot2_tag* mb_tags;
 
 extern uint32_t __multiboot_bootloader_magic__; /* boot/_start.asm */
 extern uint32_t __multiboot_bootloader_tags__;  /* boot/_start.asm */
@@ -92,15 +92,15 @@ static void __init(BOOT_SEQUENCE_CHECK_BOOT_ENV) check_boot_env(void)
 #undef CHECK_SIZE
     /* Check bootloader info.
      */
-    if (__multiboot_bootloader_magic__ != MULTIBOOT_BOOTLOADER_MAGIC) {
+    if (__multiboot_bootloader_magic__ != MULTIBOOT2_BOOTLOADER_MAGIC) {
         panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX)",
-              (uint32_t)MULTIBOOT_BOOTLOADER_MAGIC,
+              (uint32_t)MULTIBOOT2_BOOTLOADER_MAGIC,
               __multiboot_bootloader_magic__);
     }
     if (__multiboot_bootloader_tags__ == 0) {
         panic("bootloader has not passed system info");
     }
-    mb_tags = (struct multiboot_tag*)__multiboot_bootloader_tags__;
+    mb_tags = (struct multiboot2_tag*)__multiboot_bootloader_tags__;
 }
 
 #undef TYPE_LIST

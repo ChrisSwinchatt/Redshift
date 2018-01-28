@@ -18,17 +18,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_BOOT_TSS_H
-#define REDSHIFT_BOOT_TSS_H
+.intel_syntax noprefix
 
-#include <redshift/kernel.h>
+.section .text
 
-void tss_init(void);
+.global disable_interrupts
+.type   disable_interrupts, @function
+disable_interrupts:
+    cli
+    ret
 
-void tss_load(void);
+.global enable_interrupts
+.type   enable_interrupts, @function
+enable_interrupts:
+    sti
+    ret
 
-uint32_t get_tss_base(void);
+.global wait_for_interrupt
+.type   wait_for_interrupt, @function
+wait_for_interrupt:
+    /* Wait for an interrupt to occur.
+     */
+    sti
+    hlt
+    jmp     wait_for_interrupt
 
-size_t get_tss_size(void);
-
-#endif /* ! REDSHIFT_BOOT_TSS_H */
+.global hang
+.type   hang, @function
+hang:
+   call disable_interrupts
+   jmp  wait_for_interrupt

@@ -3,20 +3,21 @@ ENTRY(_start)
 SECTIONS
 {
     . = 1M;
+    __kernel_start__ = .;
 	.text BLOCK(4K) : ALIGN(4K) {
-        __code_start__ = .;
         *(.multiboot)
+        __code_start__ = .;
         *(.init)
         *(.fini)
-		*(.text)
+		*(.text*)
 		*(.gnu.linkonce.t*)
         __code_end__   = .;
 	}
 	.data BLOCK(4K) : ALIGN(4K) {
         __data_start__ = .;
 		*(.data)
-        *(.ctors)
-        *(.dtors)
+        *(.ctors*)
+        *(.dtors*)
         *(.gnu.linkonce.d*)
         *(.jcr)
         __data_end__ = .;
@@ -40,15 +41,8 @@ SECTIONS
 		*(.gnu.linkonce.c*)
         __bss_end__ = .;
 	}
-    __end__ = .;
-	.debug : {
-	    *(.debug*)
-	    *(.stab*)
-	    *(.line*)
-	    *(.dwarf*)
-	    *(.gnu.linkonce.d*)
-	    *(.gnu_debuglink)
-        *(.debug_str)
+    __kernel_end__ = .;
+    /DISCARD/ : {
         *(.comment)
-	}
+    }
 }

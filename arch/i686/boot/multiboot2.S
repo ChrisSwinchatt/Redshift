@@ -18,47 +18,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_BOOT_MODULE_H
-#define REDSHIFT_BOOT_MODULE_H
+.intel_syntax noprefix
 
+#define __ASM_SOURCE__
 #include <redshift/boot/multiboot2.h>
 
-/**
- * Boot module linked list.
- */
-struct boot_module {
-    const char*               cmdline; /**< Module command-line. */
-    uintptr_t                 start;   /**< Module start.        */
-    uintptr_t                 end;     /**< Module end.          */
-    const struct boot_module* next;
-};
+.set MAGIC,     MULTIBOOT2_HEADER_MAGIC
+.set ARCH,      0
+.set LENGTH,    end - multiboot2
+.set CHECKSUM,  -(MAGIC + ARCH + LENGTH)
 
-/**
- * Discover boot modules.
+.section .multiboot
+.align   8
+multiboot2:
+    .long MAGIC                     /* Magic number.                      */
+    .long ARCH                      /* Architecture.                      */
+    .long LENGTH                    /* Header size.                       */
+    .long CHECKSUM                 /* Header checksum.                   */
+/* Request multiboot information.
  */
-void discover_boot_modules(struct multiboot2_tag* mb_tags);
-
-/**
- * Save boot modules.
+info:
+    .short 1, 0
+    .long  modalign - info
+    .long  1, 2, 3, 5, 6, 7, 8
+    .long  0                        /* Pad to 8 bytes. */
+/* Request module alignment.
  */
-void save_boot_modules(struct multiboot2_tag* mb_tags);
-
-/**
- * Get a readonly pointer to the head of the boot modules list.
- * \return A readonly pointer to the boot modules list.
+modalign:
+    .short 6, 0
+    .long  end_tag - modalign
+/* End of tags.
  */
-const struct boot_module* boot_modules_head(void);
-
-/**
- * Get the number of boot modules loaded.
- * \return The number of boot modules loaded.
+end_tag:
+    .short 0, 0
+    .long  end - end_tag
+/* End of header.
  */
-size_t boot_modules_count(void);
-
-/**
- * Get the address of the end of the last boot module in memory. This is the first usable memory location.
- * \return The address of the end of the last boot module in memory.
- */
-uintptr_t boot_modules_end(void);
-
-#endif /* ! REDSHIFT_BOOT_MODULE_H */
+end:

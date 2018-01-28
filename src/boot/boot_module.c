@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <redshift/boot/multiboot.h>
+#include <redshift/boot/multiboot2.h>
 #include <redshift/boot/boot_module.h>
 #include <redshift/mem/static.h>
 #include <string.h>
@@ -29,16 +29,16 @@ static struct {
     uintptr_t           end;
 } __modules__;
 
-void discover_boot_modules(struct multiboot_tag* mb_tags)
+void discover_boot_modules(struct multiboot2_tag* mb_tags)
 {
     DEBUG_ASSERT(mb_tags != NULL);
-    for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)mb_tags + 8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+    for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
+         tag->type != MULTIBOOT2_TAG_TYPE_END;
+         tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
-            case MULTIBOOT_TAG_TYPE_MODULE:
+            case MULTIBOOT2_TAG_TYPE_MODULE:
             {
-                struct multiboot_tag_module* module = (struct multiboot_tag_module*)tag;
+                struct multiboot2_tag_module* module = (struct multiboot2_tag_module*)tag;
                 if (module->end > __modules__.end) {
                     __modules__.end = module->end;
                 }
@@ -50,20 +50,20 @@ void discover_boot_modules(struct multiboot_tag* mb_tags)
     }
 }
 
-void save_boot_modules(struct multiboot_tag* mb_tags)
+void save_boot_modules(struct multiboot2_tag* mb_tags)
 {
     DEBUG_ASSERT(mb_tags != NULL);
     struct boot_module* modlist = static_alloc(sizeof(*modlist));
     __modules__.head = modlist;
-    for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)mb_tags + 8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+    for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
+         tag->type != MULTIBOOT2_TAG_TYPE_END;
+         tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
-            case MULTIBOOT_TAG_TYPE_MODULE:
+            case MULTIBOOT2_TAG_TYPE_MODULE:
             {
                 /* Copy data.
                  */
-                struct multiboot_tag_module* module = (struct multiboot_tag_module*)tag;
+                struct multiboot2_tag_module* module = (struct multiboot2_tag_module*)tag;
                 modlist->start = module->start;
                 modlist->end   = module->end;
                 size_t length  = strlen(module->cmdline);

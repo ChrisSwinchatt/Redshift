@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <redshift/boot/multiboot.h>
+#include <redshift/boot/multiboot2.h>
 #include <redshift/hal/memory.h>
 #include <redshift/mem/static.h>
 #include <redshift/kernel.h>
@@ -36,16 +36,16 @@ static struct memory {
     size_t             size_map;
 } memory;
 
-void memory_init(struct multiboot_tag* mb_tags)
+void memory_init(struct multiboot2_tag* mb_tags)
 {
     DEBUG_ASSERT(mb_tags != NULL);
-    for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)mb_tags + 8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+    for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
+         tag->type != MULTIBOOT2_TAG_TYPE_END;
+         tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
-            case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-                memory.size_lower = ((struct multiboot_tag_basic_meminfo*)tag)->mem_lower;
-                memory.size_upper = ((struct multiboot_tag_basic_meminfo*)tag)->mem_upper;
+            case MULTIBOOT2_TAG_TYPE_BASIC_MEMINFO:
+                memory.size_lower = ((struct multiboot2_tag_basic_meminfo*)tag)->mem_lower;
+                memory.size_upper = ((struct multiboot2_tag_basic_meminfo*)tag)->mem_upper;
                 char prefix;
                 uint32_t mem = memory.size_lower + memory.size_upper;
                 if (mem > 1024*1024) {
@@ -67,21 +67,21 @@ void memory_init(struct multiboot_tag* mb_tags)
     }
 }
 
-void memory_map_init(struct multiboot_tag* mb_tags)
+void memory_map_init(struct multiboot2_tag* mb_tags)
 {
     DEBUG_ASSERT(mb_tags != NULL);
-    struct multiboot_mmap_entry* mmap = NULL;
+    struct multiboot2_mmap_entry* mmap = NULL;
     struct memory_map* memmap = NULL;
-    for (struct multiboot_tag* tag = (struct multiboot_tag*)((uint8_t*)mb_tags + 8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
+    for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
+         tag->type != MULTIBOOT2_TAG_TYPE_END;
+         tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
         switch (tag->type) {
-            case MULTIBOOT_TAG_TYPE_MMAP:
+            case MULTIBOOT2_TAG_TYPE_MMAP:
                 printk(PRINTK_DEBUG "Memory map:\n");
-                for (mmap = ((struct multiboot_tag_mmap*)tag)->entries;
+                for (mmap = ((struct multiboot2_tag_mmap*)tag)->entries;
                      (uint8_t*)mmap < (uint8_t*)tag + tag->size;
-                     mmap = (struct multiboot_mmap_entry*)((uint32_t)mmap +
-                            ((struct multiboot_tag_mmap*)tag)->entry_size)) {
+                     mmap = (struct multiboot2_mmap_entry*)((uint32_t)mmap +
+                            ((struct multiboot2_tag_mmap*)tag)->entry_size)) {
                     /* Store the entry into `info`.
                      */
                     if (memmap == NULL || memory.map == NULL) {

@@ -27,16 +27,16 @@
 #ifndef REDSHIFT_HAL_MEMORY_H
 #define REDSHIFT_HAL_MEMORY_H
 
-#include <redshift/boot/multiboot.h>
+#include <redshift/boot/multiboot2.h>
 #include <redshift/kernel.h>
 
 /** Memory region type. */
 typedef enum {
-    MEMORY_TYPE_INVALID     = MULTIBOOT_MEMORY_INVALID,     /**< Invalid memory.                            */
-    MEMORY_TYPE_AVAILABLE   = MULTIBOOT_MEMORY_AVAILABLE,   /**< Available memory.                          */
-    MEMORY_TYPE_RESERVED    = MULTIBOOT_MEMORY_RESERVED,    /**< Unavailable memory.                        */
-    MEMORY_TYPE_RECLAIMABLE = MULTIBOOT_MEMORY_RECLAIMABLE, /**< Unavailable memory which can be reclaimed. */
-    MEMORY_TYPE_NVS         = MULTIBOOT_MEMORY_NVS          /**< Memory used by ACPI.                       */
+    MEMORY_TYPE_INVALID     = MULTIBOOT2_MEMORY_INVALID,     /**< Invalid memory.                            */
+    MEMORY_TYPE_AVAILABLE   = MULTIBOOT2_MEMORY_AVAILABLE,   /**< Available memory.                          */
+    MEMORY_TYPE_RESERVED    = MULTIBOOT2_MEMORY_RESERVED,    /**< Unavailable memory.                        */
+    MEMORY_TYPE_RECLAIMABLE = MULTIBOOT2_MEMORY_RECLAIMABLE, /**< Unavailable memory which can be reclaimed. */
+    MEMORY_TYPE_NVS         = MULTIBOOT2_MEMORY_NVS          /**< Memory used by ACPI.                       */
 } memory_type_t;
 
 /** Memory map. */
@@ -51,14 +51,14 @@ struct memory_map {
  * Initialise memory HAL.
  * \param mb_tags The multiboot tags.
  */
-void memory_init(struct multiboot_tag* mb_tags);
+void memory_init(struct multiboot2_tag* mb_tags);
 
 /**
  * Parse memory map.
  * \param mb_Tags The multiboot tags.
  * \note This has to be called *after* static_init.
  */
-void memory_map_init(struct multiboot_tag* mb_tags);
+void memory_map_init(struct multiboot2_tag* mb_tags);
 
 /**
  * Get a readonly pointer to the head of the memory map.

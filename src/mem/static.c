@@ -27,7 +27,7 @@ uintptr_t heap_addr = 0;
 
 void static_init(void)
 {
-    uintptr_t end = (uintptr_t)__end__;
+    uintptr_t end = (uintptr_t)__kernel_end__;
     uintptr_t modules_end = boot_modules_end();
     if (modules_end > end) {
         end = modules_end;

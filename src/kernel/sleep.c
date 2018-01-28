@@ -36,7 +36,7 @@ void usleep(uint64_t usec)
     //int int_flag = get_interrupt_flag();
     for (ticks = usec * (uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
         enable_interrupts();
-        int_wait();
+        wait_for_interrupt();
         disable_interrupts();
         if (ticks > 0ULL && ticks < 1000000ULL) {
             /* Prevent ticks underflowing.

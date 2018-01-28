@@ -57,7 +57,7 @@ extern symbol_t __code_start__;   /**< Start of code section (linker script).   
 extern symbol_t __code_end__;     /**< End of code section (linker script).             */
 extern symbol_t __data_start__;   /**< Start of data section (linker script).           */
 extern symbol_t __data_end__;     /**< End of data section (linker script).             */
-extern symbol_t __end__;          /**< End of executable (linker script).               */
+extern symbol_t __kernel_end__;   /**< End of executable (linker script).               */
 extern symbol_t __rodata_start__; /**< Start of read-only data section (linker script). */
 extern symbol_t __rodata_end__;   /**< End of read-only data section (linker script).   */
 
