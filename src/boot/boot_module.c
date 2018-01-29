@@ -27,10 +27,11 @@ static struct {
     struct boot_module* head;
     size_t              count;
     uintptr_t           end;
-} __modules__;
+} modules;
 
 void discover_boot_modules(struct multiboot2_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
          tag->type != MULTIBOOT2_TAG_TYPE_END;
@@ -39,8 +40,8 @@ void discover_boot_modules(struct multiboot2_tag* mb_tags)
             case MULTIBOOT2_TAG_TYPE_MODULE:
             {
                 struct multiboot2_tag_module* module = (struct multiboot2_tag_module*)tag;
-                if (module->end > __modules__.end) {
-                    __modules__.end = module->end;
+                if (module->end > modules.end) {
+                    modules.end = module->end;
                 }
                 break;
             }
@@ -48,13 +49,15 @@ void discover_boot_modules(struct multiboot2_tag* mb_tags)
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 void save_boot_modules(struct multiboot2_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     struct boot_module* modlist = static_alloc(sizeof(*modlist));
-    __modules__.head = modlist;
+    modules.head = modlist;
     for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
          tag->type != MULTIBOOT2_TAG_TYPE_END;
          tag = (struct multiboot2_tag*)((uint8_t*)tag + ((tag->size + 7) & ~7))) {
@@ -80,26 +83,27 @@ void save_boot_modules(struct multiboot2_tag* mb_tags)
                  */
                 modlist->next = static_alloc(sizeof(*modlist));
                 modlist = (struct boot_module*)modlist->next; /* Ignore const modlist. */
-                ++__modules__.count;
+                ++modules.count;
                 break;
             }
             default:
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 const struct boot_module* boot_modules_head(void)
 {
-    return __modules__.head;
+    return modules.head;
 }
 
 size_t boot_modules_count(void)
 {
-    return __modules__.count;
+    return modules.count;
 }
 
 uintptr_t boot_modules_end(void)
 {
-    return __modules__.end;
+    return modules.end;
 }

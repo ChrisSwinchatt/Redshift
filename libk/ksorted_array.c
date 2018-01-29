@@ -19,8 +19,9 @@
  */
 #include <libk/kassert.h>
 #include <libk/kextern.h>
-#include <libk/ksorted_array.h>
+#include <libk/kmacro.h>
 #include <libk/kmemory.h>
+#include <libk/ksorted_array.h>
 #include <libk/kstring.h>
 
 struct ksorted_array {

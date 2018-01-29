@@ -26,8 +26,10 @@
 
 /**
  * Function to call when abort is triggered (e.g. upon failed assertion).
+ * \param fmt A formatted error message to print.
+ * \param ... Format arguments.
  */
-extern void __noreturn kextern_abort(void);
+extern void __noreturn kextern_abort(const char* fmt, ...);
 
 /**
  * Function to call to print a string.

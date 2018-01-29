@@ -3,6 +3,7 @@ Things to Do:
  * [ ] Maybe convert NASM code into GNU AS
  * [ ] Maybe convert C code into C++
  * [ ] Maybe migrate to Clang
+ * [ ] Sort memory map with merge sort
  * [ ] Stability
    * [X] Solve triple fault with TSS.
    * [x] Ensure static allocator doesn't overwrite modules, which GRUB loads immediately after the kernel.

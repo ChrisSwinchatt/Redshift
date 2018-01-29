@@ -18,13 +18,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kstring.h>
 #include <redshift/hal/cpu.h>
 #include <redshift/hal/cpu/cpuid.h>
 #include <redshift/hal/cpu/features.h>
 #include <redshift/hal/cpu/vendor.h>
 #include <redshift/kernel/asm.h>
 #include <redshift/kernel/sleep.h>
-#include <libk/kstring.h>
 
 enum cpuid_requests {
     CPUID_VENDOR_STRING,
@@ -157,7 +157,6 @@ static void cpuid_get_frequency(struct cpuid* info)
     static const uint64_t period = 10ULL; /* ms */
     uint64_t ticks1 = read_ticks();
     msleep(period);
-    disable_interrupts(); /* msleep enables interrupts, but we don't want them any more during the boot process. */
     uint64_t ticks2 = read_ticks();
     info->frequency = (uint64_t)((ticks2 - ticks1)*1000ULL/period);
     if (info->frequency == 0) {
@@ -174,6 +173,7 @@ static void cpuid_get_cores(struct cpuid* info)
 
 int cpuid_init(struct cpuid* info)
 {
+    SAVE_INTERRUPT_STATE;
     if (!(cpuid_supported()) || !(cpuid_extended_supported())) {
         panic("necessary CPUID functions not supported by CPU");
     }
@@ -187,5 +187,6 @@ int cpuid_init(struct cpuid* info)
     printk(PRINTK_DEBUG "CPU info: %s %s (%s)\n", info->brand_string, info->vendor, info->vendor_string);
     printk(PRINTK_DEBUG "CPU info: <type=%d,family=%d,model=%d,stepping=%d>\n",
            info->type, info->family, info->model, info->stepping);
+    RESTORE_INTERRUPT_STATE;
     return 0;
 }

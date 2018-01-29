@@ -18,8 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef REDSHIFT_LIBK_Ksorted_array_H
-#define REDSHIFT_LIBK_Ksorted_array_H
+#ifndef REDSHIFT_LIBK_KSORTED_ARRAY_H
+#define REDSHIFT_LIBK_KSORTED_ARRAY_H
 
 #include <libk/ktypes.h>
 
@@ -76,4 +76,4 @@ void ksorted_array_remove(struct ksorted_array* list, size_t index);
 
 size_t ksorted_array_count(const struct ksorted_array* list);
 
-#endif /* ! REDSHIFT_LIBK_Ksorted_array_H */
+#endif /* ! REDSHIFT_LIBK_KSORTED_ARRAY_H */

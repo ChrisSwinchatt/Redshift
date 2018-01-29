@@ -20,21 +20,20 @@
 #ifndef REDSHIFT_MEM_KMALLOC_H
 #define REDSHIFT_MEM_KMALLOC_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <redshift/kernel.h>
 
 /**
  * Allocate a block of dynamic memory on the kernel heap.
  * \param size The size of the block to allocate.
  * \return A pointer to the allocated block if successful. Panics on failure.
  */
-void* kmalloc(size_t size);
+extern void*(* kmalloc)(size_t size);
 
 /**
  * Free a block of memory from the kernel heap.
  * \param ptr The memory block.
  */
-void kfree(void* ptr);
+extern void(* kfree)(void* ptr);
 
 /**
  * Enable kmalloc/kfree. Called by create_heap (mem/heap.c) after the kernel heap is initialised. Prior to this, kmalloc

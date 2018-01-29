@@ -91,6 +91,7 @@ static uint32_t frame_get_first_free(void)
 
 void frame_alloc(struct page* page, page_flags_t flags)
 {
+    SAVE_INTERRUPT_STATE;
     if (page->frame) {
         return; /* Already allocated. */
     }
@@ -103,16 +104,19 @@ void frame_alloc(struct page* page, page_flags_t flags)
     page->rw      = TEST_FLAG(flags, PAGE_FLAGS_WRITEABLE) ? 1 : 0;
     page->user    = TEST_FLAG(flags, PAGE_FLAGS_USER_MODE) ? 1 : 0;
     page->frame   = i;
+    RESTORE_INTERRUPT_STATE;
 }
 
 void frame_free(struct page* page)
 {
+    SAVE_INTERRUPT_STATE;
     uint32_t frame = page->frame;
     if (!(frame)) {
         return; /* Already freed. */
     }
     frame_clear(frame);
     page->frame = 0;
+    RESTORE_INTERRUPT_STATE;
 }
 
 static void page_fault_handler(const struct cpu_state* regs)
@@ -136,31 +140,39 @@ static void page_fault_handler(const struct cpu_state* regs)
 
 void page_enable(void)
 {
+    SAVE_INTERRUPT_STATE;
     uint32_t cr0;
     asm volatile("mov %%cr0, %0":"=r"(cr0));
     cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0":"=r"(cr0));
+    RESTORE_INTERRUPT_STATE;
 }
 
 void page_disable(void)
 {
+    SAVE_INTERRUPT_STATE;
     uint32_t cr0;
     asm volatile("mov %%cr0, %0":"=r"(cr0));
     cr0 &= ~0x80000000;
     asm volatile("mov %0, %%cr0":"=r"(cr0));
+    RESTORE_INTERRUPT_STATE;
 }
 
 void page_directory_load(struct page_directory* dir)
 {
+    SAVE_INTERRUPT_STATE;
     current_directory = dir;
     asm volatile("mov %0, %%cr3"::"r"(&dir->physical_tables));
+    RESTORE_INTERRUPT_STATE;
 }
 
 struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
 {
+    SAVE_INTERRUPT_STATE;
     addr /= PAGE_SIZE;
     uint32_t i = addr / PAGE_ENTRIES;
     if (dir->tables[i]) {
+        RESTORE_INTERRUPT_STATE;
         return &(dir->tables[i]->pages[addr % PAGE_ENTRIES]);
     } else if (create) {
         uint32_t tmp;
@@ -169,6 +181,7 @@ struct page* page_get(uint32_t addr, struct page_directory* dir, bool create)
         dir->physical_tables[i] = tmp | 0x07;
         return &(dir->tables[i]->pages[addr % PAGE_ENTRIES]);
     }
+    RESTORE_INTERRUPT_STATE;
     return NULL;
 }
 
@@ -179,6 +192,7 @@ enum {
 
 int paging_init(uint32_t mem_size)
 {
+    SAVE_INTERRUPT_STATE;
     uint64_t mem_end = (uint64_t)mem_size * 1024ULL;
     frames_count = (uint32_t)(mem_end / 0x1000ULL);
     frames = (uint32_t*)static_alloc(BIT_INDEX(frames_count));
@@ -205,5 +219,6 @@ int paging_init(uint32_t mem_size)
     set_interrupt_handler(ISR_PAGE_FAULT, page_fault_handler);
     page_directory_load(kernel_directory);
     page_enable();
+    RESTORE_INTERRUPT_STATE;
     return 0;
 }

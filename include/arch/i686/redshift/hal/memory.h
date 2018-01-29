@@ -49,13 +49,13 @@ struct memory_map {
 
 /**
  * Initialise memory HAL.
- * \param mb_tags The multiboot tags.
+ * \param mb_tags The multiboot2 tags.
  */
 void memory_init(struct multiboot2_tag* mb_tags);
 
 /**
  * Parse memory map.
- * \param mb_Tags The multiboot tags.
+ * \param mb_Tags The multiboot2 tags.
  * \note This has to be called *after* static_init.
  */
 void memory_map_init(struct multiboot2_tag* mb_tags);

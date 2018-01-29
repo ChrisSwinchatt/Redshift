@@ -72,6 +72,7 @@ static void set_buffer_char(uint8_t c)
 
 void console_init(void)
 {
+    SAVE_INTERRUPT_STATE;
     console.screen.columns    = CONSOLE_DEFAULT_COLUMNS;
     console.screen.rows       = CONSOLE_DEFAULT_ROWS;
     console.screen.foreground = CONSOLE_DEFAULT_FOREGROUND;
@@ -82,10 +83,12 @@ void console_init(void)
     console.cursor.y          = console.cursor.y_origin;
     console.cursor.mode       = CONSOLE_DEFAULT_CURSOR_MODE;
     console.screen.buffer     = (uint16_t*)CONSOLE_DEFAULT_FRAMEBUFFER;
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_write_char(int c)
 {
+    SAVE_INTERRUPT_STATE;
     switch (c) {
         case '\b':
             if (console.cursor.x) {
@@ -115,28 +118,34 @@ void console_write_char(int c)
     if (console.cursor.y >= console.screen.rows) {
         console_scroll();
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
-long console_write_string(const char* string)
+ssize_t console_write_string(const char* string)
 {
+    SAVE_INTERRUPT_STATE;
     long i = 0;
     for (; string[i] != 0; ++i) {
         console_write_char(string[i]);
     }
     console_update_cursor();
+    RESTORE_INTERRUPT_STATE;
     return i;
 }
 
-long console_write_line(const char* line)
+ssize_t console_write_line(const char* line)
 {
+    SAVE_INTERRUPT_STATE;
     long count = console_write_string(line);
     console_write_char('\n');
     ++count;
+    RESTORE_INTERRUPT_STATE;
     return count;
 }
 
 void console_scroll(void)
 {
+    SAVE_INTERRUPT_STATE;
     kmemory_copy(
         console.screen.buffer + ORIGIN,
         console.screen.buffer + ORIGIN + console.screen.columns,
@@ -146,10 +155,12 @@ void console_scroll(void)
     console_clear_line();
     console.cursor.y = console.screen.rows - 1;
     console_update_cursor();
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_clear_line(void)
 {
+    SAVE_INTERRUPT_STATE;
     kmemory_fill16(
         console.screen.buffer + (console.cursor.y - 1)*console.screen.columns + console.cursor.x_origin,
         BLANK,
@@ -157,14 +168,17 @@ void console_clear_line(void)
     );
     console.cursor.x = console.cursor.x_origin;
     console_update_cursor();
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_clear(void)
 {
+    SAVE_INTERRUPT_STATE;
     kmemory_fill16(console.screen.buffer + ORIGIN, BLANK, BUFFER_SIZE - ORIGIN);
     console.cursor.x = console.cursor.x_origin;
     console.cursor.y = console.cursor.y_origin;
     console_update_cursor();
+    RESTORE_INTERRUPT_STATE;
 }
 
 static void hide_cursor(void)
@@ -202,17 +216,21 @@ static void draw_cursor(void)
 
 void console_set_cursor_mode(console_cursor_mode_t mode)
 {
+    SAVE_INTERRUPT_STATE;
     console.cursor.mode = mode;
     console_update_cursor();
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_update_cursor(void)
 {
+    SAVE_INTERRUPT_STATE;
     if (console.cursor.mode == CONSOLE_CURSOR_DISABLED) {
         hide_cursor();
     } else {
         draw_cursor();
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_set_foreground_color(console_color_t color)
@@ -227,8 +245,10 @@ void console_set_background_color(console_color_t color)
 
 void console_set_color(console_color_t foreground, console_color_t background)
 {
+    SAVE_INTERRUPT_STATE;
     console.screen.foreground = foreground;
     console.screen.background = background;
+    RESTORE_INTERRUPT_STATE;
 }
 
 console_color_t console_get_foreground_color(void)
@@ -243,24 +263,31 @@ console_color_t console_get_background_color(void)
 
 void console_get_color(console_color_t* foreground, console_color_t* background)
 {
+    SAVE_INTERRUPT_STATE;
     *foreground = console.screen.foreground;
     *background = console.screen.background;
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_set_cursor(uint32_t x, uint32_t y)
 {
+    SAVE_INTERRUPT_STATE;
     console.cursor.x = x;
     console.cursor.y = y;
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_get_cursor(uint32_t* x, uint32_t* y)
 {
+    SAVE_INTERRUPT_STATE;
     *x = console.cursor.x;
     *y = console.cursor.y;
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_set_origin(uint32_t x, uint32_t y)
 {
+    SAVE_INTERRUPT_STATE;
     console.cursor.x_origin = x;
     console.cursor.y_origin = y;
     if (console.cursor.x < console.cursor.x_origin) {
@@ -269,10 +296,13 @@ void console_set_origin(uint32_t x, uint32_t y)
     if (console.cursor.y < console.cursor.y_origin) {
         console.cursor.y = console.cursor.y_origin;
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 void console_get_origin(uint32_t* x_origin, uint32_t* y_origin)
 {
+    SAVE_INTERRUPT_STATE;
     *x_origin = console.cursor.x_origin;
     *y_origin = console.cursor.y_origin;
+    RESTORE_INTERRUPT_STATE;
 }

@@ -28,19 +28,19 @@
 .set LENGTH,    end - multiboot2
 .set CHECKSUM,  -(MAGIC + ARCH + LENGTH)
 
-.section .multiboot
+.section .multiboot2
 .align   8
 multiboot2:
     .long MAGIC                     /* Magic number.                      */
     .long ARCH                      /* Architecture.                      */
     .long LENGTH                    /* Header size.                       */
-    .long CHECKSUM                 /* Header checksum.                   */
-/* Request multiboot information.
+    .long CHECKSUM                  /* Header checksum.                   */
+/* Request multiboot2 information.
  */
 info:
     .short 1, 0
     .long  modalign - info
-    .long  1, 2, 3, 5, 6, 7, 8
+    .long  1, 2, 3, 5, 6/*, 7, 8 FIXME */
     .long  0                        /* Pad to 8 bytes. */
 /* Request module alignment.
  */

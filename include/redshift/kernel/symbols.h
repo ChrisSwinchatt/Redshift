@@ -28,7 +28,7 @@
  * \param ptr The address of the file in memory.
  * \param size The size of the file in memory.
  */
-void symbols_load(uintptr_t ptr, size_t size);
+void load_symbol_table(uintptr_t ptr, size_t size);
 
 /**
  * Resolve a symbol name to an address.

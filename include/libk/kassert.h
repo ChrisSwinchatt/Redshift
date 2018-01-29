@@ -61,7 +61,7 @@
         if (__kassert_eval_once_a__ != __kassert_eval_once_b__) {   \
             __KASSERT_CHECK_FAILED(                                 \
                 NAME,                                               \
-                "expected " FMT ", got " FMT,                       \
+                #A "==" #B ": expected " FMT ", got " FMT,          \
                  __kassert_eval_once_a__,                           \
                  __kassert_eval_once_b__                            \
              );                                                     \

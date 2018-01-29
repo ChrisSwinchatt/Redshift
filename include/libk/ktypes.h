@@ -29,7 +29,10 @@
 /** Signed size_t. */
 typedef intmax_t ssize_t;
 
+/** Kernel linker symbol address variable. */
+typedef char symbol_t[];
+
 /** Pointer to void. */
-typedef void*    void_ptr_t;
+typedef void* void_ptr_t;
 
 #endif /* ! REDSHIFT_LIBK_KTYPES_H */

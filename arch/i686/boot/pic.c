@@ -19,11 +19,11 @@
  * SOFTWARE.
  */
 #include <redshift/kernel.h>
-#include <redshift/kernel/asm.h>
 #include <redshift/boot/pic.h>
 
 int pic_init(void)
 {
+    SAVE_INTERRUPT_STATE;
     uint8_t mask_master = io_inb(PIC_MASTER_DATA);
     uint8_t mask_slave  = io_inb(PIC_SLAVE_DATA);
     io_outb(PIC_MASTER_CMND, 0x11);
@@ -36,5 +36,6 @@ int pic_init(void)
     io_outb(PIC_SLAVE_DATA,  0x01);
     io_outb(PIC_MASTER_DATA, mask_master);
     io_outb(PIC_SLAVE_DATA,  mask_slave);
+    RESTORE_INTERRUPT_STATE;
     return 0;
 }

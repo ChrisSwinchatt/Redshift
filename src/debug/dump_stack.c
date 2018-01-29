@@ -18,42 +18,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kmemory.h>
 #include <redshift/debug/dump_stack.h>
 #include <redshift/kernel.h>
 #include <redshift/kernel/symbols.h>
 
 enum {
-    MAX_FRAMES  = 10U, /* Maximum number of frames to rewind. */
-    SKIP_FRAMES = 0U   /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and
-                        * the calling function while 1 skips walk_stack, 2 additionally skips dump_stack and 3 skips all
-                        * three.
-                        */
+    /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and  the calling
+     * function while 1 skips walk_stack, 2 additionally skips dump_stack and 3 skips all three.
+     */
+    SKIP_FRAMES = 0U,
+    /* Maximum number of frames to rewind. */
+    MAX_FRAMES  = SKIP_FRAMES + 10U
 };
 
-static unsigned __noinline walk_stack(unsigned* array)
-{
-    uint32_t* ebp = (uint32_t*)(&array - 2);
-    unsigned i = 0;
-    for (; i < MAX_FRAMES; ++i) {
-        uint32_t eip = ebp[1];
-        if (eip == 0) {
-            break;
-        }
-        array[i] = eip;
-        ebp = (uint32_t*)ebp[0];
-    }
-    return i;
-}
+extern unsigned walk_stack(unsigned* addresses, unsigned max);
 
 void dump_stack(void)
 {
-    static unsigned array[MAX_FRAMES];
-    unsigned j = walk_stack(array);
+    SAVE_INTERRUPT_STATE;
+    static unsigned addresses[MAX_FRAMES];
+    kmemory_zero(addresses, MAX_FRAMES*sizeof(addresses[0]));
+    unsigned j = walk_stack(addresses, MAX_FRAMES);
     for (unsigned i = SKIP_FRAMES; i < j; ++i) {
-        const char* symbol = get_symbol_name(array[i]);
+        const char* symbol = get_symbol_name(addresses[i]);
         if (symbol == NULL) {
-            symbol = "<unresolved symbol>";
+            symbol = "??";
         }
-        printk("%d. At 0x%08X in %s\n", i + 1 - SKIP_FRAMES, array[i], symbol);
+        printk("%d. At 0x%08X in %s\n", i + 1 - SKIP_FRAMES, addresses[i], symbol);
     }
+    RESTORE_INTERRUPT_STATE;
 }

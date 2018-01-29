@@ -33,20 +33,32 @@
 /** Current file and line number as a colon-delimited string. */
 #define __FILE_LINE__               __FILE__ ":" __LINE_NO__
 
+/** Concatenate two tokens. */
+#define CONCAT(A, B)                A ## B
+
+/** Define a compile-time integer constant. */
+#define INTEGER_CONSTANT(ID, VALUE) enum { ID = VALUE }
+
+/** Generate a unique identifier (one per line). */
+#define UNIQUE_ID(ID)               ID ## __FILE__ ## __LINE_NO__
+
+/** Return the biggest value out of A and B. */
+#define MAX(A, B)                   ((A) > (B) ? (A) : (B))
+
+/** Return the smallest value out of A and B. */
+#define MIN(A, B)                   ((A) < (B) ? (A) : (B))
+
 /** Suppress unused parameter/variable warning. */
 #define UNUSED(X)                   ((void)(X))
+
+/** Explicitly do nothing. */
+#define DO_NOTHING                  ;
 
 /** Hint to the compiler that X will usually evaluate true. */
 #define likely(X)                   __builtin_expect((X), 1)
 
 /** Hint to the compiler that X will usually evaluate false. */
 #define unlikely(X)                 __builtin_expect((X), 0)
-
-/** Find the larger of the values A and B. */
-#define MIN(A, B)                   ((A) < (B) ? (A) : (B))
-
-/** Find the smaller of the values A and B. */
-#define MAX(A, B)                   ((A) < (B) ? (B) : (A))
 
 /** Mark a structure as having packed storage. */
 #ifndef __packed
@@ -91,31 +103,28 @@
 /** Fall through (e.g. in case labels). */
 #define FALL_THROUGH                __attribute__((fallthrough))
 
-/** Explicitly do nothing. */
-#define DO_NOTHING                  do {} while (0)
-
 /** Find the number of elements in 'array' if known at compile-time. */
-#define ARRAY_SIZE(array)           (sizeof(array)/sizeof(*(array)))
+#define ARRAY_SIZE(ARRAY)           (sizeof(ARRAY)/sizeof(*(ARRAY)))
 
 /** Check if a flag is present in a bitflags variable. */
-#define TEST_FLAG(var, flag)        ((var & flag) == flag)
+#define TEST_FLAG(VAR, FLAG)        ((VAR & FLAG) == FLAG)
 
 /** Set a flag. */
-#define SET_FLAG(var, flag)         ((var) |= (flag))
+#define SET_FLAG(VAR, FLAG)         ((VAR) |= (FLAG))
 
 /** Clear a flag. */
-#define CLEAR_FLAG(var, flag)       ((var) &= ~(flag))
+#define CLEAR_FLAG(VAR, FLAG)       ((VAR) &= ~(FLAG))
 
 /** Test the bit at 'pos' in 'var' */
-#define TEST_BIT(var, pos)          ((var) & (1 << (pos)))
+#define TEST_BIT(VAR, POS)          ((VAR) & (1 << (POS)))
 
-/** Flip the bit at 'pos' in 'var' */
-#define FLIP_BIT(var, pos)          ((var) ^=  (1 << (pos)))
+/** Flip the bit at 'pos' in 'VAR' */
+#define FLIP_BIT(VAR, POS)          ((VAR) ^=  (1 << (POS)))
 
-/** Set the bit at 'pos' in 'var' */
-#define SET_BIT(var, pos)           ((var) |=  (1 << (pos)))
+/** Set the bit at 'pos' in 'VAR' */
+#define SET_BIT(VAR, POS)           ((VAR) |=  (1 << (POS)))
 
-/** Clear the bit at 'pos' in 'var' */
-#define CLEAR_BIT(var, pos)         ((var) &= ~(1 << (pos)))
+/** Clear the bit at 'pos' in 'VAR' */
+#define CLEAR_BIT(VAR, POS)         ((VAR) &= ~(1 << (POS)))
 
 #endif /* ! REDSHIFT_LIBK_KMACRO_H */

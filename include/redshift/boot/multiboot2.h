@@ -179,4 +179,4 @@ struct multiboot2_tag_apm {
 };
 #endif /* ! __ASM_SOURCE__ */
 
-#endif /* ! REDSHIFT_BOOT_MULTIBOOT22_H */
+#endif /* ! REDSHIFT_BOOT_MULTIBOOT2_H */

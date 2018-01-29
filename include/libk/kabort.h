@@ -24,25 +24,21 @@
 #include <libk/kextern.h>
 #include <libk/ktypes.h>
 
-#define KABORT_BUFFER_SIZE 1024
-
 /**
  * Print an error message and abort.
  */
-#define KABORT(MSG, ...)                                    \
-    do {                                                    \
-        char __kabort_buffer__[KABORT_BUFFER_SIZE];         \
-        const ssize_t __kabort_count__ = kstring_format(    \
-            __kabort_buffer__,                              \
-            KABORT_BUFFER_SIZE - 1,                         \
-            "At " __FILE_LINE__ " in %s: " #MSG,            \
-            __func__,                                       \
-            __VA_ARGS__                                     \
-        );                                                  \
-        __kabort_buffer__[__kabort_count__] = 0;            \
-        kextern_print_string(__kabort_buffer__);            \
-        kextern_abort();                                    \
+#define KABORT(MSG, ...)                                                                      \
+    do {                                                                                      \
+        kextern_abort("ABORT: At " __FILE_LINE__ " in %s: " MSG "\n", __func__, __VA_ARGS__); \
     } while (0)
+
+
+/**
+ * Abort with an message. XXX This is too similar to panic and should be removed.
+ * \param fmt Format message.
+ * \param ... Format args.
+ */
+void kabort_with_message(const char* fmt, ...);
 
 /**
  * Report error caused by code that should be unreachable e.g. switch-case statements.

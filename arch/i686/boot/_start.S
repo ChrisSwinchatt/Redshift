@@ -30,17 +30,17 @@ _start:
         /* Set up the stack.
          */
         cli
-        mov     esp,                              __stack_top__
+        mov     esp,                              offset __stack_top__
         xor     ebp,                              ebp
         /* Save bootloader magic number and tags pointer.
          */
-        mov     [__multiboot_bootloader_magic__], eax
-        mov     [__multiboot_bootloader_tags__],  ebx
-        /* Call global constructors.
+        mov     [__multiboot2_bootloader_magic__], eax
+        mov     [__multiboot2_bootloader_tags__],  ebx
+        /* Start boot.
          */
-        call    _init
         call    boot
         jmp     wait_for_interrupt
+
 .global _exit
 .type   _exit, @function
 _exit:
@@ -49,14 +49,14 @@ _exit:
         call    _fini
         jmp     hang
 
-/* Save multiboot magic number and tags.
+/* Save multiboot2 magic number and tags.
  */
 .section .data
-.global __multiboot_bootloader_magic__
-__multiboot_bootloader_magic__: .long 0
+.global __multiboot2_bootloader_magic__
+__multiboot2_bootloader_magic__: .long 0
 
-.global __multiboot_bootloader_tags__
-__multiboot_bootloader_tags__:  .long 0
+.global __multiboot2_bootloader_tags__
+__multiboot2_bootloader_tags__:  .long 0
 
 /* 32 kiB stack aligned to 16-bytes per ABI.
  */

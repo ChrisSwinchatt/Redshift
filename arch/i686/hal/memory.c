@@ -38,6 +38,7 @@ static struct memory {
 
 void memory_init(struct multiboot2_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
          tag->type != MULTIBOOT2_TAG_TYPE_END;
@@ -59,16 +60,18 @@ void memory_init(struct multiboot2_tag* mb_tags)
                 } else {
                     prefix = 'k';
                 }
-                printk(PRINTK_DEBUG "System has %lu %ciB RAM\n", mem, prefix);
+                printk(PRINTK_DEBUG "Installed memory: %lu %ciB\n", mem, prefix);
                 break;
             default:
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 void memory_map_init(struct multiboot2_tag* mb_tags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(mb_tags != NULL);
     struct multiboot2_mmap_entry* mmap = NULL;
     struct memory_map* memmap = NULL;
@@ -112,11 +115,13 @@ void memory_map_init(struct multiboot2_tag* mb_tags)
                           case MEMORY_TYPE_RECLAIMABLE: type_str = "reclaimable"; break;
                           default:                      type_str = "unavailable"; break;
                         }
-                        printk(PRINTK_DEBUG "%9Lu kiB at 0x%016LX - 0x%016LX: %s\n",
-                               kib,
-                               memmap->start,
-                               memmap->end,
-                               type_str);
+                        printk(
+                            PRINTK_DEBUG "Memory map: %6LuK from 0x%016LX to 0x%016LX (%s)\n",
+                            kib,
+                            memmap->start,
+                            memmap->end,
+                            type_str
+                        );
                     }
                 }
                 break;
@@ -124,6 +129,7 @@ void memory_map_init(struct multiboot2_tag* mb_tags)
                 break;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }
 
 const struct memory_map* memory_map_head(void)

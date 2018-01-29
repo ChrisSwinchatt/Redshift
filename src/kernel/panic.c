@@ -35,6 +35,7 @@ static bool in_panic = false;
 
 static void vpanic_common_start(const char* fmt, va_list ap)
 {
+    disable_interrupts();
     if (in_panic) {
         hang();
     }
@@ -50,23 +51,24 @@ static void vpanic_common_start(const char* fmt, va_list ap)
     vprintk(buffer, ap);
 }
 
-static void vpanic_common_end(void)
+static void __noreturn vpanic_common_end(void)
 {
     printk(PRINTK_ERROR "\nStack trace:\n");
     dump_stack();
     printk(PRINTK_ERROR "\n\aSystem halted.");
+    hang();
 }
 
-static void vpanic(const char* fmt, va_list ap)
+void __noreturn vpanic(const char* fmt, va_list args)
 {
-    vpanic_common_start(fmt, ap);
+    vpanic_common_start(fmt, args);
     vpanic_common_end();
 }
 
-static void vpanic_with_state(const struct cpu_state* state, const char* fmt, va_list ap)
+void __noreturn vpanic_with_state(const struct cpu_state* state, const char* fmt, va_list args)
 {
-    vpanic_common_start(fmt, ap);
-    printk(PRINTK_ERROR "\n\nCPU state:\n");
+    vpanic_common_start(fmt, args);
+    printk(PRINTK_ERROR "\nCPU state:\n");
     dump_registers(state);
     vpanic_common_end();
 }
@@ -77,7 +79,7 @@ void __noreturn panic(const char* fmt, ...)
     va_start(ap, fmt);
     vpanic(fmt, ap);
     va_end(ap);
-    hang();
+    UNREACHABLE("panic", NULL);
 }
 
 void __noreturn panic_with_state(const struct cpu_state* state, const char* fmt, ...)
@@ -86,5 +88,5 @@ void __noreturn panic_with_state(const struct cpu_state* state, const char* fmt,
     va_start(ap, fmt);
     vpanic_with_state(state, fmt, ap);
     va_end(ap);
-    hang();
+    UNREACHABLE("panic", NULL);
 }

@@ -31,6 +31,5 @@ void __stack_chk_guard_setup(void)
 
 void __noreturn __stack_chk_fail(void)
 {
-    kextern_print_string("*** Stack smashing attempt detected ***");
-    kextern_abort();
+    kextern_abort("*** Stack smashing attempt detected ***");
 }

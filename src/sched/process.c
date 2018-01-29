@@ -45,7 +45,7 @@ struct process {
  */
 static struct process_queue {
     struct process* last;
-} processes[MAX_PROCESS_PRIORITY + 1];
+} processes[PROCESS_PRIORITY_MAX + 1];
 
 /** The currently executing process. */
 static struct process* current_process;
@@ -55,15 +55,15 @@ static uint32_t num_processes;
 int process_spawn(
     uintptr_t              entry_point,
     struct page_directory* page_dir,
-    uint8_t                priority,
+    process_priority_t     priority,
     uintptr_t              stack_addr,
     size_t                 stack_size,
     process_flags_t        flags)
 {
+    SAVE_INTERRUPT_STATE;
     DEBUG_ASSERT(entry_point > 0);
     DEBUG_ASSERT(stack_size > 0);
-    disable_interrupts();
-    if (priority > MAX_PROCESS_PRIORITY) {
+    if (priority > PROCESS_PRIORITY_MAX) {
         printk(PRINTK_ERROR "Invalid process priority: %u\n", priority);
         return -1;
     }
@@ -126,7 +126,7 @@ int process_spawn(
         queue->last       = process;
     }
     printk(PRINTK_DEBUG "Spawned process: <id=%d,priority=%d,entry_point=0x%08lX>\n", process->id, priority, entry_point);
-    enable_interrupts();
+    RESTORE_INTERRUPT_STATE;
     return process->id;
 }
 
@@ -141,7 +141,7 @@ static void __noreturn switch_to(struct process* process)
 
 void __non_reentrant process_switch(void* regs)
 {
-    disable_interrupts();
+    SAVE_INTERRUPT_STATE;
     /* Update the register state of the process we just switched from.
      */
     if (regs != NULL && current_process != NULL) {
@@ -149,7 +149,7 @@ void __non_reentrant process_switch(void* regs)
     }
     /* Select a process queue, starting at the highest.
      */
-    for (int8_t priority = MAX_PROCESS_PRIORITY; priority >= 0; --priority) {
+    for (int priority = (int)PROCESS_PRIORITY_MAX; priority >= 0; --priority) {
         struct process_queue* queue = &(processes[priority]);
         struct process* process = queue->last;
         if (process == NULL) {
@@ -170,7 +170,7 @@ void __non_reentrant process_switch(void* regs)
             }
         } while (process != queue->last);
     }
-    enable_interrupts();
+    RESTORE_INTERRUPT_STATE;
 }
 
 const struct process* __non_reentrant get_current_process(void)

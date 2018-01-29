@@ -28,16 +28,32 @@ struct cpu_state;
 
 /**
  * Print an error message and then stop execution.
- * \param fmt A formatted error message
- * \param ... Format arguments
+ * \param fmt A formatted error message.
+ * \param ... Format arguments.
  */
 void __noreturn panic(const char* fmt, ...);
 
 /**
+ * Print an error message and then stop execution.
+ * \param fmt A formatted error message.
+ * \param args Format arguments.
+ */
+void __noreturn vpanic(const char* fmt, va_list args);
+
+/**
  * Print an error message and CPU state, then cease execution.
+ * \param state The CPU state.
  * \param fmt A formatted error message.
  * \param ... Format arguments.
  */
 void __noreturn panic_with_state(const struct cpu_state* state, const char* fmt, ...);
+
+/**
+ * Print an error message and CPU state, then cease execution.
+ * \param state The CPU state.
+ * \param fmt A formatted error message.
+ * \param ... Format arguments.
+ */
+void __noreturn vpanic_with_state(const struct cpu_state* state, const char* fmt, va_list args);
 
 #endif /* ! REDSHIFT_KERNEL_PANIC_H */

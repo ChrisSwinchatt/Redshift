@@ -36,15 +36,19 @@ typedef enum {
 
 struct process;
 
-enum {
-    MAX_PROCESS_PRIORITY = 15
-};
+typedef enum {
+    PROCESS_PRIORITY_MIN  =  0,
+    PROCESS_PRIORITY_LOW  =  3,
+    PROCESS_PRIORITY_AVG  =  7,
+    PROCESS_PRIORITY_HIGH = 11,
+    PROCESS_PRIORITY_MAX  = 15
+} process_priority_t;
 
 /**
  * Spawns a new process.
  * \param entry_point The entry point of the process.
  * \param page_dir The page directory.
- * \param priority The process priority (0..MAX_PROCESS_PRIORITY).
+ * \param priority The process priority (0..PROCESS_PRIORITY_MAX).
  * \param stack_addr The address of the *bottom* of the process' stack. If this is zero, a new stack will be created.
  * \param stack_size The size of the process' stack.
  * \return The process ID is returned.
@@ -52,7 +56,7 @@ enum {
  int process_spawn(
      uintptr_t              entry_point,
      struct page_directory* page_dir,
-     uint8_t                priority,
+     process_priority_t     priority,
      uintptr_t              stack_addr,
      size_t                 stack_size,
      process_flags_t        flags

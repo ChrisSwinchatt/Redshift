@@ -20,6 +20,7 @@
 #ifndef REDSHIFT_MEM_STATIC_H
 #define REDSHIFT_MEM_STATIC_H 1
 
+#include <redshift/mem/common.h>
 #include <redshift/kernel.h>
 
 /**
@@ -30,11 +31,11 @@ void static_init(void);
 /**
  * Allocate static memory.
  * \param size Amount of memory to allocate.
- * \param align Whether to page-align the address. Addresses are always aligned according to the size of the object.
+ * \param flags Allocation flags.
  * \param phys Optional. Stores the physical address of the object.
  * \return The address of the memory block is returned.
  */
-uintptr_t static_alloc_base(size_t size, bool align, uintptr_t* phys);
+uintptr_t static_alloc_base(size_t size, alloc_flags_t flags, uintptr_t* phys);
 
 /**
  * Allocate static memory.

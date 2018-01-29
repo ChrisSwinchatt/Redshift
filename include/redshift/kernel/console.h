@@ -93,14 +93,14 @@ void console_write_char(int c);
  * \param string The string to write.
  * \return The number of characters written is returned.
  */
-long console_write_string(const char* string);
+ssize_t console_write_string(const char* string);
 
 /**
  * Writes a line to the console.
  * \param line The line to write.
  * \return The number of characters written is returned.
  */
-long console_write_line(const char* line);
+ssize_t console_write_line(const char* line);
 
 /**
  * Scrolls the screen up.

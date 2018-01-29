@@ -23,7 +23,7 @@
 
 static void dump_cr0(uint32_t cr0)
 {
-    printk(PRINTK_INFO "CR0:    [ ");
+    printk(PRINTK_INFO "CR0:    %08lX [ ", cr0);
     if (TEST_BIT(cr0, 0)) {
         printk(PRINTK_INFO "PE ");
     }
@@ -57,12 +57,12 @@ static void dump_cr0(uint32_t cr0)
     if (TEST_BIT(cr0, 31)) {
         printk(PRINTK_INFO "PG ");
     }
-    printk("]\n");
+    printk("] %b\n", cr0);
 }
 
 static void dump_eflags(uint32_t eflags)
 {
-    printk(PRINTK_INFO "EFLAGS: [ ");
+    printk(PRINTK_INFO "EFLAGS: %08lX [ ", eflags);
     if (TEST_BIT(eflags, 0)) {
         printk(PRINTK_INFO "CF ");
     }
@@ -111,29 +111,38 @@ static void dump_eflags(uint32_t eflags)
     if (TEST_BIT(eflags, 21)) {
         printk(PRINTK_INFO "ID ");
     }
-    printk("] PL=%0lu\n", (TEST_BIT(eflags, 12) << 1) | TEST_BIT(eflags, 13));
+    printk("] PL=%0lu %b\n", (TEST_BIT(eflags, 12) << 1) | TEST_BIT(eflags, 13), eflags);
 }
 
 void dump_registers(const struct cpu_state* state)
 {
+    SAVE_INTERRUPT_STATE;
     printk(
         "EAX: %08lX EBX: %08lX ECX: %08lX EDX: %08lX\n"
         "ESI: %08lX EDI: %08lX EBP: %08lX ESP: %08lX\n"
-        "CS:  %04lX     EIP: %08lX\n"
-        "DS:  %04lX     CR0: %08lX %b\n"
-        "ES:  %04lX     CR2: %08lX\n"
-        "FS:  %04lX     CR3: %08lX\n"
-        "GS:  %04lX     CR4: %08lX\n"
-        "SS:  %04lX  EFLAGS: %08lX %b\n",
-        state->eax,          state->ebx, state->ecx, state->edx,
-        state->esi,          state->edi, state->ebp, state->esp,
-        state->cs & 0xFFFF,  state->eip,
-        state->ds & 0xFFFF,  state->cr0, state->cr0,
-        state->es & 0xFFFF,  state->cr2,
-        state->fs & 0xFFFF,  state->cr3,
-        state->gs & 0xFFFF,  state->cr4,
-        state->ss/* & 0xFFFF*/,  state->eflags, state->eflags
+        "CS:  %04lX     DS:  %04lX     SS:  %04lX\n"
+        "ES:  %04lX     FS:  %04lX     GS:  %04lX\n"
+        "EIP: %08lX CR2: %08lX CR3: %08lX CR4: %08lX\n",
+        state->eax,
+        state->ebx,
+        state->ecx,
+        state->edx,
+        state->esi,
+        state->edi,
+        state->ebp,
+        state->esp,
+        state->cs & 0xFFFF,
+        state->ds & 0xFFFF,
+        state->ss & 0xFFFF,
+        state->es & 0xFFFF,
+        state->fs & 0xFFFF,
+        state->gs & 0xFFFF,
+        state->eip,
+        state->cr2,
+        state->cr3,
+        state->cr4
     );
     dump_cr0(state->cr0);
     dump_eflags(state->eflags);
+    RESTORE_INTERRUPT_STATE;
 }

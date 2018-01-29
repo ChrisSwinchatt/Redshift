@@ -32,10 +32,9 @@ void msleep(uint64_t msec)
 
 void usleep(uint64_t usec)
 {
-    uint64_t ticks;
-    //int int_flag = get_interrupt_flag();
-    for (ticks = usec * (uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
-        enable_interrupts();
+    SAVE_INTERRUPT_STATE;
+    uint64_t ticks = 0;
+    for (ticks = usec*(uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
         wait_for_interrupt();
         disable_interrupts();
         if (ticks > 0ULL && ticks < 1000000ULL) {
@@ -44,4 +43,5 @@ void usleep(uint64_t usec)
             ticks = 1000000ULL;
         }
     }
+    RESTORE_INTERRUPT_STATE;
 }

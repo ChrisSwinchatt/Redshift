@@ -24,9 +24,12 @@
 #include <redshift/kernel/kmalloc.h>
 #include <redshift/mem/static.h>
 
-void __noreturn kextern_abort(void)
+void __noreturn kextern_abort(const char* fmt, ...)
 {
-    panic("abort called");
+    va_list ap;
+    va_start(ap, fmt);
+    vpanic(fmt, ap);
+    va_end(ap);
 }
 
 void kextern_print_string(const char* s)

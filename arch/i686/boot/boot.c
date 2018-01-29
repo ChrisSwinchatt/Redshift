@@ -42,8 +42,8 @@
 
 static struct multiboot2_tag* mb_tags;
 
-extern uint32_t __multiboot_bootloader_magic__; /* boot/_start.asm */
-extern uint32_t __multiboot_bootloader_tags__;  /* boot/_start.asm */
+extern uint32_t __multiboot2_bootloader_magic__; /* boot/_start.asm */
+extern uint32_t __multiboot2_bootloader_tags__;  /* boot/_start.asm */
 
 static void __init(BOOT_SEQUNECE_INIT_CONSOLE) init_console(void)
 {
@@ -92,15 +92,15 @@ static void __init(BOOT_SEQUENCE_CHECK_BOOT_ENV) check_boot_env(void)
 #undef CHECK_SIZE
     /* Check bootloader info.
      */
-    if (__multiboot_bootloader_magic__ != MULTIBOOT2_BOOTLOADER_MAGIC) {
+    if (__multiboot2_bootloader_magic__ != MULTIBOOT2_BOOTLOADER_MAGIC) {
         panic("unsupported bootloader: bad magic number (expected 0x%08lX, got 0x%08lX)",
               (uint32_t)MULTIBOOT2_BOOTLOADER_MAGIC,
-              __multiboot_bootloader_magic__);
+              __multiboot2_bootloader_magic__);
     }
-    if (__multiboot_bootloader_tags__ == 0) {
+    if (__multiboot2_bootloader_tags__ == 0) {
         panic("bootloader has not passed system info");
     }
-    mb_tags = (struct multiboot2_tag*)__multiboot_bootloader_tags__;
+    mb_tags = (struct multiboot2_tag*)__multiboot2_bootloader_tags__;
 }
 
 #undef TYPE_LIST
@@ -109,16 +109,16 @@ static void __init(BOOT_SEQUENCE_INIT_INTERRUPT_SYSTEM) init_interrupt_system(vo
 {
     printk(PRINTK_INFO "Initialising interrupt system\n");
     tss_init();
+    printk(PRINTK_DEBUG "Loading GDT\n");
     gdt_init();
-    printk(PRINTK_DEBUG "Loaded GDT\n");
+    printk(PRINTK_DEBUG "Loading IDT\n");
     idt_init();
-    printk(PRINTK_DEBUG "Loaded IDT\n");
+    printk(PRINTK_DEBUG "Loading TSS\n");
     tss_load();
-    printk(PRINTK_DEBUG "Loaded TSS\n");
+    printk(PRINTK_DEBUG "Initialising PIC\n");
     pic_init();
-    printk(PRINTK_DEBUG "Initialised PIC\n");
+    printk(PRINTK_DEBUG "Initialising PIT\n");
     pit_init(TICK_RATE);
-    printk(PRINTK_DEBUG "Initialised PIT\n");
 }
 
 static void __init(BOOT_SEQUENCE_INIT_BOOT_MODULES_1) init_boot_modules_1(void)
@@ -131,7 +131,6 @@ static void __init(BOOT_SEQUENCE_INIT_HAL) init_hal(void)
 {
     printk(PRINTK_INFO "Initialising hardware abstraction layer\n");
     cpu_init();
-    printk(PRINTK_DEBUG "Initialised CPU\n");
     memory_init(mb_tags);
 }
 
@@ -139,14 +138,13 @@ static void __init(BOOT_SEQUENCE_INIT_MEMORY) init_memory(void)
 {
 
     printk(PRINTK_INFO "Initialising memory manager\n");
+    printk(PRINTK_DEBUG "Initialising static allocator\n");
     static_init();
-    printk(PRINTK_DEBUG "Initialised static allocator\n");
+    printk(PRINTK_DEBUG "Initialising page allocator\n");
     paging_init(memory_size_total());
-    printk(PRINTK_DEBUG "Initialised page allocator\n");
     memory_map_init(mb_tags);
-    printk(PRINTK_DEBUG "Parsed memory map\n");
+    printk(PRINTK_DEBUG "Intialising heap allocator\n");
     heap_init();
-    printk(PRINTK_DEBUG "Intialised heap allocator\n");
 }
 
 static void __init(BOOT_SEQUENCE_INIT_BOOT_MODULES_2) init_boot_modules_2(void)
@@ -165,18 +163,16 @@ static void __init(BOOT_SEQUENCE_LOAD_INITRD) load_initrd(void)
     }
     const struct boot_module* module = boot_modules_head();
     initrd_init((const char*)(module->start), module->end - module->start);
-    printk(PRINTK_DEBUG "Loaded initial ramdisk\n");
 }
 
-static void __init(BOOT_SEQUENCE_LOAD_SYMBOL_TABLE) load_symbol_table(void)
+static void __init(BOOT_SEQUENCE_LOAD_SYMBOL_TABLE) init_symbol_table(void)
 {
     printk(PRINTK_INFO "Loading symbol table\n");
     const struct initrd_file* symtab = initrd_get_file_by_name("boot/redshift.map");
     if (symtab == NULL) {
         panic("initial ramdisk does not contain the symbol table");
     }
-    symbols_load(symtab->start, symtab->size);
-    //panic("test");
+    load_symbol_table(symtab->start, symtab->size);
 }
 
 static void __init(BOOT_SEQUENCE_INIT_DEVICES) init_devices(void)
@@ -189,7 +185,6 @@ static void __init(BOOT_SEQUENCE_START_SCHEDULER) start_scheduler(void)
 {
     printk(PRINTK_INFO "Starting scheduler\n");
     sched_init();
-    printk(PRINTK_DEBUG "Started scheduler\n");
 }
 
 void boot(void)
@@ -205,7 +200,7 @@ void boot(void)
     init_memory();
     init_boot_modules_2();
     load_initrd();
-    load_symbol_table();
+    init_symbol_table();
     init_devices();
     start_scheduler();
     enable_interrupts();

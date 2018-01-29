@@ -41,7 +41,23 @@ wait_for_interrupt:
      */
     sti
     hlt
-    jmp     wait_for_interrupt
+    jmp wait_for_interrupt
+
+.set IF_BIT,    9
+.set IF_MASK,   1 << IF_BIT
+
+.global get_interrupt_state
+.type   get_interrupt_state, @function
+get_interrupt_state:
+    push    ebp
+    mov     ebp,    esp
+    pushf
+    pop     eax
+    mov     ecx,    IF_MASK
+    and     eax,    ecx
+    leave
+    ret
+
 
 .global hang
 .type   hang, @function

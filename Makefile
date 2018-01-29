@@ -25,7 +25,7 @@ INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/libc -I$(PWD)/include/arch/$(
 
 export AFLAGS         :=
 export CC             := $(PREFIX)-gcc
-export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fstack-protector-all -nostdlib  		   \
+export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
                          -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) $(DEBUG)
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
@@ -41,8 +41,6 @@ INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_
 MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
 IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
 DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
-
-src/abi/stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 
 %.o: %.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
@@ -69,7 +67,7 @@ kernel: libk $(KERNEL)
 
 initrd: $(INITRD)
 
-$(IMAGE): $(INITRD)
+$(IMAGE): initrd
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 
@@ -83,7 +81,7 @@ $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
 
-$(INITRD): $(KERNEL)
+$(INITRD): kernel
 	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
 	@rm -f $@
 	@cd $(INITRD_DIR) && tar -cf "$@" * >/dev/null
@@ -100,8 +98,7 @@ run-qemu:
 
 debug-qemu:
 	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb -s "$(DEBUG)" -ex "target remote localhost:1234" -ex "b hang"
-
+	@gdb -s "$(DEBUG)" -q -ex "target remote localhost:1234" -ex "b hang"
 statistics:
 	@tools/kstats
 

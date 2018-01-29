@@ -364,6 +364,7 @@ ssize_t kstring_vformat(char* buffer, size_t size, const char* fmt, va_list args
             }
         }
     }
+    *p = 0;
     return p - buffer;
 }
 
