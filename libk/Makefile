@@ -1,5 +1,5 @@
-SOURCES := $(shell find -name "*.c")
-OBJECTS := $(subst .c,.o,$(SOURCES))
+SOURCES := $(shell find -name "*.cpp")
+OBJECTS := $(subst .cpp,.o,$(SOURCES))
 BINARY  := $(LIB_DIR)/libk.a
 
 kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
@@ -8,7 +8,7 @@ kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
+%.o: %.cpp
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 

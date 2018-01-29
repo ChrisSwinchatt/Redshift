@@ -24,17 +24,18 @@ endif
 INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/libc -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
-export CC             := $(PREFIX)-gcc
-export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
-                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) $(DEBUG)
+export CC             := $(PREFIX)-g++
+export CFLAGS         := -Wall -Wextra -Werror -std=c++17 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
+                         -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES) $(DEBUG)
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
 CRTI                  := $(ARCH_DIR)/abi/crti.o
 CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 CRTN                  := $(ARCH_DIR)/abi/crtn.o
-SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find $(ARCH_DIR) src/ -name "*.c")
-OBJECTS               := $(subst .S,.o,$(subst .c,.o,$(SOURCES)))
+SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S")\
+						 $(shell find $(ARCH_DIR) src/ -name "*.cpp")
+OBJECTS               := $(subst .S,.o,$(subst .cpp,.o,$(SOURCES)))
 LIBRARIES             := -lk -lgcc
 KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
 INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
@@ -46,7 +47,7 @@ DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VE
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
 	@$(CC) $(AFLAGS) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
+%.o: %.cpp
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
