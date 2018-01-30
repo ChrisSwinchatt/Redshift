@@ -17,23 +17,23 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_VENDOR_HPP
-#define REDSHIFT_HAL_CPU_VENDOR_HPP
+#ifndef REDSHIFT_HAL_PIT_H
+#define REDSHIFT_HAL_PIT_H
 
+#include <redshift/hal/cpu/state.hpp>
 #include <redshift/kernel.hpp>
 
-static constexpr const char* VENDOR_AMD_OLD    = "AMDisbetter!";
-static constexpr const char* VENDOR_AMD_NEW    = "AuthenticAMD";
-static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
-static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
-static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
-static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
-static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
-static constexpr const char* VENDOR_NSC        = "Geode by NSC";
-static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
-static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
-static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
-static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
-static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
+namespace redshift { namespace hal {
+    /// Programmable interval timer.
+    class pit {
+    public:
+        /// Set the PIT frequency.
+        /// \param freq The frequency in Hertz.
+        /// \return 0 on success, otherwise -1.
+        static int set_frequency(uint32_t freq);
+    private:
+        static void interrupt_handler(const struct cpu_state* regs);
+    };
+}} // redshift::hal
 
-#endif // ! REDSHIFT_HAL_CPU_VENDOR_HPP
+#endif // ! _PIT_H

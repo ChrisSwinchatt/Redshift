@@ -17,23 +17,34 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_VENDOR_HPP
-#define REDSHIFT_HAL_CPU_VENDOR_HPP
+#include <redshift/boot/pit.hpp>
+#include <redshift/kernel/asm.hpp>
+#include <redshift/kernel/interrupt.hpp>
+#include <redshift/kernel/timer.hpp>
+#include <redshift/sched/process.hpp>
 
-#include <redshift/kernel.hpp>
+namespace redshift { namespace hal {
+    int pit::set_frequency(uint32_t freq)
+    {
+        interrupt_state_guard guard(interrupt_state::disable);
+        static int handler_registered = 0;
+        if (!(handler_registered)) {
+            set_interrupt_handler(IRQ0, &pit_handler);
+            handler_registered = 1;
+        }
+        if (!(freq)) {
+            return -1;
+        }
+        uint32_t divisor = 1193180UL / freq;
+        io::outb(io::port::PIT_CMND, 0x36);
+        io::outb(io::port::PIT_DATA, static_cast<uint8_t>((divisor >> 0) & 0xFF));
+        io::outb(io::port::PIT_DATA, static_cast<uint8_t>((divisor >> 8) & 0xFF));
+        return 0;
+    }
 
-static constexpr const char* VENDOR_AMD_OLD    = "AMDisbetter!";
-static constexpr const char* VENDOR_AMD_NEW    = "AuthenticAMD";
-static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
-static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
-static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
-static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
-static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
-static constexpr const char* VENDOR_NSC        = "Geode by NSC";
-static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
-static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
-static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
-static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
-static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
-
-#endif // ! REDSHIFT_HAL_CPU_VENDOR_HPP
+    void pit::interrupt_handler(const struct cpu_state* regs)
+    {
+        timer::process_queue(1000 / TICK_RATE);
+        UNUSED(regs);
+    }
+}} // redshift::hal

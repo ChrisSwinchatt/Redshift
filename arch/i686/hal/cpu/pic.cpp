@@ -17,23 +17,24 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_VENDOR_HPP
-#define REDSHIFT_HAL_CPU_VENDOR_HPP
-
 #include <redshift/kernel.hpp>
+#include <redshift/hal/pic.hpp>
 
-static constexpr const char* VENDOR_AMD_OLD    = "AMDisbetter!";
-static constexpr const char* VENDOR_AMD_NEW    = "AuthenticAMD";
-static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
-static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
-static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
-static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
-static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
-static constexpr const char* VENDOR_NSC        = "Geode by NSC";
-static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
-static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
-static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
-static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
-static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
-
-#endif // ! REDSHIFT_HAL_CPU_VENDOR_HPP
+namespace redshift { namespace hal { namespace cpu_detail {
+    void pic::init()
+    {
+        interrupt_state_guard guard(interrupt_state::disable);
+        uint8_t mask_master = io_inb(PIC_MASTER_DATA);
+        uint8_t mask_slave  = io_inb(PIC_SLAVE_DATA);
+        io_outb(PIC_MASTER_CMND, 0x11);
+        io_outb(PIC_SLAVE_CMND,  0x11);
+        io_outb(PIC_MASTER_DATA, 0x20);
+        io_outb(PIC_SLAVE_DATA,  0x28);
+        io_outb(PIC_MASTER_DATA, 0x04);
+        io_outb(PIC_SLAVE_DATA,  0x02);
+        io_outb(PIC_MASTER_DATA, 0x01);
+        io_outb(PIC_SLAVE_DATA,  0x01);
+        io_outb(PIC_MASTER_DATA, mask_master);
+        io_outb(PIC_SLAVE_DATA,  mask_slave);
+    }
+}}} // redshift::hal::cpu_detail

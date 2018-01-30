@@ -17,23 +17,49 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_VENDOR_HPP
-#define REDSHIFT_HAL_CPU_VENDOR_HPP
+#ifndef REDSHIFT_HAL_CPU_GDT_HPP
+#define REDSHIFT_HAL_CPU_GDT_HPP
 
 #include <redshift/kernel.hpp>
 
-static constexpr const char* VENDOR_AMD_OLD    = "AMDisbetter!";
-static constexpr const char* VENDOR_AMD_NEW    = "AuthenticAMD";
-static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
-static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
-static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
-static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
-static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
-static constexpr const char* VENDOR_NSC        = "Geode by NSC";
-static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
-static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
-static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
-static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
-static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
+namespace redshift { namespace hal { namespace cpu_detail {
+    /// GDT.
+    class gdt {
+    public:
+        /// Maximum number of entries.
+        static constexpr size_t MAX_ENTRIES = 8;
 
-#endif // ! REDSHIFT_HAL_CPU_VENDOR_HPP
+        static void init();
+
+        /// Set GDT gate.
+        /// \param i Index.
+        /// \param base Start address.
+        /// \param limit End address.
+        /// \param access Access flags.
+        /// \param gran Granularity.
+        static void set_gate(uint32_t i, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);
+
+        /// Load GDT.
+        static void load();
+    private:
+        struct gdt_entry {
+            uint16_t limit_low;
+            uint16_t base_low;
+            uint8_t  base_mid;
+            uint8_t  access;
+            uint8_t  granularity;
+            uint8_t  base_high;
+        } __packed;
+
+        struct gdt_ptr {
+            uint16_t limit;
+            uint32_t base;
+        } __packed;
+
+        static gdt_entry m_entries[MAX_ENTRIES];
+        static gdt_ptr   m_pointer;
+    };
+}}} // redshift::hal::cpu_detail
+
+
+#endif // ! REDSHIFT_HAL_CPU_GDT_HPP

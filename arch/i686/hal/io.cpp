@@ -17,23 +17,30 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_VENDOR_HPP
-#define REDSHIFT_HAL_CPU_VENDOR_HPP
+#include <redshift/hal/io.hpp>
 
-#include <redshift/kernel.hpp>
+namespace redshift { namespace hal { namespace io {
+    void outb(uint16_t port, uint8_t value)
+    {
+        asm("outb %1, %0"::"dN"(port), "a"(value));
+    }
 
-static constexpr const char* VENDOR_AMD_OLD    = "AMDisbetter!";
-static constexpr const char* VENDOR_AMD_NEW    = "AuthenticAMD";
-static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
-static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
-static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
-static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
-static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
-static constexpr const char* VENDOR_NSC        = "Geode by NSC";
-static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
-static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
-static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
-static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
-static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
+    void outw(uint16_t port, uint16_t value)
+    {
+        asm("outw %1, %0"::"dN"(port), "a"(value));
+    }
 
-#endif // ! REDSHIFT_HAL_CPU_VENDOR_HPP
+    uint8_t inb(uint16_t port)
+    {
+        uint8_t ret;
+        asm("inb %1, %0":"=a"(ret):"dN"(port));
+        return ret;
+    }
+
+    uint16_t inw(uint16_t port)
+    {
+        uint16_t ret;
+        asm("inw %1, %0":"=a"(ret):"dN"(port));
+        return ret;
+    }
+}}} // redshift::hal::io
