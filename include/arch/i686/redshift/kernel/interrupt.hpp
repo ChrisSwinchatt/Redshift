@@ -1,28 +1,27 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+/// Copyright (c) 2012-2018 Chris Swinchatt.
+///
+/// Permission is hereby granted, free of charge, to any person obtaining a copy
+/// of this software and associated documentation files (the "Software"), to deal
+/// in the Software without restriction, including without limitation the rights
+/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+/// copies of the Software, and to permit persons to whom the Software is
+/// furnished to do so, subject to the following conditions:
+///
+/// The above copyright notice and this permission notice shall be included in
+/// all copies or substantial portions of the Software.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+/// SOFTWARE.
 #ifndef REDSHIFT_KERNEL_INTERRUPT_H
 #define REDSHIFT_KERNEL_INTERRUPT_H
 
-#include <redshift/hal/cpu.h>
-#include <redshift/kernel.h>
+#include <redshift/hal/cpu.hpp>
+#include <redshift/kernel.hpp>
 
 #define IRQ0  32
 #define IRQ1  33
@@ -81,14 +80,39 @@ struct isr_info {
 
 extern const struct isr_info isr_info[];
 
-/** ISR handler function */
+/// ISR handler function
 typedef void(* isr_handler_t)(const struct cpu_state*);
 
-/**
- * Create an ISR handler
- * \param n ISR number
- * \param fp Function pointer
- */
+/// Create an ISR handler
+/// \param n ISR number
+/// \param fp Function pointer
 void set_interrupt_handler(uint8_t n, isr_handler_t fp);
 
-#endif /* ! REDSHIFT_KERNEL_INTERRUPT_H */
+namespace redshift { namespace kernel {
+    /// Interrupt state.
+    enum class interrupt_state : int {
+        disabled = 0,
+        enabled  = 1
+    };
+
+    /// Interrupt state guard. Sets the interrupt state and resets it when it goes out of scope.
+    class interrupt_state_guard {
+    public:
+        /// Set an interrupt state.
+        explicit interrupt_state_guard(interrupt_state state)
+        : m_prev_state(static_cast<interrupt_state>(get_interrupt_state()))
+        {
+            set_interrupt_state(static_cast<int>(state));
+        }
+
+        /// Reset the previous interrupt state.
+        ~set_interrupt_state()
+        {
+            set_interrupt_state(static_cast<int>(m_prev_state));
+        }
+    private:
+        interrupt_state m_prev_state;
+    };
+}}
+
+#endif // ! REDSHIFT_KERNEL_INTERRUPT_H
