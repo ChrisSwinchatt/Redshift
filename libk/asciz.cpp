@@ -119,7 +119,7 @@ namespace libk { namespace asciz {
         return p - s;
     }
 
-    char* concatenate(char* dst, const char* src, size_t n)
+    char* concat(char* dst, const char* src, size_t n)
     {
         const size_t offset = length(dst);
         return copy(dst + offset, src, n);

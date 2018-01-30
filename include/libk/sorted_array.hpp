@@ -55,9 +55,9 @@ namespace libk {
 
         /// Flags.
         enum class flags {
-            static_          = 0,      //< Use static allocation (array cannot be resized).
-            dynamic          = 1 << 0, //< Use dynamic allocation (array can be resized).
-            allow_duplicates = 1 << 1  //< Allow duplicate values (default behaviour is to ignore duplicates).
+            static_          = 0,      ///< Use static allocation (array cannot be resized).
+            dynamic          = 1 << 0, ///< Use dynamic allocation (array can be resized).
+            allow_duplicates = 1 << 1  ///< Allow duplicate values (default behaviour is to ignore duplicates).
         };
 
         /// Construct from capacity, sort order and optional flags.

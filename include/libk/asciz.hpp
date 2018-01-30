@@ -90,7 +90,7 @@ namespace libk { namespace asciz {
     /// \param n Maximum number of characters to append.
     /// \return A pointer to the new end of 'dst' is returned.
     /// \note Destination buffer is always zero-terminated.
-    char* concatenate(char* dst, const char* src, size_t n);
+    char* concat(char* dst, const char* src, size_t n);
 
     /// Compare a maximum of 'n' characters from 's1' with 's2'.
     /// \param s1 A string.

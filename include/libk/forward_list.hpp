@@ -20,6 +20,7 @@
 #ifndef REDSHIFT_LIBK_FORWARD_LIST_HPP
 #define REDSHIFT_LIBK_FORWARD_LIST_HPP
 
+#include <libk/iterator.hpp>
 #include <libk/memory.hpp>
 #include <libk/types.hpp>
 
@@ -31,13 +32,12 @@ namespace libk {
         using value_type      = T;
         using size_type       = size_t;
         using reference       = value_type&;
-        using const_reference = const reference;
 
         /// Flags.
         enum class flags {
-            static_   = 0,      //< Statically allocated.
-            dynamic   = 1 << 0, //< Dyamically allocated.
-            duplicate = 1 << 1  //< Duplicate (tail) of another list.
+            static_   = 0,      ///< Statically allocated.
+            dynamic   = 1 << 0, ///< Dyamically allocated.
+            duplicate = 1 << 1  ///< Duplicate (tail) of another list.
         };
 
         /// Construct empty list.
@@ -207,6 +207,16 @@ namespace libk {
         reference head()
         {
             return m_head->data;
+        }
+
+        iterator begin()
+        {
+            return iterator(m_head);
+        }
+
+        iterator end()
+        {
+            return iterator(m_last);
         }
 
         /// Get a list of the tail elements of the list, i.e. everything except the head element.
