@@ -6,3 +6,4 @@ doc/generated
 *.gz
 *.bz2
 *.tar.gz
+.vscode
