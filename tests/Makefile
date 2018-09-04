@@ -1,8 +1,8 @@
-override CC     := g++
-override CFLAGS += -I ../include -Wall -Wextra -std=gnu11 -O0 -g -Wno-format-extra-args
+override CXX     := clang++
+override CXFLAGS += -I ../include -Wall -Wextra -std=gnu11 -O0 -g -Wno-format-extra-args
 
 %.o: %.cpp
-	@$(CC) $(CFLAGS) -c $@ $<
+	@$(CXX) $(CXFLAGS) -c $@ $<
 
 all:
 

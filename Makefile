@@ -45,8 +45,8 @@ endif
 INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
-export CXX           := $(PREFIX)-g++
-export CXFLAGS       := -Wall -Wextra -Werror -std=c++17 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
+export CXX            := clang++
+export CXFLAGS        := -target "$(TARGET)" -Wall -Wextra -Werror -std=c++14 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
                          -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES)
 export LDFLAGS        := -Ttools/$(TARGET).ld -nostdlib -L$(LIB_DIR)
 
