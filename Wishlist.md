@@ -1,7 +1,7 @@
 Things to Do:
  * [ ] Scale heap to available memory
- * [ ] Maybe convert NASM code into GNU AS
- * [ ] Maybe convert C code into C++
+ * [x] Maybe convert NASM code into GNU AS
+ * x ] Maybe convert C code into C++
  * [ ] Maybe migrate to Clang
  * [ ] Sort memory map with merge sort
  * [ ] Stability
@@ -12,7 +12,7 @@ Things to Do:
      * [x] Dump the contents of the registers.
      * [x] Dump the contents of memory as hex values.
      * [ ] Stack trace
-         * [ ] Unwind stack frames (seems to get bad values; see `src/debug/dump_stack.c`).
+         * [x] Unwind stack frames (seems to get bad values; see `src/debug/dump_stack.c`).
          * [x] Symbol lookup
              * [x] Create symbol map (see `tools/gensymtab`).
              * [x] Load symbol map
@@ -21,6 +21,6 @@ Things to Do:
                      * [x] Create initial ramdisk.
                      * [x] Load initial ramdisk
                  * [x] Parse symbol map at `ramdisk:/boot/kernel.map`
-             * [x] Map addresses to symbols.
+             * [ ] Map addresses to symbols.
     * [ ] Write unit tests
-    * [ ] Make functions reentrant
+    * [x] Make functions reentrant

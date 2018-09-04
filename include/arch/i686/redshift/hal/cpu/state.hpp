@@ -17,14 +17,14 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_STATE_H
-#define REDSHIFT_HAL_CPU_STATE_H
+#ifndef REDSHIFT_HAL_CPU_STATE_HPP
+#define REDSHIFT_HAL_CPU_STATE_HPP
 
 #include <libk/memory.hpp>
 #include <libk/asciz.hpp>
 #include <redshift/kernel.hpp>
 
-namespace redshift { namespace hal { namespace cpu_ {
+namespace redshift { namespace hal { namespace cpu_detail {
     /// CPU registers state.
     /// NB: The members here must have the same order, size and alignment as in isr_irq_stub.asm:cpu_state.
     struct state {
@@ -56,7 +56,7 @@ namespace redshift { namespace hal { namespace cpu_ {
 
         /// Get the CPU state.
         /// \param state The CPU state.
-        static inline void __always_inline get(struct cpu_state* regs)
+        static inline void __always_inline get(state* regs)
         {
             libk::memory::fill8(regs, 0xCD, sizeof(*regs));
             asm(
@@ -131,6 +131,6 @@ namespace redshift { namespace hal { namespace cpu_ {
         void dump_cr0();
         void dump_eflags();
     } __packed;
-}}} // redshift::hal::cpu_
+}}} // redshift::hal::cpu_detail
 
-#endif // ! REDSHIFT_HAL_CPU_STATE_H
+#endif // ! REDSHIFT_HAL_CPU_STATE_HPP

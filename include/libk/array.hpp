@@ -20,6 +20,7 @@
 #ifndef REDSHIFT_LIBK_ARRAY_HPP
 #define REDSHIFT_LIBK_ARRAY_HPP
 
+#include <libk/macro.hpp>
 #include <libk/memory.hpp>
 #include <libk/types.hpp>
 
@@ -28,26 +29,46 @@ namespace libk {
     template <typename T, size_t S>
     class array {
     public:
+        using size_type       = size_t;
+        using value_type      = T;
+        using reference       = value_type&;
+        using const_reference = const reference;
+        using pointer         = value_type*;
+        using const_pointer   = const pointer;
+
         /// Default constructor.
         array() = default;
 
+        /// Constant constructor.
+        constexpr array(const_reference buffer[S])
+        : m_buffer(buffer)
+        {
+            // Do nothing.
+        }
+
+        constexpr array(const initializer_list& init)
+        : m_buffer(&init[0])
+        {
+            static_assert(S == init.size(), "Invalid size of initializer_list");
+        }
+
         /// Construct from initial array.
         /// \param buffer The initial array.
-        array(T buffer[S])
+        array(const_reference buffer[S])
         {
             memory::copy(m_buffer, buffer, S);
         }
 
         /// Construct from initial value.
         /// \param value The initial value.
-        explicit array(T value)
+        explicit array(const_reference value)
         {
             memory::fill(m_buffer, value, S);
         }
 
         /// Get the number of elements in the array.
         /// \return The number of elements in the array.
-        constexpr size_t size() const
+        constexpr size_type size() const
         {
             return S;
         }
@@ -56,7 +77,7 @@ namespace libk {
         /// \param index The index.
         /// \return A const reference to the element at a given index.
         /// \note This function does not do bounds checking.
-        const T& operator[](size_t index) const
+        const_reference operator[](size_type index) const
         {
             return m_buffer[index];
         }
@@ -65,7 +86,7 @@ namespace libk {
         /// \param index The index.
         /// \return A reference to the element at a given index.
         /// \note This function does not do bounds checking.
-        T& operator[](size_t index)
+        reference operator[](size_type index)
         {
             return m_buffer[index];
         }

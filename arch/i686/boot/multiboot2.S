@@ -21,7 +21,7 @@
 .intel_syntax noprefix
 
 #define __ASM_SOURCE__
-#include <redshift/boot/multiboot2.h>
+#include <redshift/boot/multiboot2.hpp>
 
 .set MAGIC,     MULTIBOOT2_HEADER_MAGIC
 .set ARCH,      0
@@ -31,27 +31,27 @@
 .section .multiboot2
 .align   8
 multiboot2:
-    .long MAGIC                     /* Magic number.                      */
-    .long ARCH                      /* Architecture.                      */
-    .long LENGTH                    /* Header size.                       */
-    .long CHECKSUM                  /* Header checksum.                   */
-/* Request multiboot2 information.
- */
+    .long MAGIC                     /* Magic number.                       */
+    .long ARCH                      /* Architecture.                       */
+    .long LENGTH                    /* Header size.                        */
+    .long CHECKSUM                  /* Header checksum.                    */
+/* Request multiboot2 information. */
+
 info:
     .short 1, 0
     .long  modalign - info
-    .long  1, 2, 3, 5, 6/*, 7, 8 FIXME */
-    .long  0                        /* Pad to 8 bytes. */
-/* Request module alignment.
- */
+    .long  1, 2, 3, 5, 6//, 7, 8 FIXME
+    .long  0                        /* Pad to 8 bytes.  */
+/* Request module alignment. */
+
 modalign:
     .short 6, 0
     .long  end_tag - modalign
-/* End of tags.
- */
+/* End of tags. */
+
 end_tag:
     .short 0, 0
     .long  end - end_tag
-/* End of header.
- */
+/* End of header. */
+
 end:

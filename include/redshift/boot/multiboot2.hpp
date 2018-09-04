@@ -1,22 +1,22 @@
-/**
- * \file boot/multiboot2.h
- * Multiboot 2 specification header.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+/// Copyright (c) 2012-2018 Chris Swinchatt.
+///
+/// Permission is hereby granted, free of charge, to any person obtaining a copy
+/// of this software and associated documentation files (the "Software"), to deal
+/// in the Software without restriction, including without limitation the rights
+/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+/// copies of the Software, and to permit persons to whom the Software is
+/// furnished to do so, subject to the following conditions:
+///
+/// The above copyright notice and this permission notice shall be included in
+/// all copies or substantial portions of the Software.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+/// SOFTWARE.
 #ifndef REDSHIFT_BOOT_MULTIBOOT2_H
 #define REDSHIFT_BOOT_MULTIBOOT2_H
 
@@ -27,7 +27,7 @@
 #define MULTIBOOT2_TAG_ALIGN        8
 
 #ifndef __ASM_SOURCE__
-# include <redshift/kernel.h>
+# include <redshift/kernel.hpp>
 
 typedef enum {
     MULTIBOOT2_TAG_TYPE_END = 0,
@@ -73,13 +73,13 @@ struct multiboot2_tag_bootdev {
     uint32_t              part;
 };
 
-enum {
+typedef enum {
     MULTIBOOT2_MEMORY_INVALID,
     MULTIBOOT2_MEMORY_AVAILABLE,
     MULTIBOOT2_MEMORY_RESERVED,
     MULTIBOOT2_MEMORY_RECLAIMABLE,
     MULTIBOOT2_MEMORY_NVS
-};
+} multiboot2_memory_type_t;
 
 struct multiboot2_mmap_entry {
     uint64_t addr;
@@ -177,6 +177,6 @@ struct multiboot2_tag_apm {
     uint16_t              cseg_16_len;
     uint16_t              dseg_len;
 };
-#endif /* ! __ASM_SOURCE__ */
+#endif // ! __ASM_SOURCE__
 
-#endif /* ! REDSHIFT_BOOT_MULTIBOOT2_H */
+#endif // ! REDSHIFT_BOOT_MULTIBOOT2_H

@@ -1,11 +1,11 @@
-#ifndef REDSHIFT_TESTS_UNIT_TEST_H
-#define REDSHIFT_TESTS_UNIT_TEST_H
+#ifndef REDSHIFT_TESTS_UNIT_TEST_HPP
+#define REDSHIFT_TESTS_UNIT_TEST_HPP
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #define BEGIN_TEST(NAME)                    \
-    static void test_##NAME(void)           \
+    static void test_##NAME()           \
     {                                       \
         const char* __test_name__ = #NAME;  \
         int         __test_want_fail__ = 0;
@@ -34,7 +34,7 @@
 #define PASS()                                          \
     do {                                                \
         if (__test_want_fail__) {                       \
-            __DO_FAIL("test supposed to fail", NULL);   \
+            __DO_FAIL("test supposed to fail", nullptr);   \
         } else {                                        \
             __DO_PASS();                                \
         }                                               \
@@ -60,7 +60,7 @@
 #define ASSERT(X)                                       \
     do {                                                \
         if (!(X)) {                                     \
-            FAIL(": assert failed: \"" #X "\"", NULL);  \
+            FAIL(": assert failed: \"" #X "\"", nullptr);  \
         }                                               \
     } while (0)
 
@@ -122,16 +122,16 @@
 
 #define SETUP(F)                \
     do {                        \
-        void(* fn)(void) = F;   \
-        if (fn != NULL) {       \
+        void(* fn)() = F;   \
+        if (fn != nullptr) {       \
             fn();               \
         }                       \
     } while (0)
 
 #define CLEANUP(F)                                  \
     do {                                            \
-        void(* fn)(void) = F;                       \
-        if (fn != NULL) {                           \
+        void(* fn)() = F;                       \
+        if (fn != nullptr) {                           \
             fn();                                   \
         }                                           \
         fprintf(                                    \
@@ -146,8 +146,8 @@
 
 #define RUN_TEST(NAME) test_##NAME()
 
-typedef void(* __test_setup_fn_t__)(void);
-typedef void(* __test_cleanup_fn_t__)(void);
+typedef void(* __test_setup_fn_t__)();
+typedef void(* __test_cleanup_fn_t__)();
 
 static int __tests_passed__   = 0;
 static int __tests_failed__   = 0;
@@ -188,4 +188,4 @@ void kfree(void* ptr)
     return free(ptr);
 }
 
-#endif /* ! REDSHIFT_TESTS_UNIT_TEST_H */
+#endif // ! REDSHIFT_TESTS_UNIT_TEST_HPP

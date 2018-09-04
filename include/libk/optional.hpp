@@ -30,12 +30,9 @@ namespace libk {
         using reference       = value_type&;
         using const_reference = const reference;
 
-        /// True if the value is present.
-        bool present;
-
         /// Construct without value.
         optional()
-        : present(false)
+        : m_present(false)
         , m_ref(m_tmp)
         {
             // Do nothing.
@@ -44,10 +41,17 @@ namespace libk {
         /// Construct with value.
         /// \param value A reference to the value.
         explicit optional(reference value)
-        : present(true)
+        : m_present(true)
         , m_ref(value)
         {
             // Do nothing.
+        }
+
+        /// Indicates whether an object is present.
+        /// \return True if the object is present, otherwise false.
+        bool present() const
+        {
+            return m_present;
         }
 
         /// Get a const reference to the object.
@@ -63,7 +67,7 @@ namespace libk {
         /// \warning Abort is called if the object is not present.
         reference get()
         {
-            if (!(present)) {
+            if (!(m_present)) {
                 LIBK_ABORT("can't access value of empty optional<T>", nullptr);
             }
             return m_ref;
@@ -71,6 +75,7 @@ namespace libk {
     private:
         T         m_tmp;
         reference m_ref;
+        bool     m_present;
     };
 }
 

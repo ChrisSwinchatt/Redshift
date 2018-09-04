@@ -29,6 +29,8 @@ namespace redshift { namespace hal { namespace cpu_detail {
         /// Maximum number of entries.
         static constexpr size_t MAX_ENTRIES = 8;
 
+        gdt(const gdt&) = delete;
+
         static void init();
 
         /// Set GDT gate.

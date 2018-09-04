@@ -2,15 +2,15 @@ SOURCES := $(shell find -name "*.cpp")
 OBJECTS := $(subst .cpp,.o,$(SOURCES))
 BINARY  := $(LIB_DIR)/libk.a
 
-kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
+kabi_stack_guard.o: CXFLAGS := $(filter-out -fstack-protector-all,$(CXFLAGS)) -fno-stack-protector
 
 %.o: %.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CXX) $(CXFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CXX) $(CXFLAGS) -c -o $@ $<
 
 all: $(BINARY)
 

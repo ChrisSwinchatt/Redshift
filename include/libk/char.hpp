@@ -20,6 +20,7 @@
 #ifndef REDSHIFT_LIBK_CHAR_HPP
 #define REDSHIFT_LIBK_CHAR_HPP
 
+#include <libk/bits.hpp>
 #include <libk/macro.hpp>
 #include <libk/types.hpp>
 
@@ -43,7 +44,7 @@ namespace libk {
         xdigit = 1 << 11
     };
 
-#include <libk/detail/char_table.hpp>
+# include <libk/detail/char_table.hpp>
 
     /// Character.
     struct char_ {
@@ -142,4 +143,4 @@ namespace libk {
     };
 }
 
-#endif /// ! REDSHIFT_LIBK_KCHAR_H
+#endif /// ! REDSHIFT_LIBK_KCHAR_HPP

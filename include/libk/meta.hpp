@@ -21,6 +21,7 @@
 #define REDSHIFT_LIBK_META_HPP
 
 #include <libk/macro.hpp>
+#include <libk/types.hpp>
 
 namespace libk {
     /// Get the size of an array if known at compile-time.
@@ -30,6 +31,28 @@ namespace libk {
         UNUSED(array);
         return S;
     }
+
+    /// Metaclass for approximating logarithms at compile-time.
+    template <intmax_t Value, intmax_t Base>
+    struct log {
+        static constexpr intmax_t value = 1 + log<Value/Base, Base>;
+    };
+
+    template <intmax_t Base>
+    struct log<0, Base> {
+        static constexpr intmax_t value = 0;
+    };
+
+    template <intmax_t Base>
+    struct log<1, Base> {
+        static constexpr intmax_t value = 1;
+    };
+
+    template <intmax_t Value>
+    using log2 = log<Value, 2>;
+
+    template <intmax_t Value>
+    using log10 = log<Value, 10>;
 }
 
 #endif // ! REDSHIFT_LIBK_META_HPP

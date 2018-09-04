@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <libk/klist.h>
+#include <libk/list.hpp>
 
 #include "test.h"
 
@@ -11,7 +11,7 @@ static uint32_t value2 = 777;
 static uint32_t value3 = 888;
 static uint32_t value4 = 999;
 
-static void cleanup(void)
+static void cleanup()
 {
     klist_shallow_free(list);
 }
@@ -19,7 +19,7 @@ static void cleanup(void)
 BEGIN_TEST(klist_create)
     list = klist_create(malloc, free, 1, &value2);
     ASSERT_EQUAL_ULONG(1UL, klist_size(list));
-    ASSERT(list != NULL);
+    ASSERT(list != nullptr);
 END_TEST
 
 BEGIN_TEST(klist_insert_prepend_append)
@@ -59,9 +59,9 @@ END_TEST
     F(klist_index);                  \
     F(klist_shallow_remove);
 
-int main(void)
+int main()
 {
-    SETUP(NULL);
+    SETUP(nullptr);
     TEST_LIST(RUN_TEST)
     CLEANUP(cleanup);
 }

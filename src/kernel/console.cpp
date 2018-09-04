@@ -1,27 +1,27 @@
-/**
- * \file kernel/console.c
- * Simple console output.
- * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-#include <libk/kchar.h>
-#include <libk/kmemory.h>
-#include <libk/kstring.h>
-#include <redshift/kernel/console.h>
-#include <redshift/kernel.h>
+/// Copyright (c) 2012-2018 Chris Swinchatt.
+///
+/// Permission is hereby granted, free of charge, to any person obtaining a copy
+/// of this software and associated documentation files (the "Software"), to deal
+/// in the Software without restriction, including without limitation the rights
+/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+/// copies of the Software, and to permit persons to whom the Software is
+/// furnished to do so, subject to the following conditions:
+///
+/// The above copyright notice and this permission notice shall be included in
+/// all copies or substantial portions of the Software.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+/// SOFTWARE.
+#include <libk/char.hpp>
+#include <libk/memory.hpp>
+#include <libk/asciz.hpp>
+#include <redshift/kernel/console.hpp>
+#include <redshift/kernel.hpp>
 
 static struct console {
     struct {
@@ -40,39 +40,39 @@ static struct console {
     } cursor;
 } console;
 
-/* Current buffer index. */
+// Current buffer index.
 #define BUFFER_INDEX        (console.cursor.y*console.screen.columns + console.cursor.x)
 
-/* Pointer to current buffer location. */
+// Pointer to current buffer location.
 #define BUFFER_PTR          (console.screen.buffer + (BUFFER_INDEX))
 
-/* Number of cells in buffer. */
+// Number of cells in buffer.
 #define BUFFER_NUM_CELLS    (console.screen.columns*console.screen.rows)
 
-/* Size of buffer (bytes). */
+// Size of buffer (bytes).
 #define BUFFER_SIZE         ((sizeof(*(console.screen.buffer)))*(BUFFER_NUM_CELLS))
 
-/* Current attribute byte (foreground & background colour). */
+// Current attribute byte (foreground & background colour).
 #define ATTRIBUTE           ((console.screen.background << 4) | (console.screen.foreground & 0x0F))
 
-/* Convert 8-bit char into 16-bit char with attribute. */
+// Convert 8-bit char into 16-bit char with attribute.
 #define CHAR_WITH_ATTRIB(C) ((C) | ((ATTRIBUTE) << 8))
 
-/* Blank character. */
+// Blank character.
 #define BLANK               CHAR_WITH_ATTRIB(' ')
 
-/* Screen origin index. */
+// Screen origin index.
 #define ORIGIN              (console.cursor.y_origin*console.screen.columns + console.cursor.x_origin)
 
-/* Set character and attribute at current buffer location. */
+// Set character and attribute at current buffer location.
 static void set_buffer_char(uint8_t c)
 {
     *BUFFER_PTR = CHAR_WITH_ATTRIB(c);
 }
 
-void console_init(void)
+void console_init()
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     console.screen.columns    = CONSOLE_DEFAULT_COLUMNS;
     console.screen.rows       = CONSOLE_DEFAULT_ROWS;
     console.screen.foreground = CONSOLE_DEFAULT_FOREGROUND;
@@ -83,12 +83,12 @@ void console_init(void)
     console.cursor.y          = console.cursor.y_origin;
     console.cursor.mode       = CONSOLE_DEFAULT_CURSOR_MODE;
     console.screen.buffer     = (uint16_t*)CONSOLE_DEFAULT_FRAMEBUFFER;
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_write_char(int c)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     switch (c) {
         case '\b':
             if (console.cursor.x) {
@@ -105,7 +105,7 @@ void console_write_char(int c)
             console.cursor.x = (console.cursor.x + CONSOLE_DEFAULT_TAB_SIZE) & ~(CONSOLE_DEFAULT_TAB_SIZE - 1);
             break;
         default:
-            if (kchar_is_printable(c)) {
+            if (char_is_printable(c)) {
                 set_buffer_char(c);
                 ++console.cursor.x;
             }
@@ -118,35 +118,35 @@ void console_write_char(int c)
     if (console.cursor.y >= console.screen.rows) {
         console_scroll();
     }
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 ssize_t console_write_string(const char* string)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     long i = 0;
     for (; string[i] != 0; ++i) {
         console_write_char(string[i]);
     }
     console_update_cursor();
-    RESTORE_INTERRUPT_STATE;
+    
     return i;
 }
 
 ssize_t console_write_line(const char* line)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     long count = console_write_string(line);
     console_write_char('\n');
     ++count;
-    RESTORE_INTERRUPT_STATE;
+    
     return count;
 }
 
-void console_scroll(void)
+void console_scroll()
 {
-    SAVE_INTERRUPT_STATE;
-    kmemory_copy(
+    interrupt_state_guard guard(interrupt_state::disable);
+    libk::memory::copy(
         console.screen.buffer + ORIGIN,
         console.screen.buffer + ORIGIN + console.screen.columns,
         BUFFER_SIZE - ORIGIN - console.screen.columns
@@ -155,39 +155,39 @@ void console_scroll(void)
     console_clear_line();
     console.cursor.y = console.screen.rows - 1;
     console_update_cursor();
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
-void console_clear_line(void)
+void console_clear_line()
 {
-    SAVE_INTERRUPT_STATE;
-    kmemory_fill16(
+    interrupt_state_guard guard(interrupt_state::disable);
+    libk::memory::fill16(
         console.screen.buffer + (console.cursor.y - 1)*console.screen.columns + console.cursor.x_origin,
         BLANK,
         console.screen.columns - console.cursor.x_origin
     );
     console.cursor.x = console.cursor.x_origin;
     console_update_cursor();
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
-void console_clear(void)
+void console_clear()
 {
-    SAVE_INTERRUPT_STATE;
-    kmemory_fill16(console.screen.buffer + ORIGIN, BLANK, BUFFER_SIZE - ORIGIN);
+    interrupt_state_guard guard(interrupt_state::disable);
+    libk::memory::fill16(console.screen.buffer + ORIGIN, BLANK, BUFFER_SIZE - ORIGIN);
     console.cursor.x = console.cursor.x_origin;
     console.cursor.y = console.cursor.y_origin;
     console_update_cursor();
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
-static void hide_cursor(void)
+static void hide_cursor()
 {
     io_outb(VGA_CMND, 0x0A);
     io_outb(VGA_DATA, 0x20);
 }
 
-/* Set start and end scanlines of cursor. Valid values are 0 to 15. */
+// Set start and end scanlines of cursor. Valid values are 0 to 15.
 static void set_cursor_shape(uint8_t start, uint8_t end)
 {
     io_outb(VGA_CMND, 0x0A);
@@ -196,7 +196,7 @@ static void set_cursor_shape(uint8_t start, uint8_t end)
     io_outb(VGA_DATA, end   | (io_inb(0x3E0) & 0xE0));
 }
 
-static void set_cursor_position(void)
+static void set_cursor_position()
 {
     io_outb(VGA_CMND, 0x0E);
     io_outb(VGA_DATA, BUFFER_INDEX >> 8);
@@ -204,7 +204,7 @@ static void set_cursor_position(void)
     io_outb(VGA_DATA, BUFFER_INDEX);
 }
 
-static void draw_cursor(void)
+static void draw_cursor()
 {
     switch (console.cursor.mode) {
         case CONSOLE_CURSOR_UNDERLINE: set_cursor_shape(14, 15); break;
@@ -216,21 +216,21 @@ static void draw_cursor(void)
 
 void console_set_cursor_mode(console_cursor_mode_t mode)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     console.cursor.mode = mode;
     console_update_cursor();
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
-void console_update_cursor(void)
+void console_update_cursor()
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     if (console.cursor.mode == CONSOLE_CURSOR_DISABLED) {
         hide_cursor();
     } else {
         draw_cursor();
     }
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_set_foreground_color(console_color_t color)
@@ -245,49 +245,49 @@ void console_set_background_color(console_color_t color)
 
 void console_set_color(console_color_t foreground, console_color_t background)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     console.screen.foreground = foreground;
     console.screen.background = background;
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
-console_color_t console_get_foreground_color(void)
+console_color_t console_get_foreground_color()
 {
     return console.screen.foreground;
 }
 
-console_color_t console_get_background_color(void)
+console_color_t console_get_background_color()
 {
     return console.screen.background;
 }
 
 void console_get_color(console_color_t* foreground, console_color_t* background)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     *foreground = console.screen.foreground;
     *background = console.screen.background;
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_set_cursor(uint32_t x, uint32_t y)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     console.cursor.x = x;
     console.cursor.y = y;
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_get_cursor(uint32_t* x, uint32_t* y)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     *x = console.cursor.x;
     *y = console.cursor.y;
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_set_origin(uint32_t x, uint32_t y)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     console.cursor.x_origin = x;
     console.cursor.y_origin = y;
     if (console.cursor.x < console.cursor.x_origin) {
@@ -296,13 +296,13 @@ void console_set_origin(uint32_t x, uint32_t y)
     if (console.cursor.y < console.cursor.y_origin) {
         console.cursor.y = console.cursor.y_origin;
     }
-    RESTORE_INTERRUPT_STATE;
+    
 }
 
 void console_get_origin(uint32_t* x_origin, uint32_t* y_origin)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     *x_origin = console.cursor.x_origin;
     *y_origin = console.cursor.y_origin;
-    RESTORE_INTERRUPT_STATE;
+    
 }

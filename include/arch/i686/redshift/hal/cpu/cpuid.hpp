@@ -17,21 +17,41 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_CPUID_H
-#define REDSHIFT_HAL_CPU_CPUID_H
+#ifndef REDSHIFT_HAL_CPU_CPUID_HPP
+#define REDSHIFT_HAL_CPU_CPUID_HPP
 
 #include <redshift/kernel.hpp>
 #include <redshift/hal/cpu/features.hpp>
 #include <redshift/hal/cpu/vendor.hpp>
 
-namespace redshift { namespace hal { namespace cpu_ {
+namespace redshift { namespace hal { namespace cpu_detail {
     /// CPU ID info.
     struct cpuid {
-        static constexpr size_t VENDOR_MAX        = 12 + 1;
-        static constexpr size_t VENDOR_STRING_MAX = 12 + 1;
-        static constexpr size_t BRAND_STRING_MAX  = 48;
+        struct vendor_info {
+            const char* vendor_strings[];
+            const char* name;
+        };
+        static constexpr vendor_info[] = {
+            { { "AMDisbetter!", "AuthenticAMD", nullptr },  },
+        };
+        static constexpr const char* VENDOR_AMD_OLD    = ;
+        static constexpr const char* VENDOR_AMD_NEW    = ;
+        static constexpr const char* VENDOR_CENTAUR    = "CentaurHauls";
+        static constexpr const char* VENDOR_CYRIX      = "CyrixInstead";
+        static constexpr const char* VENDOR_INTEL      = "GenuineIntel";
+        static constexpr const char* VENDOR_TRANSMETA1 = "TransmetaCPU";
+        static constexpr const char* VENDOR_TRANSMETA2 = "GenuineTMx86";
+        static constexpr const char* VENDOR_NSC        = "Geode by NSC";
+        static constexpr const char* VENDOR_NEXGEN     = "NexGenDriven";
+        static constexpr const char* VENDOR_RISE       = "RiseRiseRise";
+        static constexpr const char* VENDOR_SIS        = "SiS SiS SiS ";
+        static constexpr const char* VENDOR_UMC        = "UMC UMC UMC ";
+        static constexpr const char* VENDOR_VIA        = "VIA VIA VIA ";
+        static constexpr size_t      VENDOR_MAX        = 12 + 1;
+        static constexpr size_t      VENDOR_STRING_MAX = 12 + 1;
+        static constexpr size_t      BRAND_STRING_MAX  = 48;
 
-        enum class request {
+        enum class request : uint32_t {
             vendor_string,
             info_features,
             cache_tlb,
@@ -46,29 +66,41 @@ namespace redshift { namespace hal { namespace cpu_ {
             extended_address_sizes,
         };
 
-        char     vendor[CPUID_VENDOR_MAX];               ///< Vendor.
-        char     vendor_string[CPUID_VENDOR_STRING_MAX]; ///< Vendor string.
-        char     brand_string[CPUID_BRAND_STRING_MAX];   ///< Brand string.
-        uint32_t features;                               ///< Feature flags.
-        uint32_t features_ext;                           ///< Feature flags.
-        unsigned stepping : 4;                           ///< CPU stepping.
-        unsigned model    : 4;                           ///< CPU model.
-        unsigned family   : 4;                           ///< CPU family.
-        unsigned type     : 1;                           ///< CPU type.
-        uint32_t l1_cache;                               ///< L1 cache size.
-        uint32_t l2_cache;                               ///< L2 cache size.
-        uint32_t l3_cache;                               ///< L3 cache size.
-        uint64_t frequency;                              ///< Clock frequency (Hz).
-        uint32_t logical_cores;                          ///< Number of logical cores.
-        uint32_t physical_cores;                         ///< Number of physical cores.
+        /// Vendor.
+        char     vendor[VENDOR_MAX];
+        /// Vendor string.
+        char     vendor_string[VENDOR_STRING_MAX];
+        /// Brand string.
+        char     brand_string[BRAND_STRING_MAX];
+        /// Feature flags.
+        uint32_t features;
+        /// Feature flags.
+        uint32_t features_ext;
+        /// CPU stepping.
+        unsigned stepping : 4;
+        /// CPU model.
+        unsigned model    : 4;
+        /// CPU family.
+        unsigned family   : 4;
+        /// CPU type.
+        unsigned type     : 1;
+        /// L1 cache size.
+        uint32_t l1_cache;
+        /// L2 cache size.
+        uint32_t l2_cache;
+        /// L3 cache size.
+        uint32_t l3_cache;
+        /// Clock frequency (Hz).
+        uint64_t frequency;
+        /// Number of logical cores.
+        uint32_t logical_cores;
+        /// Number of physical cores.
+        uint32_t physical_cores;
 
         cpuid();
     private:
-        enum { EAX, EBX, ECX, EDX };
-
-        void cpuid::do_cpuid(uint32_t(* regs)[4])
-
-        int extended_supported();
+        void do_cpuid(uint32_t(* regs)[4]);
+        bool extended_supported();
         void get_vendor_string();
         void get_vendor();
         void get_features();
@@ -77,6 +109,6 @@ namespace redshift { namespace hal { namespace cpu_ {
         void get_frequency();
         void get_cores();
     };
-}}} // redshift::hal::cpu_
+}}} // redshift::hal::cpu_detail
 
-#endif // ! REDSHIFT_HAL_CPU_CPUID_H
+#endif // ! REDSHIFT_HAL_CPU_CPUID_HPP

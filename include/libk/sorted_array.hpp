@@ -71,6 +71,7 @@ namespace libk {
         )
         : m_array(new value_type[size])
         , m_count(size)
+        , m_flags(flags_)
         , m_predicate(predicate)
         {
             // Do nothing.
@@ -89,6 +90,7 @@ namespace libk {
         )
         : m_array(address)
         , m_count(size)
+        , m_flags(flags_)
         , m_predicate(predicate)
         {
             // Do nothing.

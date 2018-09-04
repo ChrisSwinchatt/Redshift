@@ -25,7 +25,9 @@
 namespace redshift { namespace hal { namespace cpu_detail {
     struct pic {
         static void init();
+
+        pic(const pic&) = delete;
     };
 }}} // redshift::hal::cpu_detail
 
-#endif // ! REDSHIFT_CPU_PIC_H
+#endif // ! REDSHIFT_CPU_PIC_HPP

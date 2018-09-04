@@ -20,7 +20,6 @@
 #ifndef REDSHIFT_LIBK_FORWARD_LIST_HPP
 #define REDSHIFT_LIBK_FORWARD_LIST_HPP
 
-#include <libk/iterator.hpp>
 #include <libk/memory.hpp>
 #include <libk/types.hpp>
 
@@ -32,6 +31,9 @@ namespace libk {
         using value_type      = T;
         using size_type       = size_t;
         using reference       = value_type&;
+        using const_reference = const reference;
+        using pointer         = value_type*;
+        using const_pointer   = const pointer;
 
         /// Flags.
         enum class flags {
@@ -41,14 +43,22 @@ namespace libk {
         };
 
         /// Construct empty list.
-        forward_list() : m_flags(flags::static_)
+        forward_list()
+        : m_flags(flags::static_)
+        , m_head(nullptr)
+        , m_last(nullptr)
+        , m_size(0)
         {
             // Do nothing.
         }
 
         /// Construct empty list with flags.
         /// \param flags The flags.
-        explicit forward_list(flags flags_) : m_flags(flags_)
+        explicit forward_list(flags flags_)
+        : m_flags(flags_)
+        , m_head(nullptr)
+        , m_last(nullptr)
+        , m_size(0)
         {
             // Do nothing.
         }
@@ -57,7 +67,11 @@ namespace libk {
         /// \param size Initial number of elements.
         /// \param data Initial value of each element. Value will be copied.
         /// \param flags The flags.
-        forward_list(size_type size, const_reference data, flags flags_ = flags::static_) : m_flags(flags_)
+        forward_list(size_type size, const_reference data, flags flags_ = flags::static_)
+        : m_flags(flags_)
+        , m_head(nullptr)
+        , m_last(nullptr)
+        , m_size(0)
         {
             grow(size, data);
         }
@@ -65,7 +79,7 @@ namespace libk {
         /// Destroy list.
         ~forward_list()
         {
-            if (TEST_FLAG(m_flags, flags::dynamic_) && (!(TEST_FLAG(m_flags, flags::duplicate)))) {
+            if (TEST_FLAG(m_flags, flags::dynamic_) && (!(TEST_FLAG(m_flags, flags::duplicate))) && m_head != nullptr) {
                 resize(0);
                 m_head = nullptr;
                 m_last = nullptr;
@@ -209,16 +223,6 @@ namespace libk {
             return m_head->data;
         }
 
-        iterator begin()
-        {
-            return iterator(m_head);
-        }
-
-        iterator end()
-        {
-            return iterator(m_last);
-        }
-
         /// Get a list of the tail elements of the list, i.e. everything except the head element.
         /// \return A list of the tail elements of the list.
         const forward_list* tail() const
@@ -236,7 +240,12 @@ namespace libk {
 
             node() = default;
 
-            explicit node(const_reference ref) : data(ref) {}
+            explicit node(const_reference ref)
+            : data(ref)
+            , next(nullptr)
+            {
+                // Do nothing.
+            }
         };
 
         flags     m_flags;

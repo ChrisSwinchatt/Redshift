@@ -21,7 +21,7 @@
 .intel_syntax noprefix
 
 #define __ASM_SOURCE__
-#include <redshift/boot/tss.hpp>
+#include <redshift/hal/cpu/tss.hpp>
 
 .global loadtss
 .type   loadtss, @function

@@ -201,4 +201,4 @@ namespace libk { namespace asciz {
         copy(dup, s, size);
         return dup;
     }
-}} // libk::asciz
+}} // libk::const char*

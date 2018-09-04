@@ -17,23 +17,27 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_PIT_H
-#define REDSHIFT_HAL_PIT_H
+#ifndef REDSHIFT_HAL_MEMORY_STATIC_HPP
+#define REDSHIFT_HAL_MEMORY_STATIC_HPP 1
 
-#include <redshift/hal/cpu/state.hpp>
+#include <redshift/hal/memory/common.hpp>
 #include <redshift/kernel.hpp>
 
-namespace redshift { namespace hal {
-    /// Programmable interval timer.
-    class pit {
-    public:
-        /// Set the PIT frequency.
-        /// \param freq The frequency in Hertz.
-        /// \return 0 on success, otherwise -1.
-        static int set_frequency(uint32_t freq);
-    private:
-        static void interrupt_handler(const struct cpu_state* regs);
-    };
-}} // redshift::hal
+namespace redshift { namespace hal { namespace memory_detail {
+    /// Initialise the static heap allocator.
+    void static_init();
 
-#endif // ! _PIT_H
+    /// Allocate static memory.
+    /// \param size Amount of memory to allocate.
+    /// \param flags Allocation flags.
+    /// \param phys Optional. Stores the physical address of the object.
+    /// \return The address of the memory block is returned.
+    uintptr_t static_alloc_base(size_t size, alignment align, uintptr_t* phys);
+
+    /// Allocate static memory.
+    /// \param size Amount of memory to allocate.
+    /// \return A pointer to the allocated memory is returned.
+    void* static_alloc(size_t size);
+}}} // redshift::hal
+
+#endif // ! REDSHIFT_HAL_MEMORY_STATIC_HPP

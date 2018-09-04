@@ -1,30 +1,29 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-#include <libk/kchar.h>
-#include <libk/kmemory.h>
-#include <libk/kstring.h>
-#include <libk/ksorted_array.h>
-#include <redshift/kernel.h>
-#include <redshift/kernel/symbols.h>
-#include <redshift/mem/static.h>
+/// Copyright (c) 2012-2018 Chris Swinchatt.
+///
+/// Permission is hereby granted, free of charge, to any person obtaining a copy
+/// of this software and associated documentation files (the "Software"), to deal
+/// in the Software without restriction, including without limitation the rights
+/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+/// copies of the Software, and to permit persons to whom the Software is
+/// furnished to do so, subject to the following conditions:
+///
+/// The above copyright notice and this permission notice shall be included in
+/// all copies or substantial portions of the Software.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+/// SOFTWARE.
+#include <libk/char.hpp>
+#include <libk/memory.hpp>
+#include <libk/asciz.hpp>
+#include <libk/sorted_array.hpp>
+#include <redshift/kernel.hpp>
+#include <redshift/kernel/symbols.hpp>
+#include <redshift/mem/static.hpp>
 
 #define SYNTAX_ERROR(FMT, ...)     panic("syntax error in symbol table: %lu:%lu: " FMT, line, column, __VA_ARGS__)
 
@@ -39,13 +38,13 @@ struct symbol {
     uintptr_t address;
 };
 
-static struct ksorted_array* symbol_table;
+static struct libk::sorted_array* symbol_table;
 
-/* Sorting predicate for symbol_table. Sorts symbols by descending address. */
+// Sorting predicate for symbol_table. Sorts symbols by descending address.
 static bool symbol_order_predicate(void* pa, void* pb)
 {
-    DEBUG_ASSERT(pa != NULL);
-    DEBUG_ASSERT(pb != NULL);
+    DEBUG_ASSERT(pa != nullptr);
+    DEBUG_ASSERT(pb != nullptr);
     struct symbol* a = pa;
     struct symbol* b = pb;
     return a->address < b->address;
@@ -56,10 +55,10 @@ static uintptr_t parse_address(const char* p, const char* q)
     uintptr_t address = 0;
     for (; p < q; ++p) {
         unsigned value = 0;
-        if (kchar_is_digit(*p)) {
-            value = *p - '0';      /* '0' -> 0, '1' -> 1, etc. */
-        } else if (kchar_is_alpha(*p)) {
-            value = *p - 'A' + 10; /* 'A' -> 10, 'B' -> 11, etc. */
+        if (char_is_digit(*p)) {
+            value = *p - '0';      // '0' -> 0, '1' -> 1, etc.
+        } else if (char_is_alpha(*p)) {
+            value = *p - 'A' + 10; // 'A' -> 10, 'B' -> 11, etc.
         }
         address <<= 4;
         address +=  value;
@@ -76,9 +75,9 @@ enum { ADDRESS = 0, SYMBOL = 1 };
 
 void load_symbol_table(uintptr_t ptr, size_t size)
 {
-    SAVE_INTERRUPT_STATE;
+    interrupt_state_guard guard(interrupt_state::disable);
     DEBUG_ASSERT(ptr != 0);
-    symbol_table = ksorted_array_create(MAX_SYMBOLS, KSORTED_ARRAY_STATIC, symbol_order_predicate);
+    symbol_table = libk::sorted_array_create(MAX_SYMBOLS, KSORTED_ARRAY_STATIC, symbol_order_predicate);
     const  char*   file   = (const char*)ptr;
     char address[ADDRESS_MAX];
     char name[NAME_MAX];
@@ -86,13 +85,13 @@ void load_symbol_table(uintptr_t ptr, size_t size)
     size_t column = 1;
     int    state  = ADDRESS;
     char*  p      = address;
-    struct symbol* symbol = kmalloc(sizeof(*symbol));
+    struct symbol* symbol = new symbol;
     for (size_t i = 0; i < size && file[i] != 0; ++i, ++column) {
-        if (kchar_is_space(file[i])) {
+        if (char_is_space(file[i])) {
             if (file[i] == '\n') {
                 if (column == 1) {
-                    /* Stop on empty line.
-                     */
+                    // Stop on empty line.
+
                     break;
                 }
                 column = 1;
@@ -100,26 +99,26 @@ void load_symbol_table(uintptr_t ptr, size_t size)
             }
             switch (state) {
                 case ADDRESS:
-                    /* Copy address.
-                     */
+                    // Copy address.
+
                     symbol->address = parse_address(address, p);
                     state = SYMBOL;
                     p     = name;
                     break;
                 case SYMBOL:
-                    /* Copy symbol name and advance to the next symbol.
-                     */
-                    if (name[0] != '_' && !(kchar_is_alpha(name[0]))) {
+                    // Copy symbol name and advance to the next symbol.
+
+                    if (name[0] != '_' && !(char_is_alpha(name[0]))) {
                         SYNTAX_ERROR("invalid symbol name \"%s\"", name);
                     }
                     size_t size = p - name;
                     symbol->name = kmalloc(size);
-                    kstring_copy(symbol->name, name, size);
+                    asciz::copy(symbol->name, name, size);
                     printk(PRINTK_DEBUG "Symbol: <address=0x%08lX,name=%s>\n", symbol->address, symbol->name);
-                    ksorted_array_add(symbol_table, symbol);
+                    libk::sorted_array_add(symbol_table, symbol);
                     state  = ADDRESS;
                     p      = address;
-                    symbol = kmalloc(sizeof(*symbol));
+                    symbol = new symbol;
                     break;
                 default:
                     UNREACHABLE("no switch case for state %d", state);
@@ -127,13 +126,13 @@ void load_symbol_table(uintptr_t ptr, size_t size)
         } else {
             switch (state) {
                 case ADDRESS:
-                    if (!(kchar_is_hex_digit(file[i]))) {
+                    if (!(char_is_hex_digit(file[i]))) {
                         UNEXPECTED_TOKEN("digit");
                     }
                     *p++ = file[i];
                     break;
                 case SYMBOL:
-                    if (file[i] != '_' && !(kchar_is_alnum(file[i]))) {
+                    if (file[i] != '_' && !(char_is_alnum(file[i]))) {
                         UNEXPECTED_TOKEN("digit, letter or underscore");
                     }
                     *p++ = file[i];
@@ -143,38 +142,38 @@ void load_symbol_table(uintptr_t ptr, size_t size)
             }
         }
     }
-    RESTORE_INTERRUPT_STATE;
+
 }
 
 const void* get_symbol_address(const char* name)
 {
-    SAVE_INTERRUPT_STATE;
-    for (size_t i = 0; i < ksorted_array_count(symbol_table); ++i) {
-        struct symbol* symbol = ksorted_array_get(symbol_table, i);
-        if (kstring_compare(symbol->name, name, kstring_length(name)) == 0) {
+    interrupt_state_guard guard(interrupt_state::disable);
+    for (size_t i = 0; i < libk::sorted_array_count(symbol_table); ++i) {
+        struct symbol* symbol = libk::sorted_array_get(symbol_table, i);
+        if (asciz::compare(symbol->name, name, asciz::length(name)) == 0) {
             return (const void*)(symbol->address);
         }
     }
-    RESTORE_INTERRUPT_STATE;
-    return NULL;
+
+    return nullptr;
 }
 
 const char* get_symbol_name(uintptr_t address)
 {
     if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
-        return NULL;
+        return nullptr;
     }
-    /* Find the symbol with the largest address which is below or equal to the given address. Since our symbol table is
+    // Find the symbol with the largest address which is below or equal to the given address. Since our symbol table is
      * in descending order we can just find the first symbol whose address <= the search address.
-     */
-    SAVE_INTERRUPT_STATE;
-    for (size_t i = 0; i < ksorted_array_count(symbol_table); ++i) {
-        struct symbol* symbol = ksorted_array_get(symbol_table, i);
+
+    interrupt_state_guard guard(interrupt_state::disable);
+    for (size_t i = 0; i < libk::sorted_array_count(symbol_table); ++i) {
+        struct symbol* symbol = libk::sorted_array_get(symbol_table, i);
         if (symbol->address <= address) {
-            RESTORE_INTERRUPT_STATE;
+
             return symbol->name;
         }
     }
-    RESTORE_INTERRUPT_STATE;
-    return NULL;
+
+    return nullptr;
 }

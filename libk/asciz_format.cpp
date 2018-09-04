@@ -330,6 +330,7 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
                 ssize_t* pcount = va_arg(args, ssize_t*);
                 if (pcount == nullptr) {
                     ret = -1;
+                    goto out;
                 }
                 *pcount = *pp - p;
                 goto out;

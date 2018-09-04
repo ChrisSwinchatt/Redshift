@@ -1,35 +1,63 @@
 #!/bin/bash
 
-# Build a gcc cross compiler with binutils.
+# Build a GCC cross compiler with binutils.
 
-# Common data.
-script=$(basename "$0")                                                 # Script name.
-dry=0                                                                   # Whether to perform a dry run.
-target=                                                                 # Target triplet.
-url_base="http://ftp.gnu.org/gnu"                                       # Base URL to retrieve files from.
-prefix="${HOME}/opt/cross"                                              # Installation path.
+########################################################################################################################
+# DATA.                                                                                                                #
+########################################################################################################################
+## Common data.
+# Script name.
+script=$(basename "$0")
+# Whether to perform a dry run.
+dry=0
+# Target triplet.
+target=
+# Base URL to retrieve files from.
+url_base="http://ftp.gnu.org/gnu"
+# Installation path.
+prefix="${HOME}/opt/cross"
 
-# Binutils data.
-bin_dl=0                                                                # Whether to download binutils.
-bin_build=0                                                             # Whether to build binutils.
-bin_name="binutils"                                                     # Binutils name.
-bin_ver="2.29.1"                                                        # Binutils version.
-bin_ext="tar.gz"                                                        # Binutils file extension.
-bin_targ="all install"                                                  # Binutils makefile targets.
-bin_opt="--disable-nls --disable-werror --with-sysroot"                 # Binutils configure options.
+## Binutils data.
+# Whether to download binutils.
+bin_dl=0
+# Whether to build binutils.
+bin_build=0
+# Binutils name.
+bin_name="binutils"
+# Binutils version.
+bin_ver="2.29.1"
+# Binutils file extension.
+bin_ext="tar.gz"
+# Binutils makefile targets.
+bin_targ="all install"
+# Binutils configure options.
+bin_opt="--disable-nls --disable-werror --with-sysroot"
 
-# GCC data.
-gcc_dl=0                                                                # Whether to download GCC.
-gcc_build=0                                                             # Whether to build GCC.
-gcc_name="gcc"                                                          # GCC name.
-gcc_ver="7.2.0"                                                         # GCC version.
-gcc_ext="tar.gz"                                                        # GCC file extension.
-gcc_targ="all-gcc all-target-libgcc install-gcc install-target-libgcc"  # GCC makefile targets.
-gcc_lang="c,c++"                                                        # GCC languages.
-gcc_opt="--disable-nls --disable-werror --without-headers"              # GCC configure options.
+## GCC data.
+# Whether to download GCC.
+gcc_dl=0
+# Whether to build GCC.
+gcc_build=0
+# GCC name.
+gcc_name="gcc"
+# GCC version.
+gcc_ver="7.2.0"
+# GCC file extension.
+gcc_ext="tar.gz"
+# GCC makefile targets.
+gcc_targ="all-gcc all-target-libgcc install-gcc install-target-libgcc"
+# GCC languages.
+gcc_lang="c,c++"
+# GCC configure options.
+gcc_opt="--disable-nls --disable-werror --without-headers"
 
-# Other command-line options.
-force_conf=0                                                            # Whether to force running ./configure
+## Other command-line options.
+# Whether to force running ./configure
+force_conf=0
+
+########################################################################################################################
+# FUNCTIONS.                                                                                                           #
+########################################################################################################################
 
 # Print a message
 # Args:
@@ -82,6 +110,7 @@ Options:
     --gcc-opt <list>    Set the configure options for GCC. Default: ${gcc_opt}
     --force-conf        Force-run ./configure (applies to binutils and GCC)
 Note: if any one of --{bin,gcc}-{dl,build} is passed, it implicitly disables the other three. By default, all four are enabled.
+Enable the ones you want explicitly.
 EOF
 }
 
@@ -98,73 +127,6 @@ function die_usage
     show_usage >&2
     exit 1
 }
-
-# Check the command line.
-[[ $# -lt 1 ]] && die_usage
-
-# Grab the options.
-say "Reading command-line..."
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        help|--help)  quit_usage          ;;
-        --dry)        dry=1               ;;
-        --url-base)   url_base=$2  ; shift ;;
-        --prefix)     prefix=$2    ; shift ;;
-        --bin-dl)     bin_dl=1             ;;
-        --bin-build)  bin_build=1          ;;
-        --bin-name)   bin_name=$2  ; shift ;;
-        --bin-ver)    bin_ver=$2   ; shift ;;
-        --bin-ext)    bin_ext=$2   ; shift ;;
-        --bin-targ)   bin_targ=$2  ; shift ;;
-        --bin-opt)    bin_opt=$2   ; shift ;;
-        --gcc-dl)     gcc_dl=1             ;;
-        --gcc-build)  gcc_build=1          ;;
-        --gcc-name)   gcc_name=$2  ; shift ;;
-        --gcc-ver)    gcc_ver=$2   ; shift ;;
-        --gcc-ext)    gcc_ext=$2   ; shift ;;
-        --gcc-targ)   gcc_targ=$2  ; shift ;;
-        --gcc-lang)   gcc_lang=$2  ; shift ;;
-        --gcc-opt)    gcc_opt=$2   ; shift ;;
-        --force-conf) force_conf=1         ;;
-        *)            target=$1    ; shift ;;
-    esac
-    shift
-done
-
-[[ "x$target" = "x" ]] && die_usage
-
-if [[ $[bin_dl + $bin_build + $gcc_dl + $gcc_build] -eq 0 ]]; then
-    say "No operation selected; downloading & building binutils and GCC"
-    bin_dl=1
-    bin_build=1
-    gcc_dl=1
-    gcc_build=1
-fi
-
-# Print chosen options.
-say "Selected build options:"
-cat <<EOF
- * target:     ${target}
- * dry:        ${dry}
- * url-base:   ${url_base}
- * prefix:     ${prefix}
- * bin-dl:     ${bin_dl}
- * bin-build:  ${bin_build}
- * bin-name:   ${bin_name}
- * bin-ver:    ${bin_ver}
- * bin-ext:    ${bin_ext}
- * bin-targ:   ${bin_targ}
- * bin-opt:    ${bin_opt}
- * gcc-dl:     ${gcc_dl}
- * gcc-build:  ${gcc_build}
- * gcc-name:   ${gcc_name}
- * gcc-ver:    ${gcc_ver}
- * gcc-ext:    ${gcc_ext}
- * gcc-targ:   ${gcc_targ}
- * gcc-lang:   ${gcc_lang}
- * gcc-opt:    ${gcc_opt}
- * force-conf: ${force_conf}
-EOF
 
 # Call a command. If $dry != 0, echo the command instead.
 # Args:
@@ -334,13 +296,79 @@ function do_gcc
     [[ ${gcc_build} -eq 1 ]] && build_gcc
 }
 
-# If {bin,gcc}_{dl,build} are all 0, set them all to 1. Otherwise, leave them.
-if [[ ${bin_dl} -eq 0 && ${bin_build} -eq 0 && ${gcc_dl} -eq 0 && ${gcc_build} -eq 0 ]]; then
+########################################################################################################################
+# ENTRY POINT.                                                                                                         #
+########################################################################################################################
+
+# Check the command line.
+[[ $# -lt 1 ]] && die_usage
+
+# Grab the options.
+say "Reading command-line..."
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        help|--help)  quit_usage          ;;
+        --dry)        dry=1               ;;
+        --url-base)   url_base=$2  ; shift ;;
+        --prefix)     prefix=$2    ; shift ;;
+        --bin-dl)     bin_dl=1             ;;
+        --bin-build)  bin_build=1          ;;
+        --bin-name)   bin_name=$2  ; shift ;;
+        --bin-ver)    bin_ver=$2   ; shift ;;
+        --bin-ext)    bin_ext=$2   ; shift ;;
+        --bin-targ)   bin_targ=$2  ; shift ;;
+        --bin-opt)    bin_opt=$2   ; shift ;;
+        --gcc-dl)     gcc_dl=1             ;;
+        --gcc-build)  gcc_build=1          ;;
+        --gcc-name)   gcc_name=$2  ; shift ;;
+        --gcc-ver)    gcc_ver=$2   ; shift ;;
+        --gcc-ext)    gcc_ext=$2   ; shift ;;
+        --gcc-targ)   gcc_targ=$2  ; shift ;;
+        --gcc-lang)   gcc_lang=$2  ; shift ;;
+        --gcc-opt)    gcc_opt=$2   ; shift ;;
+        --force-conf) force_conf=1         ;;
+        *)            target=$1    ; shift ;;
+    esac
+    shift
+done
+
+if [[ "x$target" = "x" ]]; then
+    saye "No target triplet provided"
+    die_usage
+fi
+
+if [[ $[bin_dl + $bin_build + $gcc_dl + $gcc_build] -eq 0 ]]; then
+    say "No operation selected; downloading & building binutils and GCC"
     bin_dl=1
     bin_build=1
     gcc_dl=1
     gcc_build=1
 fi
+
+# Print chosen options.
+say "Selected build options:"
+cat <<EOF
+ * target:     ${target}
+ * dry:        $([[ ${dry} -eq 1 ]] && echo "yes" || echo "no")
+ * url-base:   ${url_base}
+ * prefix:     ${prefix}
+ * bin-dl:     $([[ ${bin_dl} -eq 1 ]] && echo "yes" || echo "no")
+ * bin-build:  $([[ ${bin_build} -eq 1 ]] && echo "yes" || echo "no")
+ * bin-name:   ${bin_name}
+ * bin-ver:    ${bin_ver}
+ * bin-ext:    ${bin_ext}
+ * bin-targ:   ${bin_targ}
+ * bin-opt:    ${bin_opt}
+ * gcc-dl:     $([[ ${gcc_dl} -eq 1 ]] && echo "yes" || echo "no")
+ * gcc-build:  $([[ ${gcc_build} -eq 1 ]] && echo "yes" || echo "no")
+ * gcc-name:   ${gcc_name}
+ * gcc-ver:    ${gcc_ver}
+ * gcc-ext:    ${gcc_ext}
+ * gcc-targ:   ${gcc_targ}
+ * gcc-lang:   ${gcc_lang}
+ * gcc-opt:    ${gcc_opt}
+ * force-conf: $([[ ${force_conf} -eq 1 ]] && echo "yes" || echo "no")
+EOF
 
 # Perform the builds.
 do_binutils

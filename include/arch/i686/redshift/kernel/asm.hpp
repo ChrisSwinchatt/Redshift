@@ -20,36 +20,26 @@
 #ifndef REDSHIFT_KERNEL_ASM_HPP
 #define REDSHIFT_KERNEL_ASM_HPP
 
-#include <libk/types.hpp>
-#include <libk/macro.hpp>
+#ifndef __ASM_SOURCE__
+# include <libk/types.hpp>
+# include <libk/macro.hpp>
 
-/// Disables interrupts.
-void disable_interrupts();
+extern "C" {
+    /// Hang the computer forever.
+    void __noreturn hang();
 
-/// Enables interrupts.
-void enable_interrupts();
+    /// 64-bit unsigned division algorithm.
+    /// \param n The numerator.
+    /// \param d The denominator.
+    /// \return The result of division is returned.
+    uint64_t udiv64(uint64_t n, uint64_t d);
 
-/// Waits until the next interrupt.
-/// NB: If called after disable_interrupts, the CPU will never wake up.
-void wait_for_interrupt();
-
-/// Get the current interrupt state.
-/// \return 1 if interrupts are enabled, otherwise 0.
-int get_interrupt_state();
-
-/// Hang the computer forever.
-extern void __noreturn hang();
-
-/// 64-bit unsigned division algorithm.
-/// \param n The numerator.
-/// \param d The denominator.
-/// \return The result of division is returned.
-extern uint64_t udiv64(uint64_t n, uint64_t d);
-
-/// 64-bit signed division algorithm.
-/// \param n The numerator.
-/// \param d The denominator.
-/// \return The result of division is returned.
-extern int64_t idiv64(int64_t n, int64_t d);
+    /// 64-bit signed division algorithm.
+    /// \param n The numerator.
+    /// \param d The denominator.
+    /// \return The result of division is returned.
+    int64_t idiv64(int64_t n, int64_t d);
+}
+#endif // ! __ASM_SOURCE__
 
 #endif // ! REDSHIFT_KERNEL_ASM_HPP

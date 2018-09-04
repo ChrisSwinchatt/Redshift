@@ -17,12 +17,12 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_FEATURES_H
-#define REDSHIFT_HAL_CPU_FEATURES_H
+#ifndef REDSHIFT_HAL_CPU_FEATURES_HPP
+#define REDSHIFT_HAL_CPU_FEATURES_HPP
 
 #include <redshift/kernel.hpp>
 
-namespace redshift { namespace hal { namespace cpu_ {
+namespace redshift { namespace hal { namespace cpu_detail {
     /// CPU features.
     enum class feature {
         AVX     = 1 << 28,
@@ -85,6 +85,6 @@ namespace redshift { namespace hal { namespace cpu_ {
         XSAVE   = 1 << 26,
         OSXSAVE = 1 << 27
     };
-}}} // redshift::hal::cpu_
+}}} // redshift::hal::cpu_detail
 
-#endif // ! REDSHIFT_HAL_CPU_FEATURES_H
+#endif // ! REDSHIFT_HAL_CPU_FEATURES_HPP

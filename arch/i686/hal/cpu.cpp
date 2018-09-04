@@ -19,14 +19,19 @@
 /// SOFTWARE.
 #include <redshift/kernel.hpp>
 #include <redshift/hal/cpu.hpp>
+#include <redshift/hal/cpu/cpuid.hpp>
+#include <redshift/hal/cpu/gdt.hpp>
+#include <redshift/hal/cpu/idt.hpp>
+#include <redshift/hal/cpu/pic.hpp>
+#include <redshift/hal/cpu/tss.hpp>
 
 namespace redshift { namespace hal {
     void cpu::init()
     {
-        gdt::init();
-        idt::init();
-        pic::init();
-        tss::init();
+        cpu_detail::gdt::init();
+        cpu_detail::idt::init();
+        cpu_detail::pic::init();
+        cpu_detail::tss::init();
     }
 
     uint64_t cpu::read_ticks()

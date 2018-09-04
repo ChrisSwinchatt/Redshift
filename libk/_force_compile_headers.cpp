@@ -21,4 +21,10 @@
 #include <libk/array.hpp>
 #include <libk/char.hpp>
 #include <libk/forward_list.hpp>
+#include <libk/macro.hpp>
+#include <libk/meta.hpp>
+#include <libk/new.hpp>
+#include <libk/pair.hpp>
 #include <libk/sorted_array.hpp>
+#include <libk/unique_ptr.hpp>
+#include <libk/vector.hpp>

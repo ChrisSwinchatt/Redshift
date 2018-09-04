@@ -20,7 +20,7 @@
 #include <redshift/kernel.hpp>
 #include <redshift/hal/cpu/gdt.hpp>
 
-extern "c" void loadgdt(uintptr_t addr); // loadgdt.S
+extern "C" void loadgdt(uintptr_t addr); // loadgdt.S
 
 namespace redshift { namespace hal { namespace cpu_detail {
     void gdt::init()

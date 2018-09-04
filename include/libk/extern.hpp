@@ -46,6 +46,13 @@ namespace libk_extern {
      /// Function to call to free dynamic memory.
      /// \param ptr A pointer to the memory to be freed.
     extern void dynamic_free(void* ptr);
+
+    /// Function to call to resize memory.
+    /// \param ptr A pointer to the memory to be resized.
+    /// \param new_size
+    /// \return The new pointer on success; otherwise nullptr.
+    /// \note ptr should not be invalidated if the operation fails. It may be invalidated if the operation succeeds.
+    extern void* dynamic_resize(void* ptr, size_t new_size);
 } // libk_extern
 
 #endif // ! REDSHIFT_LIBK_KEXTERN_HPP

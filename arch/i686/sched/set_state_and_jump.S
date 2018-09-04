@@ -31,27 +31,28 @@ set_state_and_jump:
      * restored right before resuming the program with IRET as these registers either can't be changed directly (EIP),
      * trigger a GPF if we change them (CS, SS) or would be modified by other instructions before the jump (EFLAGS).
      * Since we're not returning control, we don't set up a stack frame.
-     * NB: The offsets here have to match struct cpu_state (hal/cpu/state.h)
+     * NB: The offsets here have to match hal::cpu::state (hal/cpu/state.h)
      */
-    add   esp,      4               /* Skip return address.              */
-    mov   ebx,      [esp]           /* Pointer to register state in EBX. */
+
+    add   esp,      4               /* Skip return address.               */
+    mov   ebx,      [esp]           /* Pointer to register state in EBX.  */
     mov   eax,      [ebx + 60]
     mov   [_flags], eax
     mov   eax,      [ebx + 56]
     mov   [_eip],   eax
-    mov   eax,      [ebx + 52]      /* SS */
+    mov   eax,      [ebx + 52]      /* SS  */
     mov   [_ss],    eax
 #if 0
-    mov   eax,      [ebx - 48]      /* FS */
+    mov   eax,      [ebx - 48]      /* FS  */
     mov   gs,       ax
-    mov   eax,      [ebx - 44]      /* FS */
+    mov   eax,      [ebx - 44]      /* FS  */
     mov   fs,       ax
-    mov   eax,      [ebx - 40]      /* ES */
+    mov   eax,      [ebx - 40]      /* ES  */
     mov   es,       ax
-    mov   eax,      [ebx - 36]      /* DS */
+    mov   eax,      [ebx - 36]      /* DS  */
     mov   ds,       ax
 #endif
-    mov   eax,      [ebx + 32]      /* CS */
+    mov   eax,      [ebx + 32]      /* CS  */
     mov   [_cs],    eax
     mov   edi,      [ebx + 28]
     mov   esi,      [ebx + 24]
@@ -61,7 +62,7 @@ set_state_and_jump:
     mov   edx,      [ebx + 12]
     mov   ecx,      [ebx +  8]
     mov   eax,      [ebx +  0]
-    mov   ebx,      [ebx +  4]  /* Restore EBX last for obvious reasons. */
+    mov   ebx,      [ebx +  4]  /* Restore EBX last for obvious reasons.  */
     push [_ss]
     push [_esp]
     push [_flags]

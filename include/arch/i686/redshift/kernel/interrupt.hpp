@@ -17,8 +17,8 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_KERNEL_INTERRUPT_H
-#define REDSHIFT_KERNEL_INTERRUPT_H
+#ifndef REDSHIFT_KERNEL_INTERRUPT_HPP
+#define REDSHIFT_KERNEL_INTERRUPT_HPP
 
 #include <redshift/hal/cpu.hpp>
 #include <redshift/kernel.hpp>
@@ -81,7 +81,21 @@ struct isr_info {
 extern const struct isr_info isr_info[];
 
 /// ISR handler function
-typedef void(* isr_handler_t)(const struct cpu_state*);
+typedef void(* isr_handler_t)(const ::redshift::hal::cpu::state*);
+
+/// Disables interrupts.
+extern "C" void disable_interrupts();
+
+/// Enables interrupts.
+extern "C" void enable_interrupts();
+
+/// Waits until the next interrupt.
+/// NB: If called after disable_interrupts, the CPU will never wake up.
+extern "C" void wait_for_interrupt();
+
+/// Get the current interrupt state.
+/// \return 1 if interrupts are enabled, otherwise 0.
+extern "C" int get_interrupt_state();
 
 /// Create an ISR handler
 /// \param n ISR number
@@ -102,17 +116,20 @@ namespace redshift { namespace kernel {
         explicit interrupt_state_guard(interrupt_state state)
         : m_prev_state(static_cast<interrupt_state>(get_interrupt_state()))
         {
-            set_interrupt_state(static_cast<int>(state));
+            set_interrupt_state(state);
         }
 
         /// Reset the previous interrupt state.
-        ~set_interrupt_state()
+        ~interrupt_state_guard()
         {
-            set_interrupt_state(static_cast<int>(m_prev_state));
+            set_interrupt_state(m_prev_state);
         }
     private:
         interrupt_state m_prev_state;
+
+        // Enable or disable interrupts.
+        static void set_interrupt_state(interrupt_state state);
     };
 }}
 
-#endif // ! REDSHIFT_KERNEL_INTERRUPT_H
+#endif // ! REDSHIFT_KERNEL_INTERRUPT_HPP

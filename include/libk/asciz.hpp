@@ -17,8 +17,8 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_LIBK_ASCIZ_H
-#define REDSHIFT_LIBK_ASCIZ_H
+#ifndef REDSHIFT_LIBK_ASCIZ_HPP
+#define REDSHIFT_LIBK_ASCIZ_HPP
 
 #include <libk/char.hpp>
 #include <libk/types.hpp>
@@ -139,6 +139,6 @@ namespace libk { namespace asciz {
     /// \return A newly-allocated string which is identical to the original.
     /// \note Destination buffer is always zero-terminated.
     char* duplicate(const char* s);
-}} // libk::asciz
+}} // libk::const char*
 
-#endif // ! REDSHIFT_LIBK_ASCIZ_H
+#endif // ! REDSHIFT_LIBK_ASCIZ_HPP

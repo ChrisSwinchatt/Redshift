@@ -23,7 +23,7 @@
 #include <redshift/kernel/asm.hpp>
 #include <redshift/kernel.hpp>
 
-extern "c" void loadidt(uint32_t addr); // loadidt.asm
+extern "C" void loadidt(uint32_t addr); // loadidt.asm
 
 namespace redshift { namespace hal { namespace cpu_ {
     constexpr size_t MAX_ENTRIES = 256;

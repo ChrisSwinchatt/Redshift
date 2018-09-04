@@ -17,8 +17,8 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_CPU_H
-#define REDSHIFT_HAL_CPU_H
+#ifndef REDSHIFT_HAL_CPU_HPP
+#define REDSHIFT_HAL_CPU_HPP
 
 #include <redshift/kernel.hpp>
 #include <redshift/hal/cpu/cpuid.hpp>
@@ -31,12 +31,9 @@
 namespace redshift { namespace hal {
     class cpu {
     public:
-        using cpuid = cpu_detail::cpuid;
-        using gdt   = cpu_detail::gdt;
-        using idt   = cpu_detail::idt;
-        using pic   = cpu_detail::pic;
-        using tss   = cpu_detail::tss;
-        using state = cpu_detail::state;
+        using state       = cpu_detail::state;
+        using feature     = cpu_detail::feature;
+        using feature_ext = cpu_detail::feature_ext;
 
         /// Initialise CPU.
         static void init();
@@ -48,24 +45,24 @@ namespace redshift { namespace hal {
         /// Test whether a feature is available on the CPU.
         /// \param feature The feature to test.
         /// \return True if the feature is available, otherwise false.
-        static bool has_feature(feature_t feature);
+        static bool has_feature(feature feature);
 
         /// Test whether a  extended feature is available on the CPU.
         /// \param feature The extended feature to test.
         /// \return True if the extended feature is available, otherwise false.
-        static bool has_ext_feature(feature_ext_t feature);
+        static bool has_ext_feature(feature_ext feature);
 
         /// Get the name of the CPU vendor.
         /// \return The name of the CPU vendor.
-        static const char* get_vendor();
+        constexpr const char* get_vendor();
 
         /// Get the CPU vendor string.
         /// \return The CPU vendor string.
-        static const char* get_vendor_string();
+        constexpr const char* get_vendor_string();
 
         /// Get the CPU brand string.
         /// \return The CPU brand string.
-        static const char* get_brand_string();
+        constexpr const char* get_brand_string();
 
         /// Get the CPU feature flags.
         /// \return The CPU feature flags.
@@ -115,8 +112,8 @@ namespace redshift { namespace hal {
         /// \return The number of physical cores.
         static uint32_t get_physical_cores_count();
     private:
-        static cpuid m_cpuid;
+        static cpu_detail::cpuid m_cpuid;
     };
 }} /// redshift::hal
 
-#endif /// ! REDSHIFT_HAL_CPU_H
+#endif /// ! REDSHIFT_HAL_CPU_HPP

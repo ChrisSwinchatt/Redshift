@@ -17,20 +17,27 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_LIBK_TYPES_H
-#define REDSHIFT_LIBK_TYPES_H
+#ifndef REDSHIFT_LIBK_TYPES_HPP
+#define REDSHIFT_LIBK_TYPES_HPP
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <initializer_list>
+#include <climits>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <type_traits>
 
 /// Signed size_t.
-typedef intmax_t ssize_t;
+using ssize_t = intmax_t;
 
 /// Kernel linker symbol address variable.
-typedef char symbol_t[];
+using symbol_t = char[];
 
 /// Pointer to void.
-typedef void* void_ptr_t;
+using void_ptr_t = void*;
 
-#endif // ! REDSHIFT_LIBK_TYPES_H
+namespace libk {
+    using namespace std;
+}
+
+#endif // ! REDSHIFT_LIBK_TYPES_HPP

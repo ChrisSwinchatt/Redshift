@@ -105,28 +105,4 @@
 /// Fall through (e.g. in case labels).
 #define FALL_THROUGH                __attribute__((fallthrough))
 
-/// Check if a flag is present in a bitflags variable.
-#define TEST_FLAG(VAR, FLAG)        ((VAR & FLAG) == FLAG)
-
-/// Set a flag.
-#define SET_FLAG(VAR, FLAG)         ((VAR) |= (FLAG))
-
-/// Clear a flag.
-#define CLEAR_FLAG(VAR, FLAG)       ((VAR) &= ~(FLAG))
-
-/// Toggle a flag.
-#define FLIP_FLAG(VAR, FLAG)        ((VAR) ^= (FLAG))
-
-/// Test the bit at 'pos' in 'var'
-#define TEST_BIT(VAR, POS)          (TEST_FLAG((VAR), (1U << (POS))))
-
-/// Flip the bit at 'pos' in 'VAR'
-#define FLIP_BIT(VAR, POS)          (FLIP_FLAG((VAR), (1U << (POS))))
-
-/// Set the bit at 'pos' in 'VAR'
-#define SET_BIT(VAR, POS)           (SET_FLAG((VAR), (1U << (POS))))
-
-/// Clear the bit at 'pos' in 'VAR'
-#define CLEAR_BIT(VAR, POS)         (CLEAR_FLAG((VAR), (1U << (POS))))
-
 #endif // ! REDSHIFT_LIBK_MACRO_HPP

@@ -22,7 +22,7 @@
 #include <redshift/hal/cpu/tss.hpp>
 #include <redshift/kernel.hpp>
 
-extern "c" void loadtss();
+extern "C" void loadtss();
 
 namespace redshift { namespace hal { namespace cpu_detail {
     tss& tss::init()
@@ -31,6 +31,7 @@ namespace redshift { namespace hal { namespace cpu_detail {
         m_instance.esp0 = (uint32_t)__stack_top__;
         m_instance.ss0  = 0x10;
         m_instance.iobt = sizeof(m_instance);
+        m_instance.load();
         return m_instance;
     }
 
@@ -43,7 +44,6 @@ namespace redshift { namespace hal { namespace cpu_detail {
     {
         interrupt_state_guard guard(interrupt_state::disable);
         loadtss();
-
     }
 
     uintptr_t tss::base()

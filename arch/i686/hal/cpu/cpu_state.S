@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/* cpu_state (hal/cpu/state.h) structure analogue. Members must match struct cpu_state in order, alignment and size. */
+/* cpu_state (hal/cpu/state.h) structure analogue. Members must match hal::cpu::state in order, alignment and size. */
 .section .data
 .align 4
 

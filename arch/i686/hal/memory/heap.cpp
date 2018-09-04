@@ -18,16 +18,18 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
 #include <libk/sorted_array.hpp>
+#include <redshift/hal/memory.hpp>
 #include <redshift/kernel.hpp>
 #include <redshift/kernel/interrupt.hpp>
-#include <redshift/mem/common.hpp>
-#include <redshift/mem/heap.hpp>
-#include <redshift/mem/static.hpp>
 
-extern "c" uint32_t heap_addr;
+extern "C" uint32_t heap_addr;
 
-namespace libk { namespace mem {
-    heap* create(
+using ::libk::sorted_array;
+
+namespace redshift { namespace hal { namespace memory_detail {
+    heap* heap::kernel_heap = nullptr;
+
+    heap* heap::create(
         uintptr_t start,
         size_t    init_size,
         size_t    max_size = 0,
@@ -35,25 +37,30 @@ namespace libk { namespace mem {
         flags_t   flags    = flags::supervisor
     )
     {
-        heap* address = static_alloc(sizeof(*new_heap));
+        // Allocate the heap.
+        heap* address = static_alloc(sizeof(*address));
+        if (TEST_FLAG(flags, flags::supervisor)) {
+            kernel_heap = address;
+        }
+        // Construct it in place and return it.
         return new (address) heap(start, init_size, max_size, min_size, flags);
     }
 
-    void* allocate(size_t size)
+    void* heap::allocate(size_t size)
     {
         interrupt_state_guard guard(interrupt_state::disable);
         DEBUG_ASSERT(size > 0);
-        const int32_t hole = get_smallest_hole(size + MINIMUM_BLOCK_SIZE, alignment::page);
+        const int32_t hole = get_smallest_hole(size + MINIMUM_BLOCK_SIZE, ::page);
         if (hole < 0) {
-            return create_hole_and_alloc(size, alignment::page);
+            return create_hole_and_alloc(size, ::page);
         }
-        blockheader* header = alloc_with_hole(hole, size, alignment::page);
+        blockheader* header = alloc_with_hole(hole, size, ::page);
         m_alloc_count++;
         m_bytes_allocated += header->size;
         return reinterpret_cast<void*>(header->usable_address());
     }
 
-    void free(void* ptr)
+    void heap::free(void* ptr)
     {
         interrupt_state_guard guard(interrupt_state::disable);
         if (ptr == nullptr) {
@@ -102,7 +109,7 @@ namespace libk { namespace mem {
         DEBUG_ASSERT(m_bytes_allocd <= m_size);          // Check we haven't allocated more bytes than available.
     }
 
-    void* resize(void* ptr, size_t new_size)
+    void* heap::resize(void* ptr, size_t new_size)
     {
         interrupt_state_guard guard(interrupt_state::disable);
         blockheader* header = blockheader::get(ptr);
@@ -155,22 +162,22 @@ namespace libk { namespace mem {
         return ptr;
     }
 
-    size_t size() const
+    size_t heap::size() const
     {
         return m_size;
     }
 
-    size_t min_size() const
+    size_t heap::min_size() const
     {
         return m_min_size;
     }
 
-    size_t max_size() const
+    size_t heap::max_size() const
     {
         return m_max_size;
     }
 
-    intmax_t alloc_count() const
+    intmax_t heap::alloc_count() const
     {
         return m_alloc_count;
     }
@@ -180,12 +187,12 @@ namespace libk { namespace mem {
         return m_free_count;
     }
 
-    uintmax_t bytes_allocated() const
+    uintmax_t heap::bytes_allocated() const
     {
         return m_bytes_allocated;
     }
 
-    uintptr_t address() const
+    uintptr_t heap::address() const
     {
         return reinterpret_cast<uintptr_t>(m_blocklist);
     }
@@ -260,39 +267,38 @@ namespace libk { namespace mem {
 
     uintptr_t heap::get_heap_region(size_t size) const
     {
-        DEBUG_ASSERT(size != 0);
-        const size_t map_size = memory_map_size();
-        DEBUG_ASSERT(map_size > 0);
-        const memory_map* region = memory_map_head();
-        for (size_t i = 0; i < map_size; ++i, region = region->next) {
-            DEBUG_ASSERT(region != nullptr);
-            const uint64_t region_size = region->end - region->start;
-            if (region_size < size) {
+        DEBUG_ASSERT(size > 0);
+        auto memory_map = hal::memory::get_memory_map();
+        DEBUG_ASSERT(memory_map.size() > 0);
+        for (size_t i = 0; i < memory_map.size(); ++i) {
+            const hal::memory::region& region = memory_map[i];
+            if (region.size() < size) {
                 continue;
-            } else if (region->type == MEMORY_TYPE_AVAILABLE) {
-                uintptr_t address = region->start;
-                // Check we're not about to overwrite the kernel.
-                if (region->start < heap_addr && heap_addr <= region->end) {
+            } else if (region.type == hal::memory::region_type::available) {
+                uintptr_t address = static_cast<uintptr_t>(region.start);
+                // Check we're not about to overwrite static kernel memory.
+                if (region.start < heap_addr && heap_addr <= region.end) {
                     address = heap_addr;
                 }
                 // Page align the address.
                 MAKE_PAGE_ALIGNED(address);
                 // Make sure we can still fit the heap into this region.
-                if (address + size <= region->end) {
-                    // The static allocator will continue allocating at the end of the kernel heap. This could result in
-                    // writing into reserved memory and screwing something up, like ACPI structures or the user's hard drive
-                    // This requires redesigning the memory manager somewhat so we'll add it to the to-do list (FIXME).
+                if (address + size <= region.end) {
+                    // FIXME: The static allocator will continue allocating at the end of the kernel heap. This could
+                    // result in writing into reserved memory and screwing something up, like ACPI structures or the
+                    // user's hard drive. This requires redesigning the memory manager somewhat so we'll add it to the
+                    // to-do list.
                     heap_addr = address + size;
                     return address;
                 }
-            } else if (region->type == MEMORY_TYPE_RECLAIMABLE) {
-                printk(PRINTK_DEBUG "Reclaimable memory: <start=0x%llX,end=0x%llX>\n", region->start, region->end);
+            } else if (region.type == hal::memory::region_type::reclaimable) {
+                printk(PRINTK_DEBUG "Reclaimable memory: <start=0x%qX,end=0x%qX>\n", region.start, region.end);
             }
-        } while ((region = region->next) != nullptr);
+        }
         panic("no memory region large enough for kernel heap (%lluK)", size/1024);
     }
 
-    int32_t heap::get_smallest_hole(size_t size, alignment align) const
+    int32_t heap::get_smallest_hole(size_t size,  align) const
     {
         for (uint32_t i = 0, j = m_blocklist.size(); i < j; ++i) {
             blockheader* header = m_blocklist[i];
@@ -354,7 +360,7 @@ namespace libk { namespace mem {
         return header;
     }
 
-    void* heap::create_hole_and_alloc(size_t alloc_size, alignment align)
+    void* heap::create_hole_and_alloc(size_t alloc_size,  align)
     {
         // Expand the heap.
         const size_t old_end    = address() + m_size;
@@ -369,7 +375,7 @@ namespace libk { namespace mem {
         return allocate(alloc_size, page_align);
     }
 
-    blockheader* heap::alloc_with_hole(int32_t hole, size_t alloc_size, alignment align)
+    blockheader* heap::alloc_with_hole(int32_t hole, size_t alloc_size,  align)
     {
         DEBUG_ASSERT(hole >= 0);
         blockheader* original_header = m_blocklist[hole];
@@ -383,7 +389,7 @@ namespace libk { namespace mem {
             alloc_size += original_size - block_size;
             block_size = alloc_size + MINIMUM_BLOCK_SIZE;
         }
-        if (align == alignment::page && !(IS_PAGE_ALIGNED(original_addr))) {
+        if (align == ::page && !(IS_PAGE_ALIGNED(original_addr))) {
             // If address needs to be aligned, page-align it and create a new hole in front.
             const size_t       adjusted_size = PAGE_SIZE - (original_addr & 0xFFF) - sizeof(blockheader);
             const uintptr_t    new_addr      = original_addr + adjusted_size;
@@ -491,4 +497,4 @@ namespace libk { namespace mem {
         DEBUG_ASSERT(*pfooter != nullptr);
         return unify_left(pheader, *pfooter) | unify_right(*pheader, pfooter);
     }
-}}
+}}} // redshift::hal::memory_detail

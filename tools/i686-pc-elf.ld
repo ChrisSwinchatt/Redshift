@@ -5,7 +5,6 @@ SECTIONS
     . = 1M;
     __kernel_start__ = .;
     .text BLOCK(4K) : ALIGN(4K) {
-        __code_start__ = .;
         *(.multiboot2)
         __code_start__ = .;
         *(.init)
@@ -30,8 +29,12 @@ SECTIONS
         __rodata_end__ = .;
     }
     .eh_frame BLOCK(4K) : ALIGN(4K) {
+        start_eh_frame = .;
+        __eh_frame_start__ = .;
         *(.eh_frame)
         *(.gnu.linkonce.e*)
+        QUAD(0)
+        __eh_frame_end__ = .;
     }
     .bss BLOCK(4K) : ALIGN(4K) {
         __bss_start__ = .;

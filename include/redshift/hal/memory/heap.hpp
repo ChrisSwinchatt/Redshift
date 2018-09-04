@@ -17,14 +17,14 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_MEM_HEAP_HPP
-#define REDSHIFT_MEM_HEAP_HPP
+#ifndef REDSHIFT_HAL_MEMORY_HEAP_HPP
+#define REDSHIFT_HAL_MEMORY_HEAP_HPP
 
 #include <libk/sorted_array.hpp>
+#include <redshift/hal/memory/common.hpp>
 #include <redshift/kernel.hpp>
-#include <redshift/mem/common.hpp>
 
-namespace redshift { namespace mem {
+namespace redshift { namespace hal { namespace memory_detail {
     /// Heap.
     class heap {
     public:
@@ -34,6 +34,12 @@ namespace redshift { namespace mem {
             user_mode  = 1 << 0, ///< Make user-mode heap.
             writeable  = 1 << 1  ///< Make heap writeable.
         );
+
+        /// Kernel heap.
+        static heap* kernel_heap; // heap.cpp
+
+        /// Create kernel heap.
+        static void init();
 
         /// Create a heap.
         /// \param start The start address of the heap.
@@ -96,7 +102,7 @@ namespace redshift { namespace mem {
     protected:
         heap(uintptr_t start, size_t init_size, size_t max_size, size_t min_size, flags_t flags);
     private:
-        SCOPED_ENUM(block_flags : uint32_t,
+        SCOPED_ENUM(block_flags,
             available = 0,
             allocated = 1 << 0
         );
@@ -137,12 +143,12 @@ namespace redshift { namespace mem {
             // Construct in place.
             static blockfooter* place(blockheader* header_);
 
-            blockfooter(blockheader* header_);
+            explicit blockfooter(blockheader* header_);
 
             uintptr_t end_address() const;
         };
 
-        using blocklist_t = sorted_array<blockheader>;
+        using blocklist_t = ::libk::sorted_array<blockheader>;
 
         static constexpr uint32_t BLOCK_MAGIC    = 0x600DB10CUL;
         static constexpr uint32_t BLOCK_INVALID  = 0xBAADB10CUL;
@@ -194,6 +200,6 @@ namespace redshift { namespace mem {
         // if neither.
         int unify_holes(blockheader** pheader, blockfooter** pfooter);
     };
-}} // redshift::mem
+}}} // redshift::mem
 
-#endif // ! REDSHIFT_MEM_HEAP_HPP
+#endif // ! REDSHIFT_HAL_MEMORY_HEAP_HPP

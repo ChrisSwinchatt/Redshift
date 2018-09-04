@@ -17,8 +17,8 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_LIBK_MEMORY_FILL_H
-#define REDSHIFT_LIBK_MEMORY_FILL_H
+#ifndef REDSHIFT_LIBK_MEMORY_FILL_HPP
+#define REDSHIFT_LIBK_MEMORY_FILL_HPP
 
 #include <libk/macro.hpp>
 #include <libk/types.hpp>
@@ -74,4 +74,4 @@ static inline void kfill8(uint8_t* ptr, uint8_t value, size_t n)
     }
 }
 
-#endif // ! REDSHIFT_LIBK_MEMORY_FILL_H
+#endif // ! REDSHIFT_LIBK_MEMORY_FILL_HPP

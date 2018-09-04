@@ -17,17 +17,25 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_HAL_MEMORY_H
-#define REDSHIFT_HAL_MEMORY_H
+#ifndef REDSHIFT_HAL_MEMORY_HPP
+#define REDSHIFT_HAL_MEMORY_HPP
 
 #include <libk/forward_list.hpp>
 #include <redshift/boot/multiboot2.hpp>
+#include <redshift/hal/memory/common.hpp>
+#include <redshift/hal/memory/heap.hpp>
+#include <redshift/hal/memory/paging.hpp>
+#include <redshift/hal/memory/static.hpp>
 #include <redshift/kernel.hpp>
 
 namespace redshift { namespace hal {
     /// Memory HAL.
     class memory {
     public:
+        using alignment      = memory_detail::alignment;
+        using page_directory = memory_detail::page_directory;
+        using heap           = memory_detail::heap;
+
         /// Memory region type.
         enum class region_type {
             invalid     = MULTIBOOT2_MEMORY_INVALID,     ///< Invalid memory.
@@ -41,15 +49,17 @@ namespace redshift { namespace hal {
             region_type type;  ///< Memory region type.
             uint64_t    start; ///< Memory region start.
             uint64_t    end;   ///< Memory region end.
+
+            uint64_t size() const
+            {
+                return end - start;
+            }
         };
         /// Memory map.
-        using memory_map = forward_list<region>;
+        using memory_map = ::libk::forward_list<region>;
 
         /// Initialise from multiboot tag list.
-        static void init(multiboot2_tag* mb_tags);
-
-        /// Initialise the memory map. The static memory allocator must be up and running before calling this.
-        static void init_memory_map(multiboot2_tag* mb_tags);
+        static void init(const multiboot2_tag* mb_tags);
 
         /// Get a const reference to the memory map.
         /// \return A const reference to the memory map.
@@ -65,16 +75,20 @@ namespace redshift { namespace hal {
 
         /// Get the total size of memory in kiB.
         /// \return The total size of memory in kiB.
-        static size_t size_total();
+        static size_t total_size();
     private:
         static memory_map m_map;
         static size_t     m_size_lower;
         static size_t     m_size_upper;
 
+        static void get_memory_size(const multiboot2_tag* mb_tags);
+
+        static void init_memory_map(const multiboot2_tag* mb_tags);
+
         static bool memory_map_ascending_order_predicate(region* a, region* b);
 
-        static region_type multiboot2_memory_type_to_region_type(multiboot2m_memory_type_t type);
+        static region_type multiboot2_memory_type_to_region_type(multiboot2_memory_type_t type);
     };
-}}} // redshift::hal
+}} // redshift::hal
 
-#endif // ! REDSHIFT_HAL_MEMORY_H
+#endif // ! REDSHIFT_HAL_MEMORY_HPP
