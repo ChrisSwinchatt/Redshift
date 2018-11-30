@@ -171,10 +171,14 @@ function get_package
     fi
 }
 
+# Indicates whether a process with the given PID exists.
+# Args:
+#  1. The PID of the process.
+# Returns: 0 if the process exists, otherwise non-zero.
 function process_exists
 {
     local pid="$1"
-    call kill -0 $pid #2>/dev/null
+    call kill -0 $pid 2>/dev/null
     return $?
 }
 
