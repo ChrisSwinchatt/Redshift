@@ -13,7 +13,7 @@ prefix="${HOME}/opt/cross"                                              # Instal
 bin_dl=0                                                                # Whether to download binutils.
 bin_build=0                                                             # Whether to build binutils.
 bin_name="binutils"                                                     # Binutils name.
-bin_ver="2.24"                                                          # Binutils version.
+bin_ver="2.31.1"                                                        # Binutils version.
 bin_ext="tar.gz"                                                        # Binutils file extension.
 bin_targ="all install"                                                  # Binutils makefile targets.
 bin_opt="--disable-nls --disable-werror --with-sysroot"                 # Binutils configure options.
@@ -22,7 +22,7 @@ bin_opt="--disable-nls --disable-werror --with-sysroot"                 # Binuti
 gcc_dl=0                                                                # Whether to download GCC.
 gcc_build=0                                                             # Whether to build GCC.
 gcc_name="gcc"                                                          # GCC name.
-gcc_ver="4.9.2"                                                         # GCC version.
+gcc_ver="6.5.0"                                                         # GCC version.
 gcc_ext="tar.gz"                                                        # GCC file extension.
 gcc_targ="all-gcc all-target-libgcc install-gcc install-target-libgcc"  # GCC makefile targets.
 gcc_lang="c,c++"                                                        # GCC languages.
@@ -213,6 +213,10 @@ function extract
             ;;
         *.tar.bz2|*.tbz)
             # Extract with tar and bzip2.
+            cmd="tar --checkpoint=.100 -xjf"
+            ;;
+        *.tar.xz|*.txz)
+            # Extract with tar and xz.
             cmd="tar --checkpoint=.100 -xJf"
             ;;
         *.tar)
@@ -226,8 +230,14 @@ function extract
         *.)
             # Directory: do nothing.
             ;;
-        *)               
-        die "Unsupported file format $filename" ;; # Unknown archive: give up.
+        *)
+            # Unknown archive format: give up.
+            #
+            # Format note:
+            #
+            # `tar -xf` would generally be able to work out compression
+            # scheme from archive format and is enabled by default.
+            die "Unsupported file format $filename" ;;
     esac
     if [[ "x$cmd" != "x" ]]; then
         say  "Extracting archive..."
