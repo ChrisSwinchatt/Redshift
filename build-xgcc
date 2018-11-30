@@ -41,7 +41,7 @@ gcc_build=0
 # GCC name.
 gcc_name="gcc"
 # GCC version.
-gcc_ver="8.2.0"
+gcc_ver="6.5.0"
 # GCC file extension.
 gcc_ext="tar.gz"
 # GCC makefile targets.
@@ -193,7 +193,11 @@ function extract
             ;;
         *.tar.bz2|*.tbz)
             # Extract with tar and bzip2.
-            cmd="tar --skip-old-files --checkpoint=.100 -xJf"
+            cmd="tar --skip-old-files --checkpoint=.100 -xjf"
+            ;;
+        *.tar.xz|*.txz)
+            # Extract with tar and xz.
+            cmd="tar ---skip-old-files -checkpoint=.100 -xJf"
             ;;
         *.tar)
             # Extract with just tar.
@@ -207,7 +211,13 @@ function extract
             # Directory: do nothing.
             ;;
         *)
-            die "Unsupported file format $filename" ;; # Unknown archive: give up.
+            # Unknown archive format: give up.
+            #
+            # Format note:
+            #
+            # `tar -xf` would generally be able to work out compression
+            # scheme from archive format and is enabled by default.
+            die "Unsupported file format $filename" ;;
     esac
     if [[ "x$cmd" != "x" ]]; then
         say  "Extracting archive..."
