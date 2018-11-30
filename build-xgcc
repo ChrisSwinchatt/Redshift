@@ -187,22 +187,6 @@ function extract
     local filename="$1"
     local cmd=
     case "$filename" in
-        *.tar.gz|*.tgz)
-            # Extract with tar and gzip.
-            cmd="tar --skip-old-files --checkpoint=.100 -xzf"
-            ;;
-        *.tar.bz2|*.tbz)
-            # Extract with tar and bzip2.
-            cmd="tar --skip-old-files --checkpoint=.100 -xjf"
-            ;;
-        *.tar.xz|*.txz)
-            # Extract with tar and xz.
-            cmd="tar ---skip-old-files -checkpoint=.100 -xJf"
-            ;;
-        *.tar)
-            # Extract with just tar.
-            cmd="tar --skip-old-files --checkpoint=.100 -xf"
-            ;;
         *.7z)
             # Extract with p7zip.
             cmd="p7zip -d"
@@ -211,17 +195,15 @@ function extract
             # Directory: do nothing.
             ;;
         *)
-            # Unknown archive format: give up.
-            #
-            # Format note:
-            #
-            # `tar -xf` would generally be able to work out compression
-            # scheme from archive format and is enabled by default.
+            # Unknown format, let tar try to figure out the format.
+            cmd="tar --skip-old-files --checkpoint=.100 -xf"
             die "Unsupported file format $filename" ;;
     esac
     if [[ "x$cmd" != "x" ]]; then
         say  "Extracting archive..."
+        set -e
         call $cmd "$filename"
+        set +e
         echo
     fi
 }
