@@ -25,7 +25,7 @@ bin_build=0
 # Binutils name.
 bin_name="binutils"
 # Binutils version.
-bin_ver="2.29.1"
+bin_ver="2.30"
 # Binutils file extension.
 bin_ext="tar.gz"
 # Binutils makefile targets.
@@ -41,7 +41,7 @@ gcc_build=0
 # GCC name.
 gcc_name="gcc"
 # GCC version.
-gcc_ver="7.2.0"
+gcc_ver="6.5.0"
 # GCC file extension.
 gcc_ext="tar.gz"
 # GCC makefile targets.
