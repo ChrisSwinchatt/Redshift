@@ -3,7 +3,7 @@
 #
 
 # Set the architecture & target triplet. We always target $(ARCH)-pc-elf but ARCH can be i686 or x86_64.
-DEFAULT_ARCH          := i686
+DEFAULT_ARCH := i686
 
 ifeq ($(ARCH),)
 ARCH := $(DEFAULT_ARCH)
@@ -45,10 +45,10 @@ endif
 INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
-export CXX            := clang++
-export CXFLAGS        := -target "$(TARGET)" -Wall -Wextra -Werror -std=c++14 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
-                         -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES)
-export LDFLAGS        := -Ttools/$(TARGET).ld -nostdlib -L$(LIB_DIR)
+export CXX            := $(TARGET)-g++
+export CXFLAGS        := -Wall -Wextra -Werror -std=c++14 -O2 -ffreestanding -fstack-protector-all \
+						 -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES)
+export LDFLAGS        := -Ttools/$(TARGET).ld -L$(LIB_DIR)
 
 # Source/object files. We do CRT* separately because the link order is important.
 CRTI                  := $(ARCH_DIR)/abi/crti.o
