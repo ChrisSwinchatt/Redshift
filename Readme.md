@@ -1,10 +1,5 @@
-# Redshift
+# XGCC
 
-## About
-Redshift is an operating system kernel targeting i686 and written primarily in C and assembly.
+## Description
 
-## Copying
-This project is distributed under the terms of the MIT/X11 License as laid out in the file `Copyright.md`.
-
-## Documentation
-Documentation can be found in the `doc` directory. Doxygen source code documentation can be generated with the command `make doc` or `doxygen Doxyfile`.
+Build-XGCC is a script for building a cross-compiler with GCC which targets arbitrary systems.
