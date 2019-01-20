@@ -17,13 +17,13 @@
 /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
-#ifndef REDSHIFT_LIBK_PAIR_HPP
-#define REDSHIFT_LIBK_PAIR_HPP
+#ifndef REDSHIFT_LIBK_KEY_VALUE_PAIR_HPP
+#define REDSHIFT_LIBK_KEY_VALUE_PAIR_HPP
 
 namespace libk {
     /// Key/value pair.
     template <typename TKey, typename TValue>
-    struct pair {
+    struct key_value_pair {
         using key_type   = T1;
         using value_type = T2;
 
@@ -35,7 +35,7 @@ namespace libk {
         /// Construct from key and value.
         /// \param key_ The key.
         /// \param value_ The value.
-        constexpr pair(const key_type& key_, const value_type& value_)
+        constexpr key_value_pair(const key_type& key_, const value_type& value_)
         : m_key(key_)
         , m_value(value_)
         {
@@ -44,4 +44,4 @@ namespace libk {
     };
 }
 
-#endif // ! REDSHIFT_LIBK_PAIR_HPP
+#endif // ! REDSHIFT_LIBK_KEY_VALUE_PAIR_HPP

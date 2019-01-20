@@ -83,7 +83,6 @@ namespace redshift { namespace hal { namespace cpu_ {
         set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
         set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
         load((uint32_t)&pidt);
-
     }
 
     void idt::set_gate(uint8_t i, uint32_t base, uint16_t selector, uint8_t flags)
