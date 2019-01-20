@@ -20,10 +20,10 @@
 #ifndef REDSHIFT_LIBK_TYPES_HPP
 #define REDSHIFT_LIBK_TYPES_HPP
 
-#include <initializer_list>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <limits>
 #include <type_traits>
 

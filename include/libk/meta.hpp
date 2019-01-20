@@ -23,7 +23,7 @@
 #include <libk/macro.hpp>
 #include <libk/types.hpp>
 
-namespace libk {
+namespace libk { namespace meta {
     /// Get the size of an array if known at compile-time.
     template <typename T, size_t S>
     constexpr size_t array_size(const T(& array)[S])
@@ -53,6 +53,6 @@ namespace libk {
 
     template <intmax_t Value>
     using log10 = log<Value, 10>;
-}
+}} // libk::meta
 
 #endif // ! REDSHIFT_LIBK_META_HPP

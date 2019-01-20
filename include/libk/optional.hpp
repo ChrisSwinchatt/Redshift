@@ -75,7 +75,7 @@ namespace libk {
     private:
         T         m_tmp;
         reference m_ref;
-        bool     m_present;
+        bool      m_present;
     };
 }
 

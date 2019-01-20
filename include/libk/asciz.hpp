@@ -139,6 +139,6 @@ namespace libk { namespace asciz {
     /// \return A newly-allocated string which is identical to the original.
     /// \note Destination buffer is always zero-terminated.
     char* duplicate(const char* s);
-}} // libk::const char*
+}} // libk::asciz
 
 #endif // ! REDSHIFT_LIBK_ASCIZ_HPP
