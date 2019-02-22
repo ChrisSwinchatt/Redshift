@@ -34,7 +34,7 @@ export LIB_DIR        := $(OUTPUT_DIR)/lib
 
 # Toolchain flags.
 DEFINES               := -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"                                  \
-                         -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\"" -DARCH="\"$(ARCH)\""
+                         -DVERSION_MINOR="$(VERSION_MINOR)" -DVERSION_STR="\"$(KERNEL_VERSION)\"" -DARCH="\"$(ARCH)\""
 
 ifeq ($(DEBUG),0)
 DEFINES += -DNDEBUG
@@ -45,7 +45,7 @@ endif
 INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
-export CXX            := $(TARGET)-g++
+export CXX            := g++
 export CXFLAGS        := -Wall -Wextra -Werror -std=c++14 -O2 -ffreestanding -fstack-protector-all \
 						 -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES)
 export LDFLAGS        := -Ttools/$(TARGET).ld -L$(LIB_DIR)
