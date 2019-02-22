@@ -32,31 +32,24 @@ namespace libk {
         using size_type       = size_t;
         using value_type      = T;
         using reference       = value_type&;
-        using const_reference = const reference;
+        using const_reference = const value_type&;
         using pointer         = value_type*;
-        using const_pointer   = const pointer;
+        using const_pointer   = const value_type*;
 
         /// Default constructor.
         array() = default;
 
         /// Constant constructor.
-        constexpr array(const_reference buffer[S])
+        constexpr array(const value_type(& buffer)[S])
         : m_buffer(buffer)
         {
             // Do nothing.
         }
 
-        constexpr array(const initializer_list& init)
+        constexpr array(const initializer_list<T>& init)
         : m_buffer(&init[0])
         {
             static_assert(S == init.size(), "Invalid size of initializer_list");
-        }
-
-        /// Construct from initial array.
-        /// \param buffer The initial array.
-        array(const_reference buffer[S])
-        {
-            memory::copy(m_buffer, buffer, S);
         }
 
         /// Construct from initial value.

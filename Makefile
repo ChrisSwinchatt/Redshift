@@ -46,7 +46,7 @@ INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
 export CXX            := g++
-export CXFLAGS        := -Wall -Wextra -Werror -std=c++14 -O2 -ffreestanding -fstack-protector-all \
+export CXFLAGS        := -Wall -Wextra -Werror -std=gnu++17 -O2 -ffreestanding -fstack-protector-all -march=i686 -m32 \
 						 -fno-omit-frame-pointer -fno-exceptions -fno-rtti $(INCLUDES) $(DEFINES)
 export LDFLAGS        := -Ttools/$(TARGET).ld -L$(LIB_DIR)
 

@@ -31,14 +31,14 @@ namespace libk {
     public:
         using value_type      = T;
         using pointer         = T*;
-        using const_pointer   = const pointer;
+        using const_pointer   = const value_type*;
         using reference       = T&;
-        using const_reference = const reference;
+        using const_reference = const value_type&;
 
         /// Construct an empty unique_ptr.
         constexpr unique_ptr() noexcept
         : m_ptr(nullptr)
-        , m_deleter(delete)
+        , m_deleter(operator delete)
         {
             // Do nothing.
         }
@@ -46,7 +46,7 @@ namespace libk {
         /// Construct an empty unique_ptr.
         constexpr unique_ptr(nullptr_t) noexcept
         : m_ptr(nullptr)
-        , m_deleter(delete)
+        , m_deleter(operator delete)
         {
             // Do nothing.
         }
@@ -54,7 +54,7 @@ namespace libk {
         /// Construct from pointer, using operator delete.
         explicit unique_ptr(pointer ptr)
         : m_ptr(ptr)
-        , m_deleter(delete)
+        , m_deleter(operator delete)
         {
             // Do nothing.
         }

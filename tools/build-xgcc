@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Build a GCC cross compiler with binutils.
 
 ########################################################################################################################
@@ -25,7 +27,7 @@ bin_build=0
 # Binutils name.
 bin_name="binutils"
 # Binutils version.
-bin_ver="2.31.1"
+bin_ver="latest"
 # Binutils file extension.
 bin_ext="tar.gz"
 # Binutils makefile targets.
@@ -41,19 +43,21 @@ gcc_build=0
 # GCC name.
 gcc_name="gcc"
 # GCC version.
-gcc_ver="6.5.0"
+gcc_ver="latest"
 # GCC file extension.
 gcc_ext="tar.gz"
 # GCC makefile targets.
-gcc_targ="all-gcc all-target-libgcc install-gcc install-target-libgcc"
+gcc_targ="all-gcc all-target-libgcc install-gcc install-target-libgcc all-target-libstdc++-v3 install-target-libstdc++-v3"
 # GCC languages.
 gcc_lang="c,c++"
 # GCC configure options.
-gcc_opt="--disable-nls --disable-werror --without-headers"
+gcc_opt="--disable-nls --disable-werror --without-headers --disable-hosted-libstdcxx"
 
 ## Other command-line options.
 # Whether to force running ./configure
 force_conf=0
+# Whether to install gcc prerequisites (mpc, mpfr, gmp)
+no_prereqs=0
 
 ########################################################################################################################
 # FUNCTIONS.                                                                                                           #
@@ -64,15 +68,7 @@ force_conf=0
 #  1. The message to print.
 function say
 {
-    echo -e ">> $1"
-}
-
-# Print an error message
-# Args:
-#  1. The error message to print.
-function saye
-{
-    say "$1" >&2
+    echo -e ">> $1" >&2
 }
 
 # Print an error message and quit.
@@ -80,7 +76,7 @@ function saye
 #  1. The error message to print.
 function die
 {
-    saye "$1"
+    say "$1"
     exit 1
 }
 
@@ -109,6 +105,7 @@ Options:
     --gcc-lang <list>   Set the language targets for GCC. Default: ${gcc_lang}
     --gcc-opt <list>    Set the configure options for GCC. Default: ${gcc_opt}
     --force-conf        Force-run ./configure (applies to binutils and GCC)
+    --gcc-prereqs       Don't install the GCC prerequisites
 Note: if any one of --{bin,gcc}-{dl,build} is passed, it implicitly disables the other three. By default, all four are enabled.
 Enable the ones you want explicitly.
 EOF
@@ -131,7 +128,7 @@ function die_usage
 # Call a command. If $dry != 0, echo the command instead.
 # Args:
 #  1. The command to run.
-#  ... Any arguments to the ecommand.
+#  ... Any arguments to the command.
 function call
 {
     local cmd="$1"
@@ -142,8 +139,49 @@ function call
             die "Command failed: ${cmd} $*"
         fi
     else
-        echo " * ${cmd} $*"
+        echo " $ ${cmd} $*"
     fi
+}
+
+
+# Find the highest semantic version from input.
+# Input:
+#   Semantic versions, one per line.
+# Output:
+#   The highest semantic version.
+function highest_semver {
+    grep --color=never -Pio "\K(?:\d+\.)(?:\d+\.)(?:\*|\d+)" | sort -Vr | head -n 1
+}
+
+# Find the latest version of a package.
+# Args:
+#  1. Base URL for packages.
+# Output:
+#  The highest semantic version.
+function get_latest_version {
+    call curl -sLk "${1}" | highest_semver
+}
+
+# Build once of the GCC prerequisites.
+function build_prerequisite {
+    local dir=$(find -type d -name "${1}-*" | highest_semver)
+    call pushd "${1}-${dir}"
+    call ./configure
+    call make
+    call sudo make install
+    call popd
+}
+
+# Acquire, build and install the GCC prerequisites.
+# Args:
+#  1. The gcc source tree.
+function build_gcc_prerequisites {
+    call pushd "${1}"
+    call "./contrib/download_prerequisites"
+    #build_prerequisite "mpfr"
+    #build_prerequisite "mpc"
+    #build_prerequisite "gmp"
+    call popd
 }
 
 # Download a package.
@@ -152,6 +190,8 @@ function call
 #  2. package version
 #  3. file extension
 #  4. package URL (if ends with /, "$name-$version.$ext" is appended)
+# Output:
+#  The actual version downloaded.
 function get_package
 {
     [[ $# -lt 4 ]] && die "$FUNCNAME: Not enough arguments: got $# expected 4"
@@ -159,6 +199,12 @@ function get_package
     local version="$2"
     local ext="$3"
     local url="$4"
+
+    if [[ "${version}" = "" ]] || [[ "${version}" = "latest" ]]; then
+        version=$(get_latest_version "${url}")
+        say "${name} version not set, selecting latest version ${version}"
+    fi
+
     local filename="${name}-${version}.${ext}"
     if [[ "${url}" = */ ]]; then
         url="${url}${filename}"
@@ -169,17 +215,8 @@ function get_package
         say "Downloading ${name}..."
         call wget "${url}"
     fi
-}
 
-# Indicates whether a process with the given PID exists.
-# Args:
-#  1. The PID of the process.
-# Returns: 0 if the process exists, otherwise non-zero.
-function process_exists
-{
-    local pid="$1"
-    call kill -0 $pid 2>/dev/null
-    return $?
+    echo "${version}"
 }
 
 # Extract a tarball with gzip or bzip2.
@@ -199,9 +236,9 @@ function extract
             # Directory: do nothing.
             ;;
         *)
-            # Unknown format, let tar try to figure out the format.
+            # Let tar try to figure out the format.
             cmd="tar --skip-old-files --checkpoint=.100 -xf"
-            die "Unsupported file format $filename" ;;
+            ;;
     esac
     if [[ "x$cmd" != "x" ]]; then
         say  "Extracting archive..."
@@ -235,6 +272,8 @@ function build_package
     local extract_dir="${name}-${version}"
     # Extract package.
     extract "${filename}"
+    # Build prerequisites if package is gcc.
+    [[ "${name}" = "gcc" ]] && [[ "${no_prereqs}" -ne 0 ]] && build_gcc_prerequisites "${extract_dir}"
     # Build it.
     say "Building ${name}..."
     local build_dir="build-${name}-${version}"
@@ -254,7 +293,7 @@ function build_package
 function get_binutils
 {
     say "Starting download (binutils)..."
-    get_package "${bin_name}" "${bin_ver}" "${bin_ext}" "${url_base}/${bin_name}/"
+    bin_ver=$(get_package "${bin_name}" "${bin_ver}" "${bin_ext}" "${url_base}/${bin_name}/")
 }
 
 # Build binutils.
@@ -275,7 +314,7 @@ function do_binutils
 function get_gcc
 {
     say "Starting download (gcc)..."
-    get_package "${gcc_name}" "${gcc_ver}" "${gcc_ext}" "${url_base}/${gcc_name}/${gcc_name}-${gcc_ver}/"
+    gcc_ver=$(get_package "${gcc_name}" "${gcc_ver}" "${gcc_ext}" "${url_base}/${gcc_name}/${gcc_name}-${gcc_ver}/")
 }
 
 # Build gcc.
@@ -323,13 +362,14 @@ while [[ $# -gt 0 ]]; do
         --gcc-lang)   gcc_lang=$2  ; shift ;;
         --gcc-opt)    gcc_opt=$2   ; shift ;;
         --force-conf) force_conf=1         ;;
-        *)            target=$1    ; shift ;;
+        --no-prereqs) no_prereqs=1         ;;
+        *)            target=$1            ;;
     esac
     shift
 done
 
 if [[ "x$target" = "x" ]]; then
-    saye "No target triplet provided"
+    say "No target triplet provided"
     die_usage
 fi
 

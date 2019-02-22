@@ -32,11 +32,11 @@ namespace libk {
         using size_type       = size_t;
         using value_type      = T;
         using pointer         = T*;
-        using const_pointer   = const pointer;
+        using const_pointer   = const value_type*;
         using reference       = value_type&;
-        using const_reference = const reference;
+        using const_reference = const value_type&;
         using iterator        = pointer;
-        using const_iterator  = const iterator;
+        using const_iterator  = const_pointer;
 
         /// Construct empty vector.
         vector() = default;
@@ -46,9 +46,8 @@ namespace libk {
         , m_size(init.size())
         , m_capacity(init.size())
         {
-            static_assert(init.size() == S, "Invalid size of initializer_list");
             memory::copy(
-                reinterpret_cast<void*>(m_buffer),
+                reinterpret_cast<void*>(m_data),
                 reinterpret_cast<const void*>(&init[0]),
                 m_size
             );
@@ -97,7 +96,7 @@ namespace libk {
         , m_capacity(size)
         {
             memory::copy(
-                reinterpret_cast<void*>(m_buffer),
+                reinterpret_cast<void*>(m_data),
                 reinterpret_cast<const void*>(data),
                 m_size
             );
@@ -182,7 +181,7 @@ namespace libk {
         /// \param value The value to append.
         void append(const_reference value)
         {
-            if (m_size < capacity) {
+            if (m_size < capacity()) {
                 m_data[m_size] = value;
             } else {
                 resize(m_size + 1);

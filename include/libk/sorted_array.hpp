@@ -47,9 +47,9 @@ namespace libk {
         using size_type       = size_t;
         using value_type      = T;
         using reference       = value_type&;
-        using const_reference = const reference;
+        using const_reference = const value_type&;
         using pointer         = value_type*;
-        using const_pointer   = const pointer;
+        using const_pointer   = const value_type*;
 
         typedef bool(* predicate_type)(const_reference, const_reference);
 
@@ -65,12 +65,13 @@ namespace libk {
         /// \param [flags] Optional flags.
         /// \param [predicate] The order predicate. Defaults to ascending order.
         explicit sorted_array(
-            size_type       capacity,
-            flags           flags_   = flags::static_,
+            size_type      capacity_,
+            flags          flags_    = flags::static_,
             predicate_type predicate = ascending_order_predicate<T>
         )
-        : m_array(new value_type[size])
-        , m_count(size)
+        : m_array(new value_type[capacity_])
+        , m_count(0)
+        , m_capacity(capacity_)
         , m_flags(flags_)
         , m_predicate(predicate)
         {
@@ -89,7 +90,7 @@ namespace libk {
             predicate_type predicate = ascending_order_predicate<T>
         )
         : m_array(address)
-        , m_count(size)
+        , m_capacity(capacity)
         , m_flags(flags_)
         , m_predicate(predicate)
         {

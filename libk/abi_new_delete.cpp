@@ -21,33 +21,33 @@
 #include <libk/macro.hpp>
 #include <libk/types.hpp>
 
-void* operator new(size_t size)
+void* operator new(size_t size) noexcept
 {
     return libk_extern::dynamic_allocate(size);
 }
 
-void* operator new[](size_t size)
+void* operator new[](size_t size) noexcept
 {
     return libk_extern::dynamic_allocate(size);
 }
 
-void operator delete(void* ptr)
+void operator delete(void* ptr) noexcept
 {
     return libk_extern::dynamic_free(ptr);
 }
 
-void operator delete[](void* ptr)
+void operator delete[](void* ptr) noexcept
 {
     return libk_extern::dynamic_free(ptr);
 }
 
-void operator delete(void* ptr, size_t size)
+void operator delete(void* ptr, size_t size) noexcept
 {
     UNUSED(size);
     return libk_extern::dynamic_free(ptr);
 }
 
-void operator delete[](void* ptr, size_t size)
+void operator delete[](void* ptr, size_t size) noexcept
 {
     UNUSED(size);
     return libk_extern::dynamic_free(ptr);

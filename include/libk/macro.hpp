@@ -94,6 +94,9 @@
 /// Mark a function as non-reentrant.
 #define __non_reentrant
 
+/// Mark a class as abstract.
+#define __abstract
+
 /// Mark a function as a constructor. Constructors are called in sequence during boot, before the scheduler is started.
 /// \param PRIORITY Controls the order in which constructors are called (smallest first).
 #define __init(PRIORITY)            __attribute__((constructor(PRIORITY)))

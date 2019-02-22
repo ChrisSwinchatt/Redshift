@@ -31,9 +31,9 @@ namespace libk {
         using value_type      = T;
         using size_type       = size_t;
         using reference       = value_type&;
-        using const_reference = const reference;
+        using const_reference = const value_type&;
         using pointer         = value_type*;
-        using const_pointer   = const pointer;
+        using const_pointer   = const value_type*;
 
         /// Flags.
         enum class flags {
@@ -209,6 +209,11 @@ namespace libk {
             return m_size;
         }
 
+        bool empty() const
+        {
+            return m_size == 0;
+        }
+
         /// Get a const reference to the data contained in the head element.
         /// \return A const reference to the data contained in the head element.
         const_reference head() const
@@ -223,11 +228,28 @@ namespace libk {
             return m_head->data;
         }
 
+        const_reference last() const
+        {
+            auto tail_ = tail();
+            while (true) {
+                auto next = tail_->tail();
+                if (next == nullptr)
+                {
+                    return tail_->data;
+                }
+            }
+        }
+
+        reference last()
+        {
+            return const_cast<reference>(last());
+        }
+
         /// Get a list of the tail elements of the list, i.e. everything except the head element.
         /// \return A list of the tail elements of the list.
         const forward_list* tail() const
         {
-            forward_list* list = new_list(flags::dynamic | flags::duplicate);
+            auto list = new_list(flags::dynamic | flags::duplicate);
             list->m_head = m_head->next;
             list->m_last = m_last;
             list->m_size = m_size - 1;

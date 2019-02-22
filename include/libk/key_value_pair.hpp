@@ -24,11 +24,12 @@ namespace libk {
     /// Key/value pair.
     template <typename TKey, typename TValue>
     struct key_value_pair {
-        using key_type   = T1;
-        using value_type = T2;
+        using key_type   = TKey;
+        using value_type = TValue;
 
         /// The key.
         key_type   key;
+
         /// The value.
         value_type value;
 
@@ -36,8 +37,8 @@ namespace libk {
         /// \param key_ The key.
         /// \param value_ The value.
         constexpr key_value_pair(const key_type& key_, const value_type& value_)
-        : m_key(key_)
-        , m_value(value_)
+        : key(key_)
+        , value(value_)
         {
             // Do nothing.
         }

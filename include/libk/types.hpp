@@ -20,9 +20,9 @@
 #ifndef REDSHIFT_LIBK_TYPES_HPP
 #define REDSHIFT_LIBK_TYPES_HPP
 
-#include <climits>
-#include <cstddef>
-#include <cstdint>
+#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <initializer_list>
 #include <limits>
 #include <type_traits>

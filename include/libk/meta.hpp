@@ -35,7 +35,7 @@ namespace libk { namespace meta {
     /// Metaclass for approximating logarithms at compile-time.
     template <intmax_t Value, intmax_t Base>
     struct log {
-        static constexpr intmax_t value = 1 + log<Value/Base, Base>;
+        static constexpr intmax_t value = 1 + log<Value/Base, Base>::value;
     };
 
     template <intmax_t Base>

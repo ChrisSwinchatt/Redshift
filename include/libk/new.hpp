@@ -20,9 +20,9 @@
 #ifndef REDSHIFT_LIBK_NEW_HPP
 #define REDSHIFT_LIBK_NEW_HPP
 
-inline void* operator new(size_t,     void* ptr) throw() { return ptr; }
-inline void* operator new[](size_t,   void* ptr) throw() { return ptr; }
-inline void operator  delete(void*,   void*)     throw() { };
-inline void operator  delete[](void*, void*)     throw() { };
+inline void* operator new(size_t,     void* ptr) noexcept { return ptr; }
+inline void* operator new[](size_t,   void* ptr) noexcept { return ptr; }
+inline void operator  delete(void*,   void*)     noexcept { };
+inline void operator  delete[](void*, void*)     noexcept { };
 
 #endif // ! REDSHIFT_LIBK_NEW_HPP

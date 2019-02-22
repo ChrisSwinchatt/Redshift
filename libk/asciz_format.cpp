@@ -316,7 +316,7 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
                 goto out;
             case 'X':
                 flags.hex_upper = 1;
-                FALL_THROUGH;
+                // Fall through.
             case 'x':
                 flags.type_signed = 0;
                 flags.base        = 16;

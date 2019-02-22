@@ -28,32 +28,29 @@
 .type   _start, @function
 _start:
         /* Set up the stack. */
-
         cli
-        mov     esp,                              offset __stack_top__
+        mov     esp,                              __stack_top__
         xor     ebp,                              ebp
-        /* Save bootloader magic number and tags pointer. */
 
+        /* Save bootloader magic number and tags pointer. */
         mov     [__multiboot2_bootloader_magic__], eax
         mov     [__multiboot2_bootloader_tags__],  ebx
+
         /* Call global constructors. */
-
         call    _init
+
         /* Call early main function. */
-
         call    kernel_early_main
-        /* Fall through. */
 
+        /* Fall through. */
 .global _exit
 .type   _exit, @function
 _exit:
         /* Call global destructors. */
-
         call    _fini
         jmp     hang
 
 /* Save multiboot2 magic number and tags. */
-
 .section .data
 .global __multiboot2_bootloader_magic__
 __multiboot2_bootloader_magic__: .long 0
@@ -62,7 +59,6 @@ __multiboot2_bootloader_magic__: .long 0
 __multiboot2_bootloader_tags__:  .long 0
 
 /* 32 kiB stack aligned to 16-bytes per ABI. */
-
 .section .bss
 .align 16
 

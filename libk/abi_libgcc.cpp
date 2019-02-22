@@ -24,7 +24,7 @@ using namespace libk;
 extern "C" {
     void* memset(void* p, int c, size_t n)
     {
-        memory::fill8(p, (uint8_t)c, n);
+        memory::fill(p, (uint8_t)c, n);
         return p;
     }
 

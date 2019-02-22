@@ -47,6 +47,15 @@ namespace libk {
             // Do nothing.
         }
 
+        /// Construct with value.
+        /// \param value A reference to the value.
+        explicit optional(const_reference value)
+        : m_present(true)
+        , m_ref(const_cast<reference>(value))
+        {
+            // Do nothing.
+        }
+
         /// Indicates whether an object is present.
         /// \return True if the object is present, otherwise false.
         bool present() const
