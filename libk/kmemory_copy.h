@@ -28,59 +28,76 @@ enum {
     COPY_BACKWARD = -1
 };
 
-#define KCOPY_TYPE_LIST(F)  \
-    F(64)             \
-    F(32)             \
-    F(16)             \
-    F(8)
+#define COPY(DST, SRC, N, OP) *DST OP = * SRC OP; N--;
 
-#define DEFINE_KCOPY_FUNCTION(X)                                                                        \
-    static inline void kcopy##X(uint##X##_t** pdst, const uint##X##_t** psrc, size_t n, int direction)  \
-    {                                                                                                   \
-        uint##X##_t*       dst = *pdst;                                                                 \
-        const uint##X##_t* src = *psrc;                                                                 \
-        for (; n > 0; --n, src += direction, dst += direction) {                                        \
-            *dst = *src;                                                                                \
-        }                                                                                               \
-        *pdst = dst;                                                                                    \
-        *psrc = src;                                                                                    \
-    }
-
-KCOPY_TYPE_LIST(DEFINE_KCOPY_FUNCTION)
-
-#undef DEFINE_KCOPY_FUNCTION
-#undef KCOPY_TYPE_LIST
-
-static inline void kcopy(char* dst, const char* src, size_t n, int direction)
+static inline void internal_copy_forwards(char* dst, const char* src, size_t n)
 {
-    /* Byte copy to align at 4 bytes.
-     */
-    for (uintptr_t address = (uintptr_t)dst;
-        (address & 3) != 0 && n > 0;
-        address += direction, dst += direction, src += direction, --n)
+    /* Byte copy to align at 8 bytes. */
+    while (n-- && (((uintptr_t)dst) & ~(sizeof(uint64_t) - 1)) && (((uintptr_t)src) & ~(sizeof(uint64_t) - 1)))
     {
-        *dst = *src;
+        COPY(dst, src, n, ++);
     }
-    /* Try to copy 8, 4 and 2 bytes at a time.
-     */
-    if (n >= 8) {
-        n >>= 3;
-        kcopy64((uint64_t**)&dst, (const uint64_t**)&src, n, direction);
-        n &= 7;
+
+    /* Copy 32 bytes at a time as long as possible */
+    uint64_t* dst64 = (uint64_t*)dst;
+    uint64_t* src64 = (uint64_t*)src;
+    while (n > 4)
+    {
+        COPY(dst64, src64, n, ++);
+        COPY(dst64, src64, n, ++);
+        COPY(dst64, src64, n, ++);
+        COPY(dst64, src64, n, ++);
     }
-    if (n >= 4) {
-        n >>= 2;
-        kcopy32((uint32_t**)&dst, (const uint32_t**)&src, n, direction);
-        n &= 3;
+
+    /* Copy 8 bytes at a time as long as possible. */
+    while (n > 0)
+    {
+        COPY(dst64, src64, n, ++);
     }
-    if (n >= 2) {
-        n >>= 1;
-        kcopy16((uint16_t**)&dst, (const uint16_t**)&src, n, direction);
-        n &= 1;
+
+    /* Byte copy remaining bytes. */
+    dst = (char*)dst64;
+    src = (const char*)src64;
+    while (n > 0)
+    {
+        COPY(dst, src, n, ++);
     }
-    /* Byte-copy until the end of the array.
-     */
-    kcopy8((uint8_t**)&dst, (const uint8_t**)&src, n, direction);
+}
+
+static inline void internal_copy_backwards(char* dst, const char* src, size_t n)
+{
+    dst += n;
+    src += n;
+    /* Byte copy to align at 8 bytes. */
+    while (n-- && (((uintptr_t)dst) & ~(sizeof(uint64_t) - 1)) && (((uintptr_t)src) & ~(sizeof(uint64_t) - 1)))
+    {
+        COPY(dst, src, n, --);
+    }
+
+    /* Copy 32 bytes at a time as long as possible */
+    uint64_t* dst64 = (uint64_t*)dst;
+    uint64_t* src64 = (uint64_t*)src;
+    while (n > 4)
+    {
+        COPY(dst64, src64, n, --);
+        COPY(dst64, src64, n, --);
+        COPY(dst64, src64, n, --);
+        COPY(dst64, src64, n, --);
+    }
+
+    /* Copy 8 bytes at a time as long as possible. */
+    while (n > 0)
+    {
+        COPY(dst64, src64, n, --);
+    }
+
+    /* Byte copy remaining bytes. */
+    dst = (char*)dst64;
+    src = (const char*)src64;
+    while (n > 0)
+    {
+        COPY(dst, src, n, --);
+    }
 }
 
 #endif /* ! REDSHIFT_LIBK_KCOPY_H */

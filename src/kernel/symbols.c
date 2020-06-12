@@ -68,8 +68,8 @@ static uintptr_t parse_address(const char* p, const char* q)
 }
 
 enum {
-    ADDRESS_MAX = (2 << sizeof(uintptr_t))/4,
-    NAME_MAX    = 2048
+    ADDRESS_MAX  = (2 << sizeof(uintptr_t))/4,
+    SYM_NAME_MAX = 2048
 };
 
 enum { ADDRESS = 0, SYMBOL = 1 };
@@ -81,7 +81,7 @@ void load_symbol_table(uintptr_t ptr, size_t size)
     symbol_table = ksorted_array_create(MAX_SYMBOLS, KSORTED_ARRAY_STATIC, symbol_order_predicate);
     const  char*   file   = (const char*)ptr;
     char address[ADDRESS_MAX];
-    char name[NAME_MAX];
+    char name[SYM_NAME_MAX];
     size_t line   = 1;
     size_t column = 1;
     int    state  = ADDRESS;

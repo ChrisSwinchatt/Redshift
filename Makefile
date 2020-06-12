@@ -1,7 +1,7 @@
 export VERSION_MAJOR  := 0
 export VERSION_MINOR  := 1
 export ARCH           := i686
-export TARGET         := $(ARCH)-elf
+export TARGET         := $(ARCH)-linux-gnu
 export PREFIX         := $(TARGET)
 export KERNEL_NAME    := redshift
 export KERNEL_VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
@@ -25,8 +25,8 @@ INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/libc -I$(PWD)/include/arch/$(
 
 export AFLAGS         :=
 export CC             := $(PREFIX)-gcc
-export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fstack-protector-all -nostdlib	\
-                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) $(DEBUG)
+export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fno-stack-protector -nostdlib	\
+                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) $(DEBUG) -no-pie
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
 CRTI                  := $(ARCH_DIR)/abi/crti.o
@@ -94,10 +94,10 @@ doc:
 	doxygen Doxyfile
 
 run-qemu:
-	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
+	@export DISPLAY=":0" ; qemu-system-x86_64 -cdrom "$(IMAGE)" -boot d -monitor stdio
 
 debug-qemu:
-	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S &
+	@export DISPLAY=":0" ; qemu-system-x86_64 -cdrom "$(IMAGE)" -boot d -s -S &
 	@gdb -s "$(DEBUG)" -q -ex "target remote localhost:1234" -ex "b hang"
 statistics:
 	@tools/kstats

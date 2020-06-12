@@ -25,11 +25,16 @@
 
 void kmemory_copy(void* dst, const void* src, size_t n)
 {
-    if (dst < src) {
-        kcopy(dst, src, n, COPY_BACKWARD);
-    } else if (dst > src) {
-        kcopy(dst, src, n, COPY_FORWARD);
+    if (dst == src) {
+        return;
     }
+    
+    if (dst < src || dst >= src + n) {
+        internal_copy_forwards(dst, src, n);
+        return;
+    }
+
+    internal_copy_backwards(dst + n, src + n, n);
 }
 
 void kmemory_zero(void* ptr, size_t n)

@@ -59,7 +59,7 @@ struct cpu_state {
  * Get the CPU state.
  * \param state The CPU state.
  */
-static inline void __always_inline get_cpu_state(struct cpu_state* regs)
+__always_inline inline static void get_cpu_state(struct cpu_state* regs)
 {
     kmemory_fill8(regs, 0xCD, sizeof(*regs));
     asm(
@@ -78,7 +78,7 @@ static inline void __always_inline get_cpu_state(struct cpu_state* regs)
          "=m"(regs->edx),
          "=m"(regs->esi),
          "=m"(regs->edi)
-        ::"esp", "memory"
+        ::"memory"
     );
     asm(
         "mov %%ebp, %0\n"
@@ -127,7 +127,7 @@ static inline void __always_inline get_cpu_state(struct cpu_state* regs)
         :"=m"(regs->eflags),
          "=m"(regs->eip),
          "=m"(regs->esp)
-        ::"eax", "esp", "memory"
+        ::"eax", "memory"
     );
 }
 

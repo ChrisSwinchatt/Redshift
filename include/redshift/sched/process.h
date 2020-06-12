@@ -91,7 +91,7 @@ int __non_reentrant get_current_process_id(void);
 /**
  * Yield the timeslice of the current process.
  */
-static inline void __always_inline __non_reentrant process_yield(void)
+__always_inline static inline void __non_reentrant process_yield(void)
 {
     struct cpu_state regs;
     get_cpu_state(&regs);

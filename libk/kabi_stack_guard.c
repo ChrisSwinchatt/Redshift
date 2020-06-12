@@ -33,3 +33,9 @@ void __noreturn __stack_chk_fail(void)
 {
     kextern_abort("*** Stack smashing attempt detected ***");
 }
+
+
+void __noreturn __stack_chk_fail_lock(void)
+{
+    kextern_abort("*** Stack smashing attempt detected ***");
+}

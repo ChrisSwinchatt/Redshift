@@ -1,0 +1,9 @@
+{
+    "C_Cpp.default.includePath": [
+        "P:\\Cygwin\\usr\\include",
+        "include/"
+    ],
+    "files.associations": {
+        "cstddef": "cpp"
+    },
+}
