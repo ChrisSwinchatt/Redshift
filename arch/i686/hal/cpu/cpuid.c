@@ -48,7 +48,7 @@ enum cpuid_regs {
     EDX
 };
 
-extern int cpuid_supported(void); /* cpuid_supported.asm */
+extern int cpuid_supported(void); /* cpuid_supported.S */
 
 static void cpuid(uint32_t(* regs)[4])
 {
