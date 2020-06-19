@@ -80,8 +80,8 @@ static void cpuid_get_vendor_string(struct cpuid* info)
 
 static void cpuid_get_vendor(struct cpuid* info)
 {
-    if ((kstring_compare(info->vendor_string, VENDOR_AMD_NEW, CPUID_VENDOR_STRING_MAX) == 0) ||
-            kstring_compare(info->vendor_string, VENDOR_AMD_OLD, CPUID_VENDOR_STRING_MAX) == 0) {
+    if ((kstring_compare(info->vendor_string, VENDOR_AMD_NEW, CPUID_VENDOR_STRING_MAX) == 0)
+        || kstring_compare(info->vendor_string, VENDOR_AMD_OLD, CPUID_VENDOR_STRING_MAX) == 0) {
         kstring_copy(info->vendor, "AMD", CPUID_VENDOR_MAX);
     } else if (kstring_compare(info->vendor_string, VENDOR_CENTAUR, CPUID_VENDOR_STRING_MAX) == 0) {
         kstring_copy(info->vendor, "Centaur", CPUID_VENDOR_MAX);
@@ -89,8 +89,8 @@ static void cpuid_get_vendor(struct cpuid* info)
         kstring_copy(info->vendor, "Cyrix", CPUID_VENDOR_MAX);
     } else if (kstring_compare(info->vendor_string, VENDOR_INTEL, CPUID_VENDOR_STRING_MAX) == 0) {
         kstring_copy(info->vendor, "Intel", CPUID_VENDOR_MAX);
-    } else if (kstring_compare(info->vendor_string, VENDOR_TRANSMETA1, CPUID_VENDOR_STRING_MAX) == 0 ||
-               kstring_compare(info->vendor_string, VENDOR_TRANSMETA2, CPUID_VENDOR_STRING_MAX) == 0) {
+    } else if (kstring_compare(info->vendor_string, VENDOR_TRANSMETA1, CPUID_VENDOR_STRING_MAX) == 0
+        ||    kstring_compare(info->vendor_string, VENDOR_TRANSMETA2, CPUID_VENDOR_STRING_MAX) == 0) {
         kstring_copy(info->vendor, "Transmeta", CPUID_VENDOR_MAX);
     } else if (kstring_compare(info->vendor_string, VENDOR_NSC, CPUID_VENDOR_STRING_MAX) == 0) {
         kstring_copy(info->vendor, "NSC", CPUID_VENDOR_MAX);

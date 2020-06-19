@@ -34,7 +34,7 @@ CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 CRTN                  := $(ARCH_DIR)/abi/crtn.o
 SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find $(ARCH_DIR) src/ -name "*.c")
-OBJECTS               := $(patsubst arch/%.S,obj/%.o,$(patsubst arch/%.c,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES))))
+OBJECTS               := $(patsubst $(ARCH_DIR)/%.S,obj/%.o,$(patsubst $(ARCH_DIR)/%.c,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES))))
 LIBRARIES             := -lk -lgcc
 KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
 INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
@@ -42,12 +42,12 @@ MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
 IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
 DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
 
-obj/%.o: arch/%.S
+obj/%.o: $(ARCH_DIR)/%.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(AFLAGS) $(CFLAGS) -c -o $@ $<
 
-obj/%.o: src/%.c
+obj/%.o: $(ARCH_DIR)/%.c
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) -c -o $@ $<
@@ -61,7 +61,7 @@ all: image
 
 clean:
 	@echo "\033[1;37mCleaning redshift... \033[0m"
-	@rm -f $(OBJECTS)
+	@rm -f obj/*
 	@$(MAKE) -s -C libk clean
 	@$(MAKE) -s -C tests clean
 
@@ -101,11 +101,11 @@ doc:
 	doxygen Doxyfile
 
 run-qemu:
-	@export DISPLAY=":0" ; qemu-system-x86_64 -cdrom "$(IMAGE)" -boot d -monitor stdio
+	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -monitor stdio
 
 debug-qemu:
-	@export DISPLAY=":0" ; qemu-system-x86_64 -cdrom "$(IMAGE)" -boot d -s -S &
-	@gdb -s "$(DEBUG)" -q -ex "target remote localhost:1234" -ex "b hang"
+	@export DISPLAY=":0" ; qemu-system-i386 -cdrom "$(IMAGE)" -boot d -s -S -monitor stdio
+
 statistics:
 	@tools/kstats
 

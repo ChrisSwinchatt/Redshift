@@ -1,12 +1,9 @@
+OBJ_DIR := $(PWD)/../obj/libk
 SOURCES := $(shell find -name "*.c")
-OBJECTS := $(subst .c,.o,$(SOURCES))
+OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SOURCES))
 BINARY  := $(LIB_DIR)/libk.a
 
 kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
-
-%.o: %.S
-	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
-	@$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.c
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
