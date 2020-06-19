@@ -34,7 +34,7 @@ CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 CRTN                  := $(ARCH_DIR)/abi/crtn.o
 SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find $(ARCH_DIR) src/ -name "*.c")
-OBJECTS               := $(subst .S,.o,$(subst .c,.o,$(SOURCES)))
+OBJECTS               := $(patsubst arch/%.S,obj/%.o,$(patsubst arch/%.c,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES))))
 LIBRARIES             := -lk -lgcc
 KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
 INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
@@ -42,12 +42,19 @@ MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
 IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
 DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
 
-%.o: %.S
+obj/%.o: arch/%.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
+	@mkdir -p `dirname $@`
 	@$(CC) $(AFLAGS) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
+obj/%.o: src/%.c
 	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
+	@mkdir -p `dirname $@`
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+obj/%.o: src/%.c
+	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
+	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
 all: image
