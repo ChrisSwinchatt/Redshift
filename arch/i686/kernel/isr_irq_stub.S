@@ -40,12 +40,10 @@
     mov   [cpu_state_cs],         eax   ;\
     pop   eax                           ;\
     mov   [cpu_state_eflags],     eax   ;\
-/*                                      ;\
     pop   eax                           ;\
     mov   [cpu_state_esp],        eax   ;\
     pop   eax                           ;\
     mov   [cpu_state_ss],         eax   ;\
-*/                                      ;\
     mov   eax,                    ds    ;\
     mov   [cpu_state_ds],         eax   ;\
     mov   eax,                    es    ;\
@@ -94,10 +92,8 @@
     mov  fs,   eax                  ;\
     mov  eax,  [cpu_state_gs]       ;\
     mov  gs,   eax                  ;\
-/*                                  ;\
     push dword [cpu_state_ss]       ;\
     push dword [cpu_state_esp]      ;\
-*/                                  ;\
     push dword [cpu_state_eflags]   ;\
     push dword [cpu_state_cs]       ;\
     push dword [cpu_state_eip]      ;\

@@ -1,8 +1,6 @@
 Things to Do:
  * [ ] Scale heap to available memory
- * [ ] Maybe convert NASM code into GNU AS
- * [ ] Maybe convert C code into C++
- * [ ] Maybe migrate to Clang
+ * [X] Maybe convert NASM code into GNU AS
  * [ ] Sort memory map with merge sort
  * [ ] Stability
    * [X] Solve triple fault with TSS.
@@ -23,4 +21,4 @@ Things to Do:
                  * [x] Parse symbol map at `ramdisk:/boot/kernel.map`
              * [x] Map addresses to symbols.
     * [ ] Write unit tests
-    * [ ] Make functions reentrant
+    * [X] Make functions reentrant
