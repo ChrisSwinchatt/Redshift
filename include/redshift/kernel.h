@@ -32,7 +32,7 @@
 /**
  * Save interrupt state and disable interrupts. Can only be done once per function, ideally before doing anything else.
  */
-#define SAVE_INTERRUPT_STATE        int __saved_interrupt_state__ = get_interrupt_state(); disable_interrupts()
+#define SAVE_INTERRUPT_STATE        int __saved_interrupt_state__ = get_interrupt_state()
 
 /** Restore previous interrupt state. Can only be done after SAVE_INTERRUPT_STATE. */
 #define RESTORE_INTERRUPT_STATE     do { if (__saved_interrupt_state__) { enable_interrupts(); } } while (0)

@@ -20,12 +20,12 @@ export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fn
                          -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
-CRTI                  := src/abi/crti.o
-CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
-CRTN                  := src/abi/crtn.o
-SOURCES               := $(shell find src -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find src -name "*.c")
-OBJECTS               := $(patsubst src/%.S,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES)))
+OBJECTS               := obj/abi/crti.o\
+						 $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)\
+						 $(patsubst src/%.S,obj/%.o,$(shell find src -name "*.S" ! -name "crti.S" ! -name "crtn.S"))\
+						 $(patsubst src/%.c,obj/%.o,$(shell find src -name "*.c"))\
+						 $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)\
+						 obj/abi/crtn.o 
 LIBRARIES             := -lgcc
 KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION)
 INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(KERNEL_VERSION)

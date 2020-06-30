@@ -20,37 +20,29 @@
  */
 .intel_syntax noprefix
 
-/** Stack size. */
 .set STACK_SIZE, 0x8000 /* 32 kiB */
 
 .section .text
 .global _start
 .type   _start, @function
 _start:
-        /* Set up the stack.
-         */
         cli
         mov     esp,                              offset __stack_top__
         xor     ebp,                              ebp
-        /* Save bootloader magic number and tags pointer.
-         */
+
         mov     [__multiboot2_bootloader_magic__], eax
         mov     [__multiboot2_bootloader_tags__],  ebx
-        /* Start boot.
-         */
+
+        call    _init
         call    boot
         jmp     wait_for_interrupt
 
 .global _exit
 .type   _exit, @function
 _exit:
-        /* Call global destructors.
-         */
         call    _fini
         jmp     hang
 
-/* Save multiboot2 magic number and tags.
- */
 .section .data
 .global __multiboot2_bootloader_magic__
 __multiboot2_bootloader_magic__: .long 0
@@ -58,8 +50,6 @@ __multiboot2_bootloader_magic__: .long 0
 .global __multiboot2_bootloader_tags__
 __multiboot2_bootloader_tags__:  .long 0
 
-/* 32 kiB stack aligned to 16-bytes per ABI.
- */
 .section .bss
 .align 16
 

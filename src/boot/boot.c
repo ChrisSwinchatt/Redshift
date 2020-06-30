@@ -45,6 +45,12 @@ static struct multiboot2_tag* mb_tags;
 extern uint32_t __multiboot2_bootloader_magic__; /* boot/_start.asm */
 extern uint32_t __multiboot2_bootloader_tags__;  /* boot/_start.asm */
 
+static void __init(BOOT_SEQUENCE_INIT_MEMORY_1) init_memory_1(void)
+{
+    printk(PRINTK_DEBUG "Initialising static allocator\n");
+    static_init();
+}
+
 static void __init(BOOT_SEQUNECE_INIT_CONSOLE) init_console(void)
 {
     console_init();
@@ -107,7 +113,6 @@ static void __init(BOOT_SEQUENCE_CHECK_BOOT_ENV) check_boot_env(void)
 
 static void __init(BOOT_SEQUENCE_INIT_INTERRUPT_SYSTEM) init_interrupt_system(void)
 {
-    printk(PRINTK_INFO "Initialising interrupt system\n");
     tss_init();
     printk(PRINTK_DEBUG "Loading GDT\n");
     gdt_init();
@@ -134,16 +139,12 @@ static void __init(BOOT_SEQUENCE_INIT_HAL) init_hal(void)
     memory_init(mb_tags);
 }
 
-static void __init(BOOT_SEQUENCE_INIT_MEMORY) init_memory(void)
+static void __init(BOOT_SEQUENCE_INIT_MEMORY_2) init_memory_2(void)
 {
-
-    printk(PRINTK_INFO "Initialising memory manager\n");
-    printk(PRINTK_DEBUG "Initialising static allocator\n");
-    static_init();
     printk(PRINTK_DEBUG "Initialising page allocator\n");
     paging_init(memory_size_total());
     memory_map_init(mb_tags);
-    printk(PRINTK_DEBUG "Intialising heap allocator\n");
+    printk(PRINTK_DEBUG "Intialising kernel heap\n");
     heap_init();
 }
 
@@ -189,21 +190,21 @@ static void __init(BOOT_SEQUENCE_START_SCHEDULER) start_scheduler(void)
 
 void boot(void)
 {
-    disable_interrupts();
-    console_init();
-    console_clear();
-    splash();
-    check_boot_env();
-    init_interrupt_system();
-    init_hal();
-    init_boot_modules_1();
-    init_memory();
-    init_boot_modules_2();
-    load_initrd();
-    init_symbol_table();
-    init_devices();
-    start_scheduler();
-    enable_interrupts();
+    // disable_interrupts();
+    // init_memory_1();
+    // init_console();
+    // splash();
+    // check_boot_env();
+    // init_interrupt_system();
+    // init_hal();
+    // init_boot_modules_1();
+    // init_memory_2();
+    // init_boot_modules_2();
+    // load_initrd();
+    // init_symbol_table();
+    // init_devices();
+    // start_scheduler();
+    // enable_interrupts();
     process_yield();
     UNREACHABLE("%s should not return!", __func__);
 }

@@ -37,11 +37,7 @@ enable_interrupts:
 .global wait_for_interrupt
 .type   wait_for_interrupt, @function
 wait_for_interrupt:
-    /* Wait for an interrupt to occur.
-     */
-    sti
     hlt
-    jmp wait_for_interrupt
 
 .set IF_BIT,    9
 .set IF_MASK,   1 << IF_BIT
