@@ -70,15 +70,18 @@ $(IMAGE): initrd
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
-	@echo "\033[1;37mLinking `basename $@`... \033[0m"
+	@echo "\033[1;37m>>> `basename $@`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o "$@" $^ $(LIBRARIES)
-	@echo "\033[1;37mGenerating symbol table... \033[0m"
+	@echo "\033[1;37m>>> $(MAP)... \033[0m"
+	@mkdir -p `dirname $(MAP)`
 	@tools/gensymtab "$@" "$(MAP)"
-	@echo "\033[1;37mCreating debug file `basename $(DEBUG_BIN)`... \033[0m"
+	@echo "\033[1;37m>>> `basename $(DEBUG_BIN)`... \033[0m"
+	@mkdir -p `dirname $(DEBUG_BIN)`
 	@cp "$@" "$(DEBUG_BIN)"
-	@echo "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
+	@mkdir -p out/isofs/boot/grub
+	@cat tools/grub.cfg >out/isofs/boot/grub/grub.cfg
 
 $(INITRD): kernel
 	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
