@@ -38,7 +38,7 @@
  * Save interrupt state then enable or disable interrupts depending on X (0: disable, anything else: enable).
  * Can only be used once in a function. 
  */
-#define PUSH_INTERRUPT_STATE(X)     PUSH_INTERRUPT_STATE(0); do { if (X) { enable_interrupts(); } else { disable_interrupts(); } } while (0)
+#define PUSH_INTERRUPT_STATE(X)     SAVE_INTERRUPT_STATE(); do { if (X) { enable_interrupts(); } else { disable_interrupts(); } } while (0)
 
 /** Restore previous interrupt state. Must follow a SAVE_INTERRUPT_STATE() or PUSH_INTERRUPT_STATE(). */
 #define POP_INTERRUPT_STATE()       do { if (__saved_interrupt_state__) { enable_interrupts(); } } while (0)

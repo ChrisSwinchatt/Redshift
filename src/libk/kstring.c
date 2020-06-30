@@ -114,7 +114,7 @@ size_t kstring_length(const char* s)
 {
     const char* p = s;
     for (; *p != 0; ++p) {
-        DO_NOTHING;
+        DO_NOTHING();
     }
     return p - s;
 }

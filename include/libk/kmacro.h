@@ -52,7 +52,7 @@
 #define UNUSED(X)                   ((void)(X))
 
 /** Explicitly do nothing. */
-#define DO_NOTHING                  ;
+#define DO_NOTHING()                 do {} while (0)
 
 /** Hint to the compiler that X will usually evaluate true. */
 #define likely(X)                   __builtin_expect((X), 1)

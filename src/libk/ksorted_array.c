@@ -117,7 +117,7 @@ size_t ksorted_array_add(struct ksorted_array* list, void* element)
     }
     size_t i = 0;
     for (; i < list->count && list->predicate(list->elements[i], element); ++i) {
-        DO_NOTHING;
+        DO_NOTHING();
     }
     if (i >= list->count) {
         /* Append.
