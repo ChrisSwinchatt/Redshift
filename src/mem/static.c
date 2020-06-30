@@ -27,15 +27,15 @@ uintptr_t heap_addr = 0;
 
 void static_init(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     heap_addr = MAX((uintptr_t)__kernel_end__, boot_modules_end());
     MAKE_PAGE_ALIGNED(heap_addr);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 uintptr_t static_alloc_base(size_t size, alloc_flags_t flags, uintptr_t* phys)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     DEBUG_ASSERT(heap_addr >= (uintptr_t)__kernel_end__);
     DEBUG_ASSERT(size > 0);
     /* Align to page boundary if required. Otherwise, align according to the requirements of the object to be allocated.
@@ -52,7 +52,7 @@ uintptr_t static_alloc_base(size_t size, alloc_flags_t flags, uintptr_t* phys)
     if (phys != NULL) {
         *phys = addr;
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return addr;
 }
 

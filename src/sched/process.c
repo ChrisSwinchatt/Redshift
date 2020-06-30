@@ -60,7 +60,7 @@ int process_spawn(
     size_t                 stack_size,
     process_flags_t        flags)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     DEBUG_ASSERT(entry_point > 0);
     DEBUG_ASSERT(stack_size > 0);
     if (priority > PROCESS_PRIORITY_MAX) {
@@ -126,7 +126,7 @@ int process_spawn(
         queue->last       = process;
     }
     printk(PRINTK_DEBUG "Spawned process: <id=%d,priority=%d,entry_point=0x%08lX>\n", process->id, priority, entry_point);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return process->id;
 }
 
@@ -141,7 +141,7 @@ static void __noreturn switch_to(struct process* process)
 
 void __non_reentrant process_switch(void* regs)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     /* Update the register state of the process we just switched from.
      */
     if (regs != NULL && current_process != NULL) {
@@ -170,7 +170,7 @@ void __non_reentrant process_switch(void* regs)
             }
         } while (process != queue->last);
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 const struct process* __non_reentrant get_current_process(void)

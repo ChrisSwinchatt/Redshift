@@ -65,9 +65,9 @@ extern void loadtss(void); /* loadtss.asm */
 
 void tss_load(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     loadtss();
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 uint32_t get_tss_base(void)

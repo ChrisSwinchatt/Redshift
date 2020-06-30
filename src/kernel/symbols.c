@@ -76,7 +76,7 @@ enum { ADDRESS = 0, SYMBOL = 1 };
 
 void load_symbol_table(uintptr_t ptr, size_t size)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     DEBUG_ASSERT(ptr != 0);
     symbol_table = ksorted_array_create(MAX_SYMBOLS, KSORTED_ARRAY_STATIC, symbol_order_predicate);
     const  char*   file   = (const char*)ptr;
@@ -143,19 +143,19 @@ void load_symbol_table(uintptr_t ptr, size_t size)
             }
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 const void* get_symbol_address(const char* name)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     for (size_t i = 0; i < ksorted_array_count(symbol_table); ++i) {
         struct symbol* symbol = ksorted_array_get(symbol_table, i);
         if (kstring_compare(symbol->name, name, kstring_length(name)) == 0) {
             return (const void*)(symbol->address);
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return NULL;
 }
 
@@ -167,14 +167,14 @@ const char* get_symbol_name(uintptr_t address)
     /* Find the symbol with the largest address which is below or equal to the given address. Since our symbol table is
      * in descending order we can just find the first symbol whose address <= the search address.
      */
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     for (size_t i = 0; i < ksorted_array_count(symbol_table); ++i) {
         struct symbol* symbol = ksorted_array_get(symbol_table, i);
         if (symbol->address <= address) {
-            RESTORE_INTERRUPT_STATE;
+            POP_INTERRUPT_STATE();
             return symbol->name;
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return NULL;
 }

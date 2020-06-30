@@ -66,7 +66,7 @@ static void write_ascii(uint32_t offset, uint32_t count)
 
 void dump_hex(uint32_t start, size_t count)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     for (size_t i = 0; i < count; i += BYTES_PER_LINE) {
         write_offset(start + i);
         console_write_string("   ");
@@ -75,5 +75,5 @@ void dump_hex(uint32_t start, size_t count)
         write_ascii(i, BYTES_PER_LINE);
         console_write_char('\n');
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }

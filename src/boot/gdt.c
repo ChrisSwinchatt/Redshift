@@ -56,7 +56,7 @@ static void gdt_entry(uint32_t i, uint32_t base, uint32_t limit, uint8_t access,
 
 void gdt_init(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     const uint32_t tss_base  = get_tss_base();
     const uint32_t tss_limit = tss_base + get_tss_size();
     DEBUG_ASSERT(tss_limit > tss_base);
@@ -69,5 +69,5 @@ void gdt_init(void)
     gdt_entry(4, 0x00000000, 0xFFFFFFFF,  0xF2, 0xCF); /* User-mode data segment. */
     gdt_entry(5, tss_base,   tss_limit,   0x89, 0x40); /* TSS                     */
     loadgdt((uint32_t)&pgdt);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }

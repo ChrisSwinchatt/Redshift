@@ -31,7 +31,7 @@ static struct {
 
 void discover_boot_modules(struct multiboot2_tag* mb_tags)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     DEBUG_ASSERT(mb_tags != NULL);
     for (struct multiboot2_tag* tag = (struct multiboot2_tag*)((uint8_t*)mb_tags + 8);
          tag->type != MULTIBOOT2_TAG_TYPE_END;
@@ -49,12 +49,12 @@ void discover_boot_modules(struct multiboot2_tag* mb_tags)
                 break;
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 void save_boot_modules(struct multiboot2_tag* mb_tags)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     DEBUG_ASSERT(mb_tags != NULL);
     struct boot_module* modlist = static_alloc(sizeof(*modlist));
     modules.head = modlist;
@@ -90,7 +90,7 @@ void save_boot_modules(struct multiboot2_tag* mb_tags)
                 break;
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 const struct boot_module* boot_modules_head(void)

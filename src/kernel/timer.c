@@ -35,7 +35,7 @@ static struct timer_event {
 
 void add_timer_event(const char* name, uint32_t period, void(* callback)(void*))
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     if (!(callback)) {
         return;
     }
@@ -61,12 +61,12 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*))
          */
         events = event;
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 void process_timer_queue(uint32_t elapsed_time, void* arg)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     struct timer_event* queue = events;
     /* Process queue.
      */
@@ -86,5 +86,5 @@ void process_timer_queue(uint32_t elapsed_time, void* arg)
         }
         queue = queue->next;
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }

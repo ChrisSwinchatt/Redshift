@@ -22,11 +22,11 @@
 
 uint64_t read_ticks(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     uint32_t hi, lo;
     asm("xorl %%eax, %%eax\ncpuid":::"%eax", "%ebx", "%ecx", "%edx");
     asm("rdtsc":"=a"(lo), "=d"(hi));
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return ((uint64_t)(((uint64_t)hi << 32) | (lo & 0x0f)));
 }
 

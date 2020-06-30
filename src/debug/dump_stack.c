@@ -36,7 +36,7 @@ extern unsigned walk_stack(unsigned* addresses, unsigned max);
 
 void dump_stack(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     static unsigned addresses[MAX_FRAMES];
     kmemory_zero(addresses, MAX_FRAMES*sizeof(addresses[0]));
     unsigned j = walk_stack(addresses, MAX_FRAMES);
@@ -47,5 +47,5 @@ void dump_stack(void)
         }
         printk("%d. At 0x%08X in %s\n", i + 1 - SKIP_FRAMES, addresses[i], symbol);
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }

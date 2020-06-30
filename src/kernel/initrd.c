@@ -25,20 +25,20 @@ static struct initrd_file initrd_files[INITRD_MAX_FILES];
 
 void initrd_init(const char* initrd, size_t size)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     tar_extract(initrd_files, INITRD_MAX_FILES, initrd, size);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
 
 const struct initrd_file* initrd_get_file_by_name(const char* path)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     uint32_t hash = kstring_hash32(path, INITRD_FILENAME_MAX);
     for (size_t i = 0; i < INITRD_MAX_FILES; ++i) {
         if (initrd_files[i].hash == hash) {
             return initrd_files + i;
         }
     }
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return NULL;
 }

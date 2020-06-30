@@ -30,12 +30,18 @@
 #include <redshift/kernel/printk.h>
 
 /**
- * Save interrupt state and disable interrupts. Can only be done once per function, ideally before doing anything else.
+ * Save interrupt state. Can only be done once per function, ideally before doing anything else.
  */
-#define SAVE_INTERRUPT_STATE        int __saved_interrupt_state__ = get_interrupt_state()
+#define SAVE_INTERRUPT_STATE()      int __saved_interrupt_state__ = get_interrupt_state()
 
-/** Restore previous interrupt state. Can only be done after SAVE_INTERRUPT_STATE. */
-#define RESTORE_INTERRUPT_STATE     do { if (__saved_interrupt_state__) { enable_interrupts(); } } while (0)
+/**
+ * Save interrupt state then enable or disable interrupts depending on X (0: disable, anything else: enable).
+ * Can only be used once in a function. 
+ */
+#define PUSH_INTERRUPT_STATE(X)     PUSH_INTERRUPT_STATE(0); do { if (X) { enable_interrupts(); } else { disable_interrupts(); } } while (0)
+
+/** Restore previous interrupt state. Must follow a SAVE_INTERRUPT_STATE() or PUSH_INTERRUPT_STATE(). */
+#define POP_INTERRUPT_STATE()       do { if (__saved_interrupt_state__) { enable_interrupts(); } } while (0)
 
 /** Stack size. */
 #define STACK_SIZE (size_t)((uintptr_t)__stack_top__ - (uintptr_t)__stack_bottom__)

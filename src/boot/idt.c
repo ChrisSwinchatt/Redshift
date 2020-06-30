@@ -54,7 +54,7 @@ extern void loadidt(uint32_t addr); /* loadidt.asm */
 
 void idt_init(void)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     pidt.limit = (sizeof(struct idt_entry) * IDT_ENTRIES_SIZE) - 1;
     pidt.base = (uint32_t)&idt_entries;
     kmemory_fill8(&idt_entries, 0, sizeof(struct idt_entry) * IDT_ENTRIES_SIZE);
@@ -107,5 +107,5 @@ void idt_init(void)
     idt_entry(46, (uint32_t)irq14, 0x08, 0x8E);
     idt_entry(47, (uint32_t)irq15, 0x08, 0x8E);
     loadidt((uint32_t)&pidt);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }

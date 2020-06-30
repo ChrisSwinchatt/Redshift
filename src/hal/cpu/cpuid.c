@@ -173,7 +173,7 @@ static void cpuid_get_cores(struct cpuid* info)
 
 int cpuid_init(struct cpuid* info)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     if (!(cpuid_supported()) || !(cpuid_extended_supported())) {
         panic("necessary CPUID functions not supported by CPU");
     }
@@ -187,6 +187,6 @@ int cpuid_init(struct cpuid* info)
     printk(PRINTK_DEBUG "CPU info: %s %s (%s)\n", info->brand_string, info->vendor, info->vendor_string);
     printk(PRINTK_DEBUG "CPU info: <type=%d,family=%d,model=%d,stepping=%d>\n",
            info->type, info->family, info->model, info->stepping);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return 0;
 }

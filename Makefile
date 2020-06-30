@@ -17,7 +17,7 @@ INCLUDES 			  := -I$(PWD)/include
 export AFLAGS         :=
 export CC             := $(PREFIX)-gcc
 export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fno-stack-protector -nostdlib	\
-                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie
+                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie -fPIC
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
 OBJECTS               := obj/abi/crti.o\

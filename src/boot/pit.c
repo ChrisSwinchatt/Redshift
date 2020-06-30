@@ -33,7 +33,7 @@ static void pit_handler(const struct cpu_state* regs)
 
 int pit_init(uint32_t freq)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     static int handler_registered = 0;
     if (!(handler_registered)) {
         set_interrupt_handler(IRQ0, &pit_handler);
@@ -47,6 +47,6 @@ int pit_init(uint32_t freq)
     io_outb(PIT_DATA, ((uint8_t)(div & 0xff)));
     io_outb(PIT_DATA, ((uint8_t)((div >> 8) & 0xff)));
     _tick_rate = freq;
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
     return 0;
 }

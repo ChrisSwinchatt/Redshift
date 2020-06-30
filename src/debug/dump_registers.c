@@ -116,7 +116,7 @@ static void dump_eflags(uint32_t eflags)
 
 void dump_registers(const struct cpu_state* state)
 {
-    SAVE_INTERRUPT_STATE;
+    PUSH_INTERRUPT_STATE(0);
     printk(
         "EAX: %08lX EBX: %08lX ECX: %08lX EDX: %08lX\n"
         "ESI: %08lX EDI: %08lX EBP: %08lX ESP: %08lX\n"
@@ -144,5 +144,5 @@ void dump_registers(const struct cpu_state* state)
     );
     dump_cr0(state->cr0);
     dump_eflags(state->eflags);
-    RESTORE_INTERRUPT_STATE;
+    POP_INTERRUPT_STATE();
 }
