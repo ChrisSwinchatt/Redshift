@@ -1,21 +1,18 @@
 export VERSION_MAJOR  := 0
 export VERSION_MINOR  := 1
-export ARCH           := i686
-export TARGET         := $(ARCH)-linux-gnu
-export PREFIX         := $(TARGET)
+export PREFIX         := i686-linux-gnu
 export KERNEL_NAME    := redshift
 export KERNEL_VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
-export ARCH_DIR       := $(PWD)/arch/$(ARCH)
-export INCLUDE_DIR    := $(PWD)/include $(PWD)/include/libc $(PWD)/include/arch/$(ARCH)
+export INCLUDE_DIR    := $(PWD)/include $(PWD)/include/libc 
 export OUTPUT_DIR     := $(PWD)/out
 export INITRD_DIR     := $(OUTPUT_DIR)/initrd
 export ISO_DIR        := $(OUTPUT_DIR)/isofs
 export LIB_DIR        := $(OUTPUT_DIR)/lib
 
 DEFINES               := -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"                                  \
-                         -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\"" -DARCH="\"$(ARCH)\""
+                         -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\""
 
-INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/libc -I$(PWD)/include/arch/$(ARCH)
+INCLUDES 			  := -I$(PWD)/include
 
 export AFLAGS         :=
 export CC             := $(PREFIX)-gcc
@@ -23,18 +20,18 @@ export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fn
                          -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
-CRTI                  := $(ARCH_DIR)/abi/crti.o
+CRTI                  := src/abi/crti.o
 CRTBEGIN              := $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
-CRTN                  := $(ARCH_DIR)/abi/crtn.o
-SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find $(ARCH_DIR) src/ -name "*.c")
-OBJECTS               := $(patsubst $(ARCH_DIR)/%.S,obj/%.o,$(patsubst $(ARCH_DIR)/%.c,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES))))
+CRTN                  := src/abi/crtn.o
+SOURCES               := $(shell find src -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find src -name "*.c")
+OBJECTS               := $(patsubst src/%.S,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES)))
 LIBRARIES             := -lgcc
-KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
-INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
+KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION)
+INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(KERNEL_VERSION)
 MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
-IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
-DEBUG_BIN             := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
+IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME).iso
+DEBUG_BIN             := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION).debug
 
 ifneq ($(DEBUG),1)
 CFLAGS += -g
@@ -44,18 +41,13 @@ endif
 
 obj/libk/kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 
-obj/%.o: $(ARCH_DIR)/%.S
-	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
+obj/%.o: src/%.S
+	@echo "\033[1;37m>>> `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(AFLAGS) $(CFLAGS) -c -o $@ $<
 
-obj/%.o: $(ARCH_DIR)/%.c
-	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
-	@mkdir -p `dirname $@`
-	@$(CC) $(CFLAGS) -c -o $@ $<
-
 obj/%.o: src/%.c
-	@echo "\033[1;37mCompiling `basename $<`... \033[0m"
+	@echo "\033[1;37m>>> `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
