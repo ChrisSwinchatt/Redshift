@@ -22,100 +22,105 @@
 
 .section .text
 
-#define COMMON_PROLOGUE                  \
-    mov   [cpu_state_eax],        eax   ;\
-    mov   [cpu_state_ebx],        ebx   ;\
-    mov   [cpu_state_ecx],        ecx   ;\
-    mov   [cpu_state_edx],        edx   ;\
-    mov   [cpu_state_ebp],        ebp   ;\
-    mov   [cpu_state_esi],        esi   ;\
-    mov   [cpu_state_edi],        edi   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_interrupt],  eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_error_code], eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_eip],        eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_cs],         eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_eflags],     eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_esp],        eax   ;\
-    pop   eax                           ;\
-    mov   [cpu_state_ss],         eax   ;\
-    mov   eax,                    ds    ;\
-    mov   [cpu_state_ds],         eax   ;\
-    mov   eax,                    es    ;\
-    mov   [cpu_state_es],         eax   ;\
-    mov   eax,                    fs    ;\
-    mov   [cpu_state_fs],         eax   ;\
-    mov   eax,                    gs    ;\
-    mov   [cpu_state_gs],         eax   ;\
-    mov   eax,                    ss    ;\
-    mov   [cpu_state_gs],         eax   ;\
-    mov   eax,                    cr0   ;\
-    mov   [cpu_state_cr0],        eax   ;\
-    mov   eax,                    cr2   ;\
-    mov   [cpu_state_cr2],        eax   ;\
-    mov   eax,                    cr3   ;\
-    mov   [cpu_state_cr3],        eax   ;\
-    mov   eax,                    cr4   ;\
-    mov   [cpu_state_cr4],        eax
+isr_stub:
+    push    eax
+    push    ebx
+    push    ecx
+    push    edx
+    push    ebp
+    push    esi
+    push    edi
+    push    ds
+    push    es
+    push    fs
+    push    gs
+    mov     eax,    cr0
+    push    eax
+    mov     eax,    cr2
+    push    eax
+    mov     eax,    cr3
+    push    eax
+    mov     eax,    cr4
+    push    eax
 
-#define CALL_HANDLER(FN)     \
-    mov   ax,  0x10         ;\
-    mov   ds,  ax           ;\
-    mov   es,  ax           ;\
-    mov   fs,  ax           ;\
-    mov   gs,  ax           ;\
-    mov   ss,  ax           ;\
-    push  cpu_state         ;\
-    cld                     ;\
-    call  FN                ;\
-    add   esp, 4
+    mov     ebx,    esp
+    sub     ebx,    60      /* Address of where CPU pushed SS. */
 
-#define COMMON_EPILOGUE             \
-    mov  eax,  [cpu_state_eax]      ;\
-    mov  ebx,  [cpu_state_ebx]      ;\
-    mov  ecx,  [cpu_state_ecx]      ;\
-    mov  edx,  [cpu_state_edx]      ;\
-    mov  ebp,  [cpu_state_ebp]      ;\
-    mov  esi,  [cpu_state_esi]      ;\
-    mov  edi,  [cpu_state_edi]      ;\
-    xor  eax,  eax                  ;\
-    mov  eax,  [cpu_state_ds]       ;\
-    mov  ds,   eax                  ;\
-    mov  eax,  [cpu_state_es]       ;\
-    mov  es,   eax                  ;\
-    mov  eax,  [cpu_state_fs]       ;\
-    mov  fs,   eax                  ;\
-    mov  eax,  [cpu_state_gs]       ;\
-    mov  gs,   eax                  ;\
-    push dword [cpu_state_ss]       ;\
-    push dword [cpu_state_esp]      ;\
-    push dword [cpu_state_eflags]   ;\
-    push dword [cpu_state_cs]       ;\
-    push dword [cpu_state_eip]      ;\
+    mov     ax,     0x10
+    mov     ds,     ax
+    mov     es,     ax
+    mov     fs,     ax
+    mov     gs,     ax
+    mov     ss,     ax
+    cld
+    push    ebx             /* Pass pointer to the stacked register state. */
+    call    isr_handler
+
+    add     esp,    20      /* Remove the register state pointer and segment selectors */
+    pop     edi
+    pop     esi
+    pop     ebp
+    pop     edx
+    pop     ecx
+    pop     ebx
+    pop     eax
+
+    add     esp,    4       /* Remove the error code. */
     iret
 
-isr_stub:
-    COMMON_PROLOGUE
-    CALL_HANDLER(isr_handler)
-    COMMON_EPILOGUE
-
 irq_stub:
-    COMMON_PROLOGUE
-    CALL_HANDLER(irq_handler)
-    COMMON_EPILOGUE
+    push    eax
+    push    ebx
+    push    ecx
+    push    edx
+    push    ebp
+    push    esi
+    push    edi
+    push    ds
+    push    es
+    push    fs
+    push    gs
+    mov     eax,    cr0
+    push    eax
+    mov     eax,    cr2
+    push    eax
+    mov     eax,    cr3
+    push    eax
+    mov     eax,    cr4
+    push    eax
+
+    mov     ebx,    esp
+    sub     ebx,    60      /* Address of where CPU pushed SS. */
+
+    mov     ax,     0x10
+    mov     ds,     ax
+    mov     es,     ax
+    mov     fs,     ax
+    mov     gs,     ax
+    mov     ss,     ax
+    cld
+    push    ebx             /* Pass pointer to the stacked register state. */
+    call    isr_handler
+
+    add     esp,    20      /* Remove the register state pointer and segment selectors */
+    pop     edi
+    pop     esi
+    pop     ebp
+    pop     edx
+    pop     ecx
+    pop     ebx
+    pop     eax
+
+    add     esp,    4       /* Remove the error code. */
+    iret
 
 /* CPU has pushed SS and ESP (if we changed PL), EFLAGS, CS and EIP. */
 #define DEFINE_ISR(ISR)          \
     .global isr##ISR            ;\
     .type   isr##ISR, @function ;\
     isr##ISR:                   ;\
-        push 0                 ;\
-        push ISR               ;\
+        push 0                  ;\
+        push ISR                ;\
         jmp  isr_stub
 
 /* CPU has pushed SS and ESP (if we changed PL), EFLAGS, CS, EIP, *and error code*. */
@@ -123,15 +128,15 @@ irq_stub:
     .global isr##ISR            ;\
     .type   isr##ISR, @function ;\
     isr##ISR:                   ;\
-        push ISR               ;\
+        push ISR                ;\
         jmp  isr_stub
 
 #define DEFINE_IRQ(IRQ, ISR)     \
     .global irq##IRQ            ;\
     .type   irq##IRQ, @function ;\
     irq##IRQ:                   ;\
-        push 0                 ;\
-        push ISR               ;\
+        push 0                  ;\
+        push ISR                ;\
         jmp  irq_stub
 
 /* ISR and IRQ stubs.
@@ -168,16 +173,16 @@ DEFINE_ISR(28)
 DEFINE_ISR(29)
 DEFINE_ISR(30)
 DEFINE_ISR(31)
-DEFINE_IRQ(0, 32)
-DEFINE_IRQ(1, 33)
-DEFINE_IRQ(2, 34)
-DEFINE_IRQ(3, 35)
-DEFINE_IRQ(4, 36)
-DEFINE_IRQ(5, 37)
-DEFINE_IRQ(6, 38)
-DEFINE_IRQ(7, 39)
-DEFINE_IRQ(8, 40)
-DEFINE_IRQ(9, 41)
+DEFINE_IRQ(0,  32)
+DEFINE_IRQ(1,  33)
+DEFINE_IRQ(2,  34)
+DEFINE_IRQ(3,  35)
+DEFINE_IRQ(4,  36)
+DEFINE_IRQ(5,  37)
+DEFINE_IRQ(6,  38)
+DEFINE_IRQ(7,  39)
+DEFINE_IRQ(8,  40)
+DEFINE_IRQ(9,  41)
 DEFINE_IRQ(10, 42)
 DEFINE_IRQ(11, 43)
 DEFINE_IRQ(12, 44)

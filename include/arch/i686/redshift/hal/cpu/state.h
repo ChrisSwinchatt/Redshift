@@ -26,33 +26,31 @@
 #include <redshift/kernel.h>
 
 /**
- * CPU registers state.
- *
- * NB: The members here must have the same order, size and alignment as in isr_irq_stub.asm:cpu_state.
+ * CPU registers state. Order must match the order registers are pushed when handling an interrupt.
  */
 struct cpu_state {
+    uint32_t ss;
+    uint32_t esp;
+    uint32_t eflags;
+    uint32_t cs;
+    uint32_t eip;
+    uint32_t interrupt;
+    uint32_t error_code;
     uint32_t eax;
     uint32_t ebx;
     uint32_t ecx;
     uint32_t edx;
-    uint32_t esp;
     uint32_t ebp;
     uint32_t esi;
     uint32_t edi;
-    uint32_t cs;
     uint32_t ds;
     uint32_t es;
     uint32_t fs;
     uint32_t gs;
-    uint32_t ss;
-    uint32_t eip;
-    uint32_t eflags;
     uint32_t cr0;
     uint32_t cr2;
     uint32_t cr3;
     uint32_t cr4;
-    uint32_t interrupt;
-    uint32_t error_code;
 } __packed;
 
 /**

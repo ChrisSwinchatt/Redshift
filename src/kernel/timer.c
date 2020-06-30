@@ -28,19 +28,18 @@ static struct timer_event {
     const char* name;
     uint32_t    name_hash;
     uint32_t    period;
-    uint32_t    elapsed_time; /* Time elapsed since event last raised. */
+    uint32_t    elapsed_time;     /* Time elapsed since event last raised. */
     void(*      callback)(void*);
-    void*       arg;
     struct timer_event* next;
 } * events;
 
-void add_timer_event(const char* name, uint32_t period, void(* callback)(void*), void* arg)
+void add_timer_event(const char* name, uint32_t period, void(* callback)(void*))
 {
     SAVE_INTERRUPT_STATE;
     if (!(callback)) {
         return;
     }
-    struct timer_event* event = kmalloc(sizeof(*events));
+    struct timer_event* event = kmalloc(sizeof(*event));
     if (event == NULL) {
         panic("%s: failed to allocate memory", __func__);
     }
@@ -49,7 +48,6 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*),
     event->period       = period;
     event->elapsed_time = 0;
     event->callback     = callback;
-    event->arg          = arg;
     event->next         = NULL;
     if (events) {
         /* Append the event handler.
@@ -66,7 +64,7 @@ void add_timer_event(const char* name, uint32_t period, void(* callback)(void*),
     RESTORE_INTERRUPT_STATE;
 }
 
-void process_timer_queue(uint32_t elapsed_time)
+void process_timer_queue(uint32_t elapsed_time, void* arg)
 {
     SAVE_INTERRUPT_STATE;
     struct timer_event* queue = events;
@@ -80,7 +78,7 @@ void process_timer_queue(uint32_t elapsed_time)
              */
             printk(PRINTK_DEBUG "Event \"%s\" (fn=0x%p) raised\n", queue->name, queue->callback);
             if (queue->callback) {
-                queue->callback(queue->arg);
+                queue->callback(arg);
             }
             queue->elapsed_time = 0;
         } else {

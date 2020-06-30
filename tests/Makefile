@@ -6,8 +6,6 @@ override CFLAGS += -I ../include -Wall -Wextra -std=gnu11 -O0 -g -Wno-format-ext
 
 all: klist kksorted_array
 
-clean:
-
 klist: libk/test_klist.o ../libk/klist.o
 	@echo "\033[1;37mTesting `basename $@`... \033[0m"
 	@$(CC) $(CFLAGS) -o $@ $^

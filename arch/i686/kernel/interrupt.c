@@ -108,6 +108,7 @@ void irq_handler(const struct cpu_state* regs)
     if (regs->interrupt >= 40) {
         io_outb(PIC_SLAVE_CMND, PIC_RESET);
     }
+
     io_outb(PIC_MASTER_CMND, PIC_RESET);
     call_interrupt_handler(regs);
 }

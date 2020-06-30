@@ -15,18 +15,12 @@ export LIB_DIR        := $(OUTPUT_DIR)/lib
 DEFINES               := -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"                                  \
                          -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\"" -DARCH="\"$(ARCH)\""
 
-ifneq ($(DEBUG),1)
-DEFINES += -g
-else
-DEFINES += -DNDEBUG
-endif
-
 INCLUDES 			  := -I$(PWD)/include -I$(PWD)/include/libc -I$(PWD)/include/arch/$(ARCH)
 
 export AFLAGS         :=
 export CC             := $(PREFIX)-gcc
 export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fno-stack-protector -nostdlib	\
-                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) $(DEBUG) -no-pie
+                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie
 export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
 CRTI                  := $(ARCH_DIR)/abi/crti.o
@@ -35,12 +29,20 @@ CRTEND                := $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 CRTN                  := $(ARCH_DIR)/abi/crtn.o
 SOURCES               := $(shell find $(ARCH_DIR) -name "*.S" ! -name "crti.S" ! -name "crtn.S") $(shell find $(ARCH_DIR) src/ -name "*.c")
 OBJECTS               := $(patsubst $(ARCH_DIR)/%.S,obj/%.o,$(patsubst $(ARCH_DIR)/%.c,obj/%.o,$(patsubst src/%.c,obj/%.o,$(SOURCES))))
-LIBRARIES             := -lk -lgcc
+LIBRARIES             := -lgcc
 KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION)
 INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(ARCH)-$(KERNEL_VERSION)
 MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
 IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-$(ARCH).iso
-DEBUG                 := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
+DEBUG_BIN             := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(ARCH)-$(KERNEL_VERSION).debug
+
+ifneq ($(DEBUG),1)
+CFLAGS += -g
+else
+CFLAGS += -DNDEBUG
+endif
+
+obj/libk/kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 
 obj/%.o: $(ARCH_DIR)/%.S
 	@echo "\033[1;37mAssembling `basename $<`... \033[0m"
@@ -61,35 +63,34 @@ all: image
 
 clean:
 	@echo "\033[1;37mCleaning redshift... \033[0m"
-	@rm -f obj/*
-	@$(MAKE) -s -C libk clean
-	@$(MAKE) -s -C tests clean
+	@find obj/ -name *.o -exec rm {} \;
+	@rm -f $(KERNEL) $(MAP) $(DEBUG_BIN)
 
 image: $(IMAGE)
 
-libk:
-	@$(MAKE) -s -C libk
-
-kernel: libk $(KERNEL)
+kernel: $(KERNEL)
 
 initrd: $(INITRD)
 
 $(IMAGE): initrd
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
+	@mkdir -p `dirname $@`
 	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
 
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37mLinking `basename $@`... \033[0m"
+	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o "$@" $^ $(LIBRARIES)
 	@echo "\033[1;37mGenerating symbol table... \033[0m"
 	@tools/gensymtab "$@" "$(MAP)"
-	@echo "\033[1;37mCreating debug file `basename $(DEBUG)`... \033[0m"
-	@cp "$@" "$(DEBUG)"
+	@echo "\033[1;37mCreating debug file `basename $(DEBUG_BIN)`... \033[0m"
+	@cp "$@" "$(DEBUG_BIN)"
 	@echo "\033[1;37mStripping `basename $@`... \033[0m"
 	@strip --strip-all "$@"
 
 $(INITRD): kernel
 	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
+	@mkdir -p `dirname $@`
 	@rm -f $@
 	@cd $(INITRD_DIR) && tar -cf "$@" * >/dev/null
 
@@ -115,4 +116,4 @@ analyse:
 xgcc:
 	@cd out && ../tools/build-xgcc $(ARGS) $(TARGET)
 
-.PHONY: all image $(IMAGE) libk kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse unit
+.PHONY: all image $(IMAGE) kernel $(KERNEL) initrd $(INITRD) tools doc commit run-qemu debug-qemu statistics analyse unit

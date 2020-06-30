@@ -24,10 +24,11 @@
 #include <redshift/kernel/timer.h>
 #include <redshift/sched/process.h>
 
+static uint32_t _tick_rate;
+
 static void pit_handler(const struct cpu_state* regs)
 {
-    process_timer_queue(1000 / TICK_RATE);
-    UNUSED(regs);
+    process_timer_queue(1000 / _tick_rate, (void*)regs);
 }
 
 int pit_init(uint32_t freq)
@@ -45,6 +46,7 @@ int pit_init(uint32_t freq)
     io_outb(PIT_CMND, 0x36);
     io_outb(PIT_DATA, ((uint8_t)(div & 0xff)));
     io_outb(PIT_DATA, ((uint8_t)((div >> 8) & 0xff)));
+    _tick_rate = freq;
     RESTORE_INTERRUPT_STATE;
     return 0;
 }

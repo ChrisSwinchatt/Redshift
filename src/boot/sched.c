@@ -25,8 +25,6 @@
 #include <redshift/sched/idle.h>
 #include <redshift/sched/process.h>
 
-extern struct cpu_state cpu_state; /* cpu_state.asm */
-
 extern void kernel_main(void);
 
 int sched_init(void)
@@ -60,7 +58,7 @@ int sched_init(void)
     }
     /* Add timer event and enable interrupts.
      */
-    add_timer_event("sched", SCHED_PERIOD, process_switch, &cpu_state);
+    add_timer_event("sched", SCHED_PERIOD, process_switch);
     enable_interrupts();
     return 0;
 }

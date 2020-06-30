@@ -28,15 +28,15 @@
  * \param name A unique name for the timer.
  * \param period The period of time to allow in between function calls (ms).
  * \param callback A pointer to a function to call when the time period elapses.
- * \param arg A pointer to an argument to pass to the callback function.
  */
-void add_timer_event(const char* name, uint32_t period, void(* callback)(void*), void* arg);
+void add_timer_event(const char* name, uint32_t period, void(* callback)(void*));
 
 /**
  * Processes the timer queue.
  * \param elapsed_time The time elapsed since the last time the function was
  * called (ms).
+ * \param arg A pointer to an argument to pass to the callback function.
  */
-void process_timer_queue(uint32_t elapsed_time);
+void process_timer_queue(uint32_t elapsed_time, void* arg);
 
 #endif /* ! REDSHIFT_KERNEL_TIMER_H */
