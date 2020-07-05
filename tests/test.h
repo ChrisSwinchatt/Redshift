@@ -7,6 +7,7 @@
 #define BEGIN_TEST(NAME)                    \
     static void test_##NAME(void)           \
     {                                       \
+        __tests_executed__++;               \
         const char* __test_name__ = #NAME;  \
         int         __test_want_fail__ = 0;
 
@@ -18,16 +19,14 @@
 #define __DO_PASS()                                     \
     do {                                                \
         fprintf(stderr, " * PASS: %s\n", __test_name__);\
-        ++__tests_passed__;                             \
-        ++__tests_executed__;                           \
+        __tests_passed__++;                             \
         return;                                         \
     } while (0)
 
 #define __DO_FAIL(FMT, ...)                                                     \
     do {                                                                        \
         fprintf(stderr, " * FAIL: %s " FMT "\n", __test_name__, __VA_ARGS__);   \
-        ++__tests_failed__;                                                     \
-        ++__tests_executed__;                                                   \
+        __tests_failed__++;                                                     \
         return;                                                                 \
     } while (0)
 
@@ -120,72 +119,89 @@
         }                                                   \
     } while (0)
 
-#define SETUP(F)                \
-    do {                        \
-        void(* fn)(void) = F;   \
-        if (fn != NULL) {       \
-            fn();               \
-        }                       \
+#define SETUP(F)                   \
+    do {                           \
+        __test_setup_fn_t__ fn = F;\
+        if (fn != NULL) {          \
+            fn();                  \
+        }                          \
     } while (0)
 
-#define CLEANUP(F)                                  \
-    do {                                            \
-        void(* fn)(void) = F;                       \
-        if (fn != NULL) {                           \
-            fn();                                   \
-        }                                           \
-        fprintf(                                    \
-            stderr,                                 \
-            "%d passed and %d failed (out of %d)\n",\
-            __tests_passed__,                       \
-            __tests_failed__,                       \
-            __tests_executed__                      \
-        );                                          \
-        return __tests_failed__;                    \
+#define CLEANUP(F)                   \
+    do {                             \
+        __test_cleanup_fn_t__ fn = F;\
+        if (fn != NULL) {            \
+            fn();                    \
+        }                            \
     } while (0)
 
 #define RUN_TEST(NAME) test_##NAME()
 
 typedef void(* __test_setup_fn_t__)(void);
 typedef void(* __test_cleanup_fn_t__)(void);
+typedef void(* __test_case_fn_t__)(void);
 
-static int __tests_passed__   = 0;
-static int __tests_failed__   = 0;
-static int __tests_executed__ = 0;
+#define __TEST_LIST_ITEM_0(...)
+#define __TEST_LIST_ITEM_1(FN)       test_##FN
+#define __TEST_LIST_ITEM_2(FN, ...)  test_##FN, __TEST_LIST_ITEM_1(__VA_ARGS__)
+#define __TEST_LIST_ITEM_3(FN, ...)  test_##FN, __TEST_LIST_ITEM_2(__VA_ARGS__)
+#define __TEST_LIST_ITEM_4(FN, ...)  test_##FN, __TEST_LIST_ITEM_3(__VA_ARGS__)
+#define __TEST_LIST_ITEM_5(FN, ...)  test_##FN, __TEST_LIST_ITEM_4(__VA_ARGS__)
+#define __TEST_LIST_ITEM_6(FN, ...)  test_##FN, __TEST_LIST_ITEM_5(__VA_ARGS__)
+#define __TEST_LIST_ITEM_7(FN, ...)  test_##FN, __TEST_LIST_ITEM_6(__VA_ARGS__)
+#define __TEST_LIST_ITEM_8(FN, ...)  test_##FN, __TEST_LIST_ITEM_7(__VA_ARGS__)
+#define __TEST_LIST_ITEM_9(FN, ...)  test_##FN, __TEST_LIST_ITEM_8(__VA_ARGS__)
+#define __TEST_LIST_ITEM_10(FN, ...) test_##FN, __TEST_LIST_ITEM_9(__VA_ARGS__)
+#define __TEST_LIST_ITEM_11(FN, ...) test_##FN, __TEST_LIST_ITEM_10(__VA_ARGS__)
+#define __TEST_LIST_ITEM_12(FN, ...) test_##FN, __TEST_LIST_ITEM_11(__VA_ARGS__)
+#define __TEST_LIST_ITEM_13(FN, ...) test_##FN, __TEST_LIST_ITEM_12(__VA_ARGS__)
+#define __TEST_LIST_ITEM_14(FN, ...) test_##FN, __TEST_LIST_ITEM_13(__VA_ARGS__)
+#define __TEST_LIST_ITEM_15(FN, ...) test_##FN, __TEST_LIST_ITEM_14(__VA_ARGS__)
+#define __TEST_LIST_ITEM_16(FN, ...) test_##FN, __TEST_LIST_ITEM_15(__VA_ARGS__)
+#define __TEST_LIST_ITEM_17(FN, ...) test_##FN, __TEST_LIST_ITEM_16(__VA_ARGS__)
+#define __TEST_LIST_ITEM_18(FN, ...) test_##FN, __TEST_LIST_ITEM_17(__VA_ARGS__)
+#define __TEST_LIST_ITEM_19(FN, ...) test_##FN, __TEST_LIST_ITEM_18(__VA_ARGS__)
 
-int printk(const char* fmt, ...)
-{
-    fprintf(stderr, "[test output] ");
-    va_list ap;
-    va_start(ap, fmt);
-    int ret = vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    return ret;
-}
+#define __GET_NTH_ARG(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, N, ...) N
 
-void panic(const char* fmt, ...)
-{
-    fprintf(stderr, "[test output] Kernel panic - ");
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    exit(1);
-}
+#define __DO_TEST_LIST(...)             \
+    __GET_NTH_ARG(                      \
+        "ignore",                       \
+        __VA_ARGS__,                    \
+        __TEST_LIST_ITEM_19,            \
+        __TEST_LIST_ITEM_18,            \
+        __TEST_LIST_ITEM_17,            \
+        __TEST_LIST_ITEM_16,            \
+        __TEST_LIST_ITEM_15,            \
+        __TEST_LIST_ITEM_14,            \
+        __TEST_LIST_ITEM_13,            \
+        __TEST_LIST_ITEM_12,            \
+        __TEST_LIST_ITEM_11,            \
+        __TEST_LIST_ITEM_10,            \
+        __TEST_LIST_ITEM_9,             \
+        __TEST_LIST_ITEM_8,             \
+        __TEST_LIST_ITEM_7,             \
+        __TEST_LIST_ITEM_6,             \
+        __TEST_LIST_ITEM_5,             \
+        __TEST_LIST_ITEM_4,             \
+        __TEST_LIST_ITEM_3,             \
+        __TEST_LIST_ITEM_2,             \
+        __TEST_LIST_ITEM_1,             \
+        __TEST_LIST_ITEM_0)(__VA_ARGS__)
 
-void* static_alloc(size_t size)
-{
-    return malloc(size);
-}
+#define TEST_LIST(...)                                                       \
+    void test_main(void)                                                     \
+    {                                                                        \
+        __test_case_fn_t__ test_cases[] = {                                  \
+            __DO_TEST_LIST(__VA_ARGS__)                                      \
+        };                                                                   \
+        for (size_t i = 0; i < sizeof(test_cases)/sizeof(*test_cases); i++) {\
+            test_cases[i]();                                                 \
+        }                                                                    \
+    }
 
-void* kmalloc(size_t size)
-{
-    return malloc(size);
-}
-
-void kfree(void* ptr)
-{
-    return free(ptr);
-}
+extern int __tests_passed__;
+extern int __tests_failed__;
+extern int __tests_executed__;
 
 #endif /* ! REDSHIFT_TESTS_UNIT_TEST_H */

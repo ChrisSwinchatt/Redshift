@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@
 #include <redshift/kernel/timer.h>
 #include <redshift/sched/process.h>
 
-static uint32_t _tick_rate;
+static uint32_t _TICKS_PER_SEC;
 
 static void pit_handler(const struct cpu_state* regs)
 {
-    process_timer_queue(1000 / _tick_rate, (void*)regs);
+    process_timer_queue(1000 / _TICKS_PER_SEC, (void*)regs);
 }
 
 int pit_init(uint32_t freq)
@@ -46,7 +46,7 @@ int pit_init(uint32_t freq)
     io_outb(PIT_CMND, 0x36);
     io_outb(PIT_DATA, ((uint8_t)(div & 0xff)));
     io_outb(PIT_DATA, ((uint8_t)((div >> 8) & 0xff)));
-    _tick_rate = freq;
+    _TICKS_PER_SEC = freq;
     POP_INTERRUPT_STATE();
     return 0;
 }

@@ -2,7 +2,7 @@
  * \file kernel/sleep.c
  * Put the calling CPU to sleep.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
+ * \copyright Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -20,29 +20,13 @@
 #include <redshift/kernel.h>
 #include <redshift/kernel/sleep.h>
 
-void sleep(uint32_t sec)
+void sleep(uintmax_t ticks)
 {
-    msleep((uint64_t)sec * 1000ULL);
-}
-
-void msleep(uint64_t msec)
-{
-    usleep(msec * 1000ULL);
-}
-
-void usleep(uint64_t usec)
-{
-    PUSH_INTERRUPT_STATE(0);
-    uint64_t ticks = 0;
-    for (ticks = usec*(uint64_t)TICK_RATE; ticks > 0ULL; ticks -= 1000000ULL) {
+    SAVE_INTERRUPT_STATE();
+    for (; ticks; ticks--) {
         enable_interrupts();
         wait_for_interrupt();
         disable_interrupts();
-        if (ticks > 0ULL && ticks < 1000000ULL) {
-            /* Prevent ticks underflowing.
-             */
-            ticks = 1000000ULL;
-        }
     }
     POP_INTERRUPT_STATE();
 }

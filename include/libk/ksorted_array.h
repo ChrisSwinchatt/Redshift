@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #include <libk/ktypes.h>
 
 /** Declare predefined order predicates. */
-#define KSORTED_ARRAY_PREDICATE_TYPE_LIST(F)    \
+#define KSORTED_ARRAY_PREDICATE_TYPE_array(F)    \
     F(char)                                     \
     F(int8_t)                                   \
     F(int16_t)                                  \
@@ -58,22 +58,22 @@ typedef bool(* korder_predicate_fn)(void*, void*);
     bool T##_ascending_order_predicate(void* pa, void* pb); \
     bool T##_descending_order_predicate(void* pa, void* pb);
 
-KSORTED_ARRAY_PREDICATE_TYPE_LIST(DECLARE_ORDER_PREDICATES)
+KSORTED_ARRAY_PREDICATE_TYPE_array(DECLARE_ORDER_PREDICATES)
 
 #undef DECLARE_ORDER_PREDICATES
 
 struct ksorted_array* ksorted_array_create(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
 
-struct ksorted_array* ksorted_array_place(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
+void ksorted_array_place(void* address, size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate);
 
-void ksorted_array_delete(struct ksorted_array* list);
+void ksorted_array_delete(struct ksorted_array* array);
 
-size_t ksorted_array_add(struct ksorted_array* list, void* element);
+size_t ksorted_array_add(struct ksorted_array* array, void* element);
 
-void* ksorted_array_get(const struct ksorted_array* list, size_t index);
+void* ksorted_array_get(const struct ksorted_array* array, size_t index);
 
-void ksorted_array_remove(struct ksorted_array* list, size_t index);
+void ksorted_array_remove(struct ksorted_array* array, size_t index);
 
-size_t ksorted_array_count(const struct ksorted_array* list);
+size_t ksorted_array_count(const struct ksorted_array* array);
 
 #endif /* ! REDSHIFT_LIBK_KSORTED_ARRAY_H */

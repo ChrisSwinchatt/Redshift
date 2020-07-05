@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,7 +83,7 @@ extern void __noreturn hang(void);
  * Reads the timestamp counter.
  * \return The number of ticks since the last CPU reset.
  */
-uint64_t read_ticks(void);
+uint64_t read_cpu_ticks(void);
 
 /**
  * Writes a byte value to a port.

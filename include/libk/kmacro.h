@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -107,7 +107,7 @@
 #define ARRAY_SIZE(ARRAY)           (sizeof(ARRAY)/sizeof(*(ARRAY)))
 
 /** Check if a flag is present in a bitflags variable. */
-#define TEST_FLAG(VAR, FLAG)        ((VAR & FLAG) == FLAG)
+#define TEST_FLAG(VAR, FLAG)        (((VAR) & (FLAG)) != 0)
 
 /** Set a flag. */
 #define SET_FLAG(VAR, FLAG)         ((VAR) |= (FLAG))

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ struct cpu_state {
 __always_inline inline static void get_cpu_state(struct cpu_state* regs)
 {
     kmemory_fill8(regs, 0xCD, sizeof(*regs));
-    asm(
+    asm volatile(
         "call __get_cpu_state_inner_label_%=\n" /* Push current EIP. */
         "__get_cpu_state_inner_label_%=:\n"
         "pushfl\n"
@@ -78,8 +78,9 @@ __always_inline inline static void get_cpu_state(struct cpu_state* regs)
          "=m"(regs->edi)
         ::"memory"
     );
-    asm(
-        "mov %%ebp, %0\n"
+    asm volatile(
+        "mov %%ebp, %%eax\n"
+        "mov %%eax, %0\n"
         "xor %%eax, %%eax\n"
         "mov %%cs,  %%eax\n"
         "mov %%eax, %1\n"
@@ -97,9 +98,9 @@ __always_inline inline static void get_cpu_state(struct cpu_state* regs)
          "=m"(regs->fs),
          "=m"(regs->gs),
          "=m"(regs->es)
-        ::"eax", "memory"
+        ::"memory"
     );
-    asm(
+    asm volatile(
         "mov %%ss,  %%eax\n"
         "mov %%eax, %0\n"
         "mov %%cr0, %%eax\n"
@@ -116,7 +117,7 @@ __always_inline inline static void get_cpu_state(struct cpu_state* regs)
          "=m"(regs->cr4)
         ::"eax", "memory"
     );
-    asm(
+    asm volatile(
         "pop %%eax\n"     /* Retrieve EFLAGS. */
         "mov %%eax, %0\n"
         "pop %%eax\n"     /* Retrieve EIP. */

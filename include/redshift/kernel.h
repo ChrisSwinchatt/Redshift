@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ extern symbol_t __stack_top__;    /**< Top of stack (_start.asm).               
 
 enum {
     /** Timer tick rate. */
-    TICK_RATE = 100
+    TICKS_PER_SEC = 100ULL
 };
 
 #endif /* ! REDSHIFT_KERNEL_H */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,22 +25,10 @@
 
 /**
  * Sleep.
- * \param sec Number of seconds to sleep for.
- * \note The calling thread will be blocked until at least 'sec' seconds have passed.
+ * \param ticks The number of scheduler ticks to sleep for.
+ * \note The calling thread will be blocked until at least 'ticks' ticks have passed.
+ * \example sleep(TICKS_PER_SEC) // sleep 1 second.
  */
-void sleep(uint32_t sec);
-
-/**
- * Sleep.
- * \param msec Number of milliseconds to sleep for.
- * \note The calling thread will be blocked until at least 'msec' milliseconds have passed.
- */
-void msleep(uint64_t msec);
-/**
- * Sleep.
- * \param usec The number of microseconds to sleep for.
- * \note The calling thread will be blocked until at least 'usec' microseconds have passed.
- */
-void usleep(uint64_t usec);
+void sleep(uintmax_t ticks);
 
 #endif /* ! REDSHIFT_KERNEL_SLEEP_H */

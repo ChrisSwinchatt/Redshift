@@ -2,9 +2,9 @@
  * \file hal/cpu/cpuid.h
  * CPUID.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
+ * \copyright Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
- * Copyright (c) 2012-2018 Chris Swinchatt.
+ * Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

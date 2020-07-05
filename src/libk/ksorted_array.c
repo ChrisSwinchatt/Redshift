@@ -1,8 +1,8 @@
 /**
  * \file kernel/ksorted_array.c
- * Automatically-sorted list.
+ * Automatically-sorted array.
  * \author Chris Swinchatt <c.swinchatt@sussex.ac.uk>
- * \copyright Copyright (c) 2012-2018 Chris Swinchatt.
+ * \copyright Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -51,13 +51,13 @@ struct ksorted_array {
         return a > b;                                       \
     }
 
-KSORTED_ARRAY_PREDICATE_TYPE_LIST(DEFINE_ORDER_PREDICATES)
+KSORTED_ARRAY_PREDICATE_TYPE_array(DEFINE_ORDER_PREDICATES)
 
 #undef DEFINE_ORDER_PREDICATES
 
 struct ksorted_array* ksorted_array_create(size_t capacity, ksorted_array_flags_t flags, korder_predicate_fn predicate)
 {
-    const size_t size = sizeof(struct ksorted_array*);
+    const size_t size = sizeof(struct ksorted_array);
     void* address;
     if (TEST_FLAG(flags, KSORTED_ARRAY_DYNAMIC)) {
         address = kextern_dynamic_allocate(size);
@@ -73,86 +73,86 @@ struct ksorted_array* ksorted_array_place(void* address, size_t capacity, ksorte
     DEBUG_ASSERT(address != NULL);
     DEBUG_ASSERT(capacity > 0);
     DEBUG_ASSERT(predicate != NULL);
-    struct ksorted_array* list = address;
-    size_t count = sizeof(*(list->elements))*capacity;
+    struct ksorted_array* array = address;
+    size_t count = sizeof(*(array->elements))*capacity;
     if (TEST_FLAG(flags, KSORTED_ARRAY_DYNAMIC)) {
-        list->elements = kextern_dynamic_allocate(count);
-        list->freeable = 1;
+        array->elements = kextern_dynamic_allocate(count);
+        array->freeable = 1;
     } else {
-        list->elements = kextern_static_allocate(count);
-        list->freeable = 0;
+        array->elements = kextern_static_allocate(count);
+        array->freeable = 0;
     }
-    DEBUG_ASSERT(list->elements != NULL);
-    if (sizeof(*(list->elements)) == 4) {
-        kmemory_fill32(list->elements, 0UL, capacity);
-    } else if (sizeof(*(list->elements)) == 2) {
-        kmemory_fill64(list->elements, 0UL, capacity);
+    DEBUG_ASSERT(array->elements != NULL);
+    if (sizeof(*(array->elements)) == 4) {
+        kmemory_fill32(array->elements, 0UL, capacity);
+    } else if (sizeof(*(array->elements)) == 8) {
+        kmemory_fill64(array->elements, 0UL, capacity);
     } else {
-        UNREACHABLE("sizeof(void*) = %zu, should be 4 or 8", sizeof(*(list->elements)));
+        UNREACHABLE("sizeof(void*) = %zu, should be 4 or 8", sizeof(*(array->elements)));
     }
-    list->count     = 0;
-    list->capacity  = capacity;
-    list->predicate = predicate;
-    return list;
+    array->count     = 0;
+    array->capacity  = capacity;
+    array->predicate = predicate;
+    return array;
 }
 
-void ksorted_array_delete(struct ksorted_array* list)
+void ksorted_array_delete(struct ksorted_array* array)
 {
-    if (list && list->freeable) {
-        kextern_dynamic_free(list->elements);
-        kextern_dynamic_free(list);
+    if (array && array->freeable) {
+        kextern_dynamic_free(array->elements);
+        kextern_dynamic_free(array);
     }
 }
 
-size_t ksorted_array_add(struct ksorted_array* list, void* element)
+size_t ksorted_array_add(struct ksorted_array* array, void* element)
 {
-    DEBUG_ASSERT(list != NULL);
-    DEBUG_ASSERT(list->elements != NULL);
-    DEBUG_ASSERT(list->predicate != NULL);
+    DEBUG_ASSERT(array != NULL);
+    DEBUG_ASSERT(array->elements != NULL);
+    DEBUG_ASSERT(array->predicate != NULL);
     DEBUG_ASSERT(element != NULL);
-    if (list->count == 0) {
-        list->elements[0] = element;
-        list->count++;
-        return list->count;
+    if (array->count == 0) {
+        array->elements[0] = element;
+        array->count++;
+        return array->count;
     }
     size_t i = 0;
-    for (; i < list->count && list->predicate(list->elements[i], element); ++i) {
+    for (; i < array->count && array->predicate(array->elements[i], element); ++i) {
         DO_NOTHING();
     }
-    if (i >= list->count) {
+    if (i >= array->count) {
         /* Append.
          */
-        list->elements[list->count++] = element;
+        array->elements[array->count++] = element;
     } else {
-        /* Move each pointer from the ith element to the end of the list one space to the "right". Then insert the new
+        /* Move each pointer from the ith element to the end of the array one space to the "right". Then insert the new
          * element at position i.
          */
-        kmemory_copy(list->elements + i + 1, list->elements + i, list->count - i - 1);
-        list->elements[i] = element;
-        list->count++;
+        kmemory_copy(array->elements + i + 1, array->elements + i, array->count - i - 1);
+        array->elements[i] = element;
+        array->count++;
     }
     /* Ensure we haven't run past the end of the array. TODO return failure when this happens instead of just crashing.
      */
-    RUNTIME_CHECK(list->count <= list->capacity);
+    RUNTIME_CHECK(array->count <= array->capacity);
     return i;
 }
 
-void* ksorted_array_get(const struct ksorted_array* list, size_t index)
+void* ksorted_array_get(const struct ksorted_array* array, size_t index)
 {
-    DEBUG_ASSERT(index < list->count);
-    return list->elements[index];
+    DEBUG_ASSERT(index < array->count);
+    return array->elements[index];
 }
 
-void ksorted_array_remove(struct ksorted_array* list, size_t index)
+void ksorted_array_remove(struct ksorted_array* array, size_t index)
 {
-    DEBUG_ASSERT(index < list->count);
-    for (; index < list->count; ++index) {
-        list->elements[index] = list->elements[index + 1];
+    DEBUG_ASSERT(index < array->count);
+    for (; index < array->count; ++index) {
+        array->elements[index] = array->elements[index + 1];
     }
-    --list->count;
+    array->count--;
 }
 
-size_t ksorted_array_count(const struct ksorted_array* list)
+size_t ksorted_array_count(const struct ksorted_array* array)
 {
-    return list->count;
+    return array->count;
 }

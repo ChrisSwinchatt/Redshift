@@ -1,37 +1,43 @@
 ENTRY(_start)
-
 SECTIONS
 {
     . = 1M;
     __kernel_start__ = .;
-    .text BLOCK(4K) : ALIGN(4K) {
+    .text : ALIGN(16) {
         __code_start__ = .;
-        *(.multiboot2)
-        __code_start__ = .;
+        KEEP(*(.text.boot))
         *(.init)
         *(.fini)
 		*(.text*)
-        __code_end__   = .;
+        __code_end__ = .;
     }
-    .data BLOCK(4K) : ALIGN(4K) {
+    .ctors : ALIGN(16) {
+        KEEP(*(SORT(.ctors.*)))
+        KEEP(*(.ctors))
+    }
+    .dtors : ALIGN(16) {
+        KEEP(*(SORT(.dtors.*)))
+        KEEP(*(.dtors))
+    }
+    .data : ALIGN(16) {
         __data_start__ = .;
 		*(.data*)
         *(.jcr)
         __data_end__ = .;
     }
-    .rodata BLOCK(4K) : ALIGN(4K) {
+    .rodata : ALIGN(16) {
         __rodata_start__ = .;
-        *(.ctors*)
-        *(.init_array)
-        *(.dtors*)
-        *(.fini_array)
         *(.rodata*)
         __rodata_end__ = .;
     }
-    .eh_frame BLOCK(4K) : ALIGN(4K) {
+    .eh_frame : ALIGN(16) {
+        start_eh_frame = .;
+        __eh_frame_start__ = .;
         *(.eh_frame*)
+        QUAD(0)
+        __eh_frame_end__ = .;
     }
-    .bss BLOCK(4K) : ALIGN(4K) {
+    .bss : ALIGN(16) {
         __bss_start__ = .;
         *(.bss)
         *(COMMON)
@@ -39,9 +45,6 @@ SECTIONS
         __bss_end__ = .;
 	}
     __kernel_end__ = .;
-    .debug : {
-        *(.debug*)
-    }
     .note : {
         *(.note*)
         *(.comment)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #include <redshift/kernel/symbols.h>
 
 enum {
-    /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and  the calling
+    /* Number of frames to skip when printing. A value of 0 will include walk_stack, dump_stack and the calling
      * function while 1 skips walk_stack, 2 additionally skips dump_stack and 3 skips all three.
      */
     SKIP_FRAMES = 0U,

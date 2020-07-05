@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +27,16 @@
 .type   _start, @function
 _start:
         cli
-        mov     esp,                              offset __stack_top__
-        xor     ebp,                              ebp
+        mov     esp,                               offset __stack_top__
+        xor     ebp,                               ebp
 
         mov     [__multiboot2_bootloader_magic__], eax
         mov     [__multiboot2_bootloader_tags__],  ebx
 
         call    _init
+        call    __stack_chk_guard_setup
         call    boot
-        jmp     wait_for_interrupt
+        jmp     _exit
 
 .global _exit
 .type   _exit, @function

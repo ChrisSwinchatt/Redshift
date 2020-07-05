@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
  */
 .intel_syntax noprefix
 
-#define __ASM_SOURCE__
 #include <redshift/boot/multiboot2.h>
 
 .set MAGIC,     MULTIBOOT2_HEADER_MAGIC
@@ -28,7 +27,7 @@
 .set LENGTH,    end - multiboot2
 .set CHECKSUM,  -(MAGIC + ARCH + LENGTH)
 
-.section .multiboot2
+.section .text.boot
 .align   8
 multiboot2:
     .long MAGIC                     /* Magic number.                      */

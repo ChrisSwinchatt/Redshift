@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ static bool symbol_order_predicate(void* pa, void* pb)
     DEBUG_ASSERT(pb != NULL);
     struct symbol* a = pa;
     struct symbol* b = pb;
-    return a->address < b->address;
+    return a->address > b->address;
 }
 
 static uintptr_t parse_address(const char* p, const char* q)
@@ -162,19 +162,21 @@ const void* get_symbol_address(const char* name)
 const char* get_symbol_name(uintptr_t address)
 {
     if (address < (uintptr_t)__code_start__ || address > (uintptr_t)__code_end__) {
-        return NULL;
+        return "<inval address>";
     }
     /* Find the symbol with the largest address which is below or equal to the given address. Since our symbol table is
      * in descending order we can just find the first symbol whose address <= the search address.
      */
     PUSH_INTERRUPT_STATE(0);
+    const char* name = "<unavailable>";
     for (size_t i = 0; i < ksorted_array_count(symbol_table); ++i) {
         struct symbol* symbol = ksorted_array_get(symbol_table, i);
         if (symbol->address <= address) {
-            POP_INTERRUPT_STATE();
-            return symbol->name;
+            name = symbol->name;
+            goto out;
         }
     }
+out:
     POP_INTERRUPT_STATE();
-    return NULL;
+    return name;
 }

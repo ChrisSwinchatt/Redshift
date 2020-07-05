@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <libk/kassert.h>
 #include <libk/kchar.h>
 #include <redshift/kernel/console.h>
 #include <redshift/kernel.h>
@@ -34,8 +35,8 @@
 
 typedef enum {
     LOGLEVEL_DEBUG   = 0,
-    LOGLEVEL_INFO    = 1,
-    LOGLEVEL_WARNING = 8,
+    LOGLEVEL_INFO    = 3,
+    LOGLEVEL_WARNING = 6,
     LOGLEVEL_ERROR   = 9
 } loglevel;
 
@@ -70,16 +71,24 @@ static void set_level_formatting(loglevel level)
     }
 }
 
-static int do_print(const char* fmt, va_list ap)
+static ssize_t do_print(const char* fmt, va_list ap)
 {
     static char buffer[VPRINTK_BUFFER_SIZE];
     ssize_t count_1 = kstring_vformat(buffer, VPRINTK_BUFFER_SIZE, fmt, ap);
+    if (count_1 < 0)
+    {
+        panic("kstring_vformat returned -1\n");
+    }
     ssize_t count_2 = console_write_string(buffer);
-    ASSERT_EQUAL_SSIZE_T(count_1, count_2);
+    if (count_2 < 0)
+    {
+        panic("kstring_vformat returned -1\n");
+    }
+    DEBUG_ASSERT_SSIZE_T(count_1, ==, count_2);
     return count_1;
 }
 
-int vprintk(const char* fmt, va_list ap)
+ssize_t vprintk(const char* fmt, va_list ap)
 {
     PUSH_INTERRUPT_STATE(0);
     int level = 0;
@@ -95,7 +104,7 @@ int vprintk(const char* fmt, va_list ap)
     return ret;
 }
 
-int printk(const char* fmt, ...)
+ssize_t printk(const char* fmt, ...)
 {
     PUSH_INTERRUPT_STATE(0);
     va_list ap;

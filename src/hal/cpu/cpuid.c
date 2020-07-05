@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -109,7 +109,6 @@ static void cpuid_get_vendor(struct cpuid* info)
     }
 }
 
-
 static void cpuid_get_features(struct cpuid* info)
 {
     uint32_t regs[4] = {CPUID_INFO_FEATURES, 0, 0, 0};
@@ -154,11 +153,10 @@ static void cpuid_get_cache(struct cpuid* info)
 
 static void cpuid_get_frequency(struct cpuid* info)
 {
-    static const uint64_t period = 10ULL; /* ms */
-    uint64_t ticks1 = read_ticks();
-    msleep(period);
-    uint64_t ticks2 = read_ticks();
-    info->frequency = (uint64_t)((ticks2 - ticks1)*1000ULL/period);
+    uint64_t ticks1 = read_cpu_ticks();
+    sleep(1);
+    uint64_t ticks2 = read_cpu_ticks();
+    info->frequency = (uint64_t)((ticks2 - ticks1)*1000ULL);
     if (info->frequency == 0) {
         info->frequency = 1;
     }

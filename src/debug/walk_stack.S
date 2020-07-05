@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,27 +34,29 @@
 walk_stack:
     /* Create stack frame & save caller's EDI and EBX.
      */
-    push ebp
-    mov  ebp,       esp
-    mov  [ebp - 4], edi
-    mov  [ebp - 8], ebx
+    push    ebp
+    mov     ebp,        esp
+    mov     [ebp - 4],  edi
+    mov     [ebp - 8],  ebx
     /* Set up local registers.
      */
-    xor  eax,       eax         /* EAX = return value (number of stack frames found). */
-    mov  ebx,       [esp +  0]  /* EBX = old EBP.                                     */
-    mov  edi,       [esp +  8]  /* Destination array pointer in EDI.                  */
-    mov  ecx,       [esp + 12]  /* Maximum array size in ECX.                         */
+    xor     eax,        eax             /* EAX = return value (number of stack frames found). */
+    mov     ebx,        [esp +  0]      /* EBX = old EBP.                                     */
+    mov     edi,        [esp +  8]      /* Destination array pointer in EDI.                  */
+    mov     ecx,        [esp + 12]      /* Maximum array size in ECX.                         */
 walk:
     /* Walk backwards through EBP linked list, storing return addresses in EDI array.
      */
-    mov  edx,       [ebx +  4]  /* EDX = previous stack frame's IP.                   */
-    test edx,       edx
-    jz   done                   /* Leave if it is 0.                                  */
-    mov  ebx,       [ebx +  0]  /* EBX = previous stack frame's BP. */
-    mov  [edi],     edx         /* Copy IP.                                           */
-    add  edi,       4
-    inc  eax
-    loop walk
+    test    ebx,        ebx
+    jz      done                        /* Leave if EBP is 0.                                 */
+    mov     edx,        [ebx +  4]      /* EDX = previous stack frame's IP.                   */
+    test    edx,        edx
+    jz      done                        /* Leave if EIP is 0.                                 */
+    mov     ebx,        [ebx +  0]      /* EBX = previous stack frame's BP.                   */
+    mov     [edi],      edx             /* Copy IP.                                           */
+    add     edi,        4
+    inc     eax
+    loop    walk                        /* Reenter loop if ECX > 0. */
 done:
     /* Restore caller's EDI and EBX, leave stack frame & return EAX.
      */

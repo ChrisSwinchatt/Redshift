@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,16 @@
 
 #include <libk/kmacro.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 /** Print debug-level message. */
 #define PRINTK_DEBUG   "<0>"
 
 /** Print info-level message. */
-#define PRINTK_INFO    "<1>"
+#define PRINTK_INFO    "<3>"
 
 /** Print warning message. */
-#define PRINTK_WARNING "<8>"
+#define PRINTK_WARNING "<6>"
 
 /** Print error message. */
 #define PRINTK_ERROR   "<9>"
@@ -42,7 +43,7 @@
  * \param ap Variable list of arguments
  * \return The number of characters printed is returned.
  */
-int vprintk(const char* fmt, va_list ap);
+ssize_t vprintk(const char* fmt, va_list ap);
 
 /**
  * Print a string
@@ -51,6 +52,6 @@ int vprintk(const char* fmt, va_list ap);
  * \param ... Variable list of arguments
  * \return The number of characters printed is returned.
  */
-int printk(const char* fmt, ...);
+ssize_t printk(const char* fmt, ...);
 
 #endif /* ! REDSHIFT_KERNEL_PRINTK_H */

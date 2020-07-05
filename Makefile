@@ -1,52 +1,59 @@
+ifeq ($(DEBUG),)
+DEBUG := 1
+endif
+
 export VERSION_MAJOR  := 0
 export VERSION_MINOR  := 1
 export PREFIX         := i686-linux-gnu
 export KERNEL_NAME    := redshift
 export KERNEL_VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
-export INCLUDE_DIR    := $(PWD)/include $(PWD)/include/libc 
-export OUTPUT_DIR     := $(PWD)/out
-export INITRD_DIR     := $(OUTPUT_DIR)/initrd
-export ISO_DIR        := $(OUTPUT_DIR)/isofs
-export LIB_DIR        := $(OUTPUT_DIR)/lib
 
-DEFINES               := -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"                                  \
-                         -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\""
+export PROJ_DIR   := $(PWD)
+export SRC_DIR    := $(PWD)/src
+export OBJ_DIR    := $(PWD)/obj
+export BIN_DIR    := $(PWD)/bin
+export INITRD_DIR := $(BIN_DIR)/initrd
+export ISO_DIR    := $(BIN_DIR)/isofs
+export LIB_DIR    := $(BIN_DIR)/lib
 
-INCLUDES 			  := -I$(PWD)/include
+DEFINES := -DKERNEL="$(KERNEL_NAME)" -DVERSION_MAJOR="$(VERSION_MAJOR)"\
+           -DVERSION_MINOR="$(VERSION_MINOR)"\ -DVERSION_STR="\"$(KERNEL_VERSION)\""
 
-export AFLAGS         :=
-export CC             := $(PREFIX)-gcc
-export CFLAGS         := -Wall -Wextra -Werror -std=gnu11 -O2 -ffreestanding -fno-stack-protector -nostdlib	\
-                         -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie -fPIC
-export LDFLAGS        := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
+INCLUDES := -I$(PWD)/include
 
-OBJECTS               := obj/abi/crti.o\
-						 $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)\
-						 $(patsubst src/%.S,obj/%.o,$(shell find src -name "*.S" ! -name "crti.S" ! -name "crtn.S"))\
-						 $(patsubst src/%.c,obj/%.o,$(shell find src -name "*.c"))\
-						 $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)\
-						 obj/abi/crtn.o 
-LIBRARIES             := -lgcc
-KERNEL                := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION)
-INITRD                := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(KERNEL_VERSION)
-MAP                   := $(INITRD_DIR)/$(KERNEL_NAME).map
-IMAGE                 := $(OUTPUT_DIR)/$(KERNEL_NAME).iso
-DEBUG_BIN             := $(OUTPUT_DIR)/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION).debug
+export AFLAGS  := -D__ASM_SOURCE__=1
+export CC      := $(PREFIX)-gcc
+export CFLAGS  := -Wall -Wextra -Werror -std=gnu11 -ffreestanding -fno-stack-protector -nostdlib\
+               	  -fno-omit-frame-pointer $(INCLUDES) $(DEFINES) -no-pie
+export LDFLAGS := -Ttools/kernel.ld -nostdlib -L$(LIB_DIR)
 
-ifneq ($(DEBUG),1)
-CFLAGS += -g
+OBJECTS := $(OBJ_DIR)/abi/crti.o\
+		   $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)\
+		   $(patsubst src/%.S,$(OBJ_DIR)/%.o,$(shell find src -name "*.S" ! -name "crti.S" ! -name "crtn.S"))\
+		   $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(shell find src -name "*.c"))\
+		   $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)\
+		   $(OBJ_DIR)/abi/crtn.o 
+LIBRARIES := -lgcc
+KERNEL    := $(ISO_DIR)/boot/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION)
+INITRD    := $(ISO_DIR)/boot/$(KERNEL_NAME)-initrd-$(KERNEL_VERSION)
+MAP       := $(INITRD_DIR)/$(KERNEL_NAME).map
+IMAGE     := $(BIN_DIR)/$(KERNEL_NAME).iso
+DEBUG_BIN := $(BIN_DIR)/$(KERNEL_NAME)-kernel-$(KERNEL_VERSION).debug
+
+ifeq ($(DEBUG),1)
+CFLAGS += -ggdb -O0
 else
-CFLAGS += -DNDEBUG
+CFLAGS += -DNDEBUG -O2
 endif
 
-obj/libk/kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
+$(OBJ_DIR)/libk/kabi_stack_guard.o: CFLAGS := $(filter-out -fstack-protector-all,$(CFLAGS)) -fno-stack-protector
 
-obj/%.o: src/%.S
+$(OBJ_DIR)/%.o: src/%.S
 	@echo "\033[1;37m>>> `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(AFLAGS) $(CFLAGS) -c -o $@ $<
 
-obj/%.o: src/%.c
+$(OBJ_DIR)/%.o: src/%.c
 	@echo "\033[1;37m>>> `basename $<`... \033[0m"
 	@mkdir -p `dirname $@`
 	@$(CC) $(CFLAGS) -c -o $@ $<
@@ -55,7 +62,7 @@ all: image
 
 clean:
 	@echo "\033[1;37mCleaning redshift... \033[0m"
-	@find obj/ -name *.o -exec rm {} \;
+	@find $(OBJ_DIR)/ -name *.o -exec rm {} \;
 	@rm -f $(KERNEL) $(MAP) $(DEBUG_BIN)
 
 image: $(IMAGE)
@@ -64,10 +71,14 @@ kernel: $(KERNEL)
 
 initrd: $(INITRD)
 
-$(IMAGE): initrd
+cflags:
+	@echo $(CC) $(CFLAGS)
+
+$(IMAGE): kernel initrd
 	@echo "\033[1;37mCreating `basename $@`... \033[0m"
-	@mkdir -p `dirname $@`
-	@grub-mkrescue -o $(IMAGE) out/isofs #2>/dev/null
+	@mkdir -p $(ISO_DIR)/boot/grub
+	@cat tools/grub.cfg >$(ISO_DIR)/boot/grub/grub.cfg
+	@grub-mkrescue -o $(IMAGE) $(ISO_DIR)
 
 $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@echo "\033[1;37m>>> `basename $@`... \033[0m"
@@ -80,8 +91,6 @@ $(KERNEL): $(CRTI) $(CRTBEGIN) $(OBJECTS) $(CRTEND) $(CRTN)
 	@mkdir -p `dirname $(DEBUG_BIN)`
 	@cp "$@" "$(DEBUG_BIN)"
 	@strip --strip-all "$@"
-	@mkdir -p out/isofs/boot/grub
-	@cat tools/grub.cfg >out/isofs/boot/grub/grub.cfg
 
 $(INITRD): kernel
 	@echo "\033[1;37mGenerating initial ramdisk... \033[0m"
@@ -90,7 +99,7 @@ $(INITRD): kernel
 	@cd $(INITRD_DIR) && tar -cf "$@" * >/dev/null
 
 test:
-	$(MAKE) -s -C tests
+	@$(MAKE) -s -C tests
 
 doc:
 	@echo "\033[1;37mGenerating documentation... \033[0m"

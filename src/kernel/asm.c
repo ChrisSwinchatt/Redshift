@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  */
 #include <redshift/kernel.h>
 
-uint64_t read_ticks(void)
+uint64_t read_cpu_ticks(void)
 {
     PUSH_INTERRUPT_STATE(0);
     uint32_t hi, lo;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,25 +47,25 @@
     } while (0)
 
 /**
- * Check two expressions for equality and call __KASSERT_CHECK_FAILED if they are not equal.
+ * Compare two expressions and call __KASSERT_CHECK_FAILED if the comparison fails.
  * \param NAME "check" or "assertion"
  * \param A The first expression.
  * \param B The second expression.
  * \param T The type of each expression.
  * \param FMT kstring_format format specifier.
  */
-#define __KASSERT_CHECK_EQUAL(NAME, A, B, T, FMT)                   \
-    do {                                                            \
-        const T __kassert_eval_once_a__ = (A);                      \
-        const T __kassert_eval_once_b__ = (B);                      \
-        if (__kassert_eval_once_a__ != __kassert_eval_once_b__) {   \
-            __KASSERT_CHECK_FAILED(                                 \
-                NAME,                                               \
-                #A "==" #B ": expected " FMT ", got " FMT,          \
-                 __kassert_eval_once_a__,                           \
-                 __kassert_eval_once_b__                            \
-             );                                                     \
-        }                                                           \
+#define __KASSERT_CHECK(NAME, A, OP, B, T, FMT)                      \
+    do {                                                             \
+        const T __kassert_eval_once_a__ = (A);                       \
+        const T __kassert_eval_once_b__ = (B);                       \
+        if (!(__kassert_eval_once_a__ OP __kassert_eval_once_b__)) { \
+            __KASSERT_CHECK_FAILED(                                  \
+                NAME,                                                \
+                #A " " #OP " " #B ": expected " FMT ", got " FMT,    \
+                 __kassert_eval_once_a__,                            \
+                 __kassert_eval_once_b__                             \
+             );                                                      \
+        }                                                            \
     } while (0)
 
 /**
@@ -74,18 +74,18 @@
  * \param A The first string.
  * \param B The second string.
  */
-#define __KASSERT_CHECK_STRING(NAME, A, B)                                              \
-    do {                                                                                \
-        const char* __kassert_eval_once_a__ = A;                                        \
-        const char* __kassert_eval_once_b__ = B;                                        \
-        if (kstring_compare(__kassert_eval_once_a__, __kassert_eval_once_b__) != 0) {   \
-            __KASSERT_CHECK_FAILED(                                                     \
-                NAME,                                                                   \
-                "expected %s, got %s",                                                  \
-                __kassert_eval_once_a__,                                                \
-                __kassert_eval_once_b__                                                 \
-            );                                                                          \
-        }                                                                               \
+#define __KASSERT_CHECK_EQUAL_STRING(NAME, A, B)                                       \
+    do {                                                                               \
+        const char* __kassert_eval_once_a__ = A;                                       \
+        const char* __kassert_eval_once_b__ = B;                                       \
+        if (kstring_compare(__kassert_eval_once_a__, __kassert_eval_once_b__) != 0) {  \
+            __KASSERT_CHECK_FAILED(                                                    \
+                NAME,                                                                  \
+                "expected %s, got %s",                                                 \
+                __kassert_eval_once_a__,                                               \
+                __kassert_eval_once_b__                                                \
+            );                                                                         \
+        }                                                                              \
     } while (0)
 
 /**
@@ -93,99 +93,99 @@
  * \param X The expression to check.
  * @see __CHECK_ASSERT
  */
-#define RUNTIME_CHECK(X)                __KASSERT_DO_CHECK("check", X)
+#define RUNTIME_CHECK(X)                  __KASSERT_DO_CHECK("check", X)
 
-#define CHECK_EQUAL_INT8_T(A,    B)    __KASSERT_CHECK_EQUAL("check",  A, B, int8_t,    "%hhd")
-#define CHECK_EQUAL_INT16_T(A,   B)    __KASSERT_CHECK_EQUAL("check",  A, B, int16_t,   "%hd")
-#define CHECK_EQUAL_INT32_T(A,   B)    __KASSERT_CHECK_EQUAL("check",  A, B, int32_t,   "%d")
-#define CHECK_EQUAL_INT64_T(A,   B)    __KASSERT_CHECK_EQUAL("check",  A, B, int64_t,   "%qd")
-#define CHECK_EQUAL_INTMAX_T(A,  B)    __KASSERT_CHECK_EQUAL("check",  A, B, intmax_t,  "%jd")
-#define CHECK_EQUAL_SSIZE_T(A,   B)    __KASSERT_CHECK_EQUAL("check",  A, B, ssize_t,   "%zd")
-#define CHECK_EQUAL_PTRDIFF_T(A, B)    __KASSERT_CHECK_EQUAL("check",  A, B, ptrdiff_t, "%td")
-#define CHECK_EQUAL_UINT8_T(A,   B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint8_t,   "%hhu")
-#define CHECK_EQUAL_UINT16_T(A,  B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint16_t,  "%hu")
-#define CHECK_EQUAL_UINT32_T(A,  B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint32_t,  "%u")
-#define CHECK_EQUAL_UINT64_T(A,  B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint64_t,  "%qu")
-#define CHECK_EQUAL_UINTMAX_T(A, B)    __KASSERT_CHECK_EQUAL("check",  A, B, uintmax_t, "%ju")
-#define CHECK_EQUAL_SIZE_T(A,    B)    __KASSERT_CHECK_EQUAL("check",  A, B, size_t,    "%zu")
-#define CHECK_EQUAL_PTR(A,       B)    __KASSERT_CHECK_EQUAL("check",  A, B, void*,     "%#p")
-#define CHECK_EQUAL_BIN8(A,      B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint8_t,   "%#08hhb")
-#define CHECK_EQUAL_BIN16(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint16_t,  "%#016hb")
-#define CHECK_EQUAL_BIN32(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint32_t,  "%#032b")
-#define CHECK_EQUAL_BIN64(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint64_t,  "%#064qb")
-#define CHECK_EQUAL_OCT8(A,      B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint8_t,   "%#hho")
-#define CHECK_EQUAL_OCT16(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint16_t,  "%#ho")
-#define CHECK_EQUAL_OCT32(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint32_t,  "%#o")
-#define CHECK_EQUAL_OCT64(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint64_t,  "%#qo")
-#define CHECK_EQUAL_HEX8(A,      B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint8_t,   "%#02hhX")
-#define CHECK_EQUAL_HEX16(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint16_t,  "%#04hX")
-#define CHECK_EQUAL_HEX32(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint32_t,  "%#08X")
-#define CHECK_EQUAL_HEX64(A,     B)    __KASSERT_CHECK_EQUAL("check",  A, B, uint64_t,  "%#016qX")
-#define CHECK_EQUAL_CHAR(A,      B)    __KASSERT_CHECK_EQUAL("check",  A, B, char,      "%c")
-#define CHECK_EQUAL_STRING(A,    B)    __KASSERT_CHECK_STRING("check", A, B)
+#define RUNTIME_CHECK_INT8_T(A,    OP, B) __KASSERT_CHECK("check",  A, OP, B, int8_t,    "%hhd")
+#define RUNTIME_CHECK_INT16_T(A,   OP, B) __KASSERT_CHECK("check",  A, OP, B, int16_t,   "%hd")
+#define RUNTIME_CHECK_INT32_T(A,   OP, B) __KASSERT_CHECK("check",  A, OP, B, int32_t,   "%d")
+#define RUNTIME_CHECK_INT64_T(A,   OP, B) __KASSERT_CHECK("check",  A, OP, B, int64_t,   "%qd")
+#define RUNTIME_CHECK_INTMAX_T(A,  OP, B) __KASSERT_CHECK("check",  A, OP, B, intmax_t,  "%jd")
+#define RUNTIME_CHECK_SSIZE_T(A,   OP, B) __KASSERT_CHECK("check",  A, OP, B, ssize_t,   "%zd")
+#define RUNTIME_CHECK_PTRDIFF_T(A, OP, B) __KASSERT_CHECK("check",  A, OP, B, ptrdiff_t, "%td")
+#define RUNTIME_CHECK_UINT8_T(A,   OP, B) __KASSERT_CHECK("check",  A, OP, B, uint8_t,   "%hhu")
+#define RUNTIME_CHECK_UINT16_T(A,  OP, B) __KASSERT_CHECK("check",  A, OP, B, uint16_t,  "%hu")
+#define RUNTIME_CHECK_UINT32_T(A,  OP, B) __KASSERT_CHECK("check",  A, OP, B, uint32_t,  "%u")
+#define RUNTIME_CHECK_UINT64_T(A,  OP, B) __KASSERT_CHECK("check",  A, OP, B, uint64_t,  "%qu")
+#define RUNTIME_CHECK_UINTMAX_T(A, OP, B) __KASSERT_CHECK("check",  A, OP, B, uintmax_t, "%ju")
+#define RUNTIME_CHECK_SIZE_T(A,    OP, B) __KASSERT_CHECK("check",  A, OP, B, size_t,    "%zu")
+#define RUNTIME_CHECK_PTR(A,       OP, B) __KASSERT_CHECK("check",  A, OP, B, void*,     "%#p")
+#define RUNTIME_CHECK_BIN8(A,      OP, B) __KASSERT_CHECK("check",  A, OP, B, uint8_t,   "%#08hhb")
+#define RUNTIME_CHECK_BIN16(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint16_t,  "%#016hb")
+#define RUNTIME_CHECK_BIN32(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint32_t,  "%#032b")
+#define RUNTIME_CHECK_BIN64(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint64_t,  "%#064qb")
+#define RUNTIME_CHECK_OCT8(A,      OP, B) __KASSERT_CHECK("check",  A, OP, B, uint8_t,   "%#hho")
+#define RUNTIME_CHECK_OCT16(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint16_t,  "%#ho")
+#define RUNTIME_CHECK_OCT32(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint32_t,  "%#o")
+#define RUNTIME_CHECK_OCT64(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint64_t,  "%#qo")
+#define RUNTIME_CHECK_HEX8(A,      OP, B) __KASSERT_CHECK("check",  A, OP, B, uint8_t,   "%#02hhX")
+#define RUNTIME_CHECK_HEX16(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint16_t,  "%#04hX")
+#define RUNTIME_CHECK_HEX32(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint32_t,  "%#08X")
+#define RUNTIME_CHECK_HEX64(A,     OP, B) __KASSERT_CHECK("check",  A, OP, B, uint64_t,  "%#016qX")
+#define RUNTIME_CHECK_CHAR(A,      OP, B) __KASSERT_CHECK("check",  A, OP, B, char,      "%c")
+#define RUNTIME_CHECK_EQUAL_STRING(A,  B) __KASSERT_CHECK_EQUAL_STRING("check", A, B)
 
 #ifndef NDEBUG
 /** Make a debugging assertion. @see __KASSERT_DO_CHECK */
-# define DEBUG_ASSERT(X)                __KASSERT_DO_CHECK("assertion", X)
+# define DEBUG_ASSERT(X)                 __KASSERT_DO_CHECK("assertion", X)
 
-# define ASSERT_EQUAL_INT8_T(A,    B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, int8_t,    "%hhd")
-# define ASSERT_EQUAL_INT16_T(A,   B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, int16_t,   "%hd")
-# define ASSERT_EQUAL_INT32_T(A,   B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, int32_t,   "%d")
-# define ASSERT_EQUAL_INT64_T(A,   B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, int64_t,   "%qd")
-# define ASSERT_EQUAL_INTMAX_T(A,  B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, intmax_t,  "%jd")
-# define ASSERT_EQUAL_SSIZE_T(A,   B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, ssize_t,   "%zd")
-# define ASSERT_EQUAL_PTRDIFF_T(A, B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, ptrdiff_t, "%td")
-# define ASSERT_EQUAL_UINT8_T(A,   B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint8_t,   "%hhu")
-# define ASSERT_EQUAL_UINT16_T(A,  B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint16_t,  "%hu")
-# define ASSERT_EQUAL_UINT32_T(A,  B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint32_t,  "%u")
-# define ASSERT_EQUAL_UINT64_T(A,  B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint64_t,  "%qu")
-# define ASSERT_EQUAL_UINTMAX_T(A, B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uintmax_t, "%ju")
-# define ASSERT_EQUAL_SIZE_T(A,    B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, size_t,    "%zu")
-# define ASSERT_EQUAL_PTR(A,       B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, void*,     "%#p")
-# define ASSERT_EQUAL_BIN8(A,      B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint8_t,   "%#08hhb")
-# define ASSERT_EQUAL_BIN16(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint16_t,  "%#016hb")
-# define ASSERT_EQUAL_BIN32(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint32_t,  "%#032b")
-# define ASSERT_EQUAL_BIN64(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint64_t,  "%#064qb")
-# define ASSERT_EQUAL_OCT8(A,      B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint8_t,   "%#hho")
-# define ASSERT_EQUAL_OCT16(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint16_t,  "%#ho")
-# define ASSERT_EQUAL_OCT32(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint32_t,  "%#o")
-# define ASSERT_EQUAL_OCT64(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint64_t,  "%#qo")
-# define ASSERT_EQUAL_HEX8(A,      B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint8_t,   "%#02hhX")
-# define ASSERT_EQUAL_HEX16(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint16_t,  "%#04hX")
-# define ASSERT_EQUAL_HEX32(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint32_t,  "%#08X")
-# define ASSERT_EQUAL_HEX64(A,     B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, uint64_t,  "%#016qX")
-# define ASSERT_EQUAL_CHAR(A,      B)    __KASSERT_CHECK_EQUAL("assertion",  A, B, char,      "%c")
-# define ASSERT_EQUAL_STRING(A,    B)    __KASSERT_CHECK_STRING("assertion", A, B)
+# define DEBUG_ASSERT_INT8_T(A,    OP, B) __KASSERT_CHECK("assertion",  A, OP, B, int8_t,    "%hhd")
+# define DEBUG_ASSERT_INT16_T(A,   OP, B) __KASSERT_CHECK("assertion",  A, OP, B, int16_t,   "%hd")
+# define DEBUG_ASSERT_INT32_T(A,   OP, B) __KASSERT_CHECK("assertion",  A, OP, B, int32_t,   "%d")
+# define DEBUG_ASSERT_INT64_T(A,   OP, B) __KASSERT_CHECK("assertion",  A, OP, B, int64_t,   "%qd")
+# define DEBUG_ASSERT_INTMAX_T(A,  OP, B) __KASSERT_CHECK("assertion",  A, OP, B, intmax_t,  "%jd")
+# define DEBUG_ASSERT_SSIZE_T(A,   OP, B) __KASSERT_CHECK("assertion",  A, OP, B, ssize_t,   "%zd")
+# define DEBUG_ASSERT_PTRDIFF_T(A, OP, B) __KASSERT_CHECK("assertion",  A, OP, B, ptrdiff_t, "%td")
+# define DEBUG_ASSERT_UINT8_T(A,   OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint8_t,   "%hhu")
+# define DEBUG_ASSERT_UINT16_T(A,  OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint16_t,  "%hu")
+# define DEBUG_ASSERT_UINT32_T(A,  OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint32_t,  "%u")
+# define DEBUG_ASSERT_UINT64_T(A,  OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint64_t,  "%qu")
+# define DEBUG_ASSERT_UINTMAX_T(A, OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uintmax_t, "%ju")
+# define DEBUG_ASSERT_SIZE_T(A,    OP, B) __KASSERT_CHECK("assertion",  A, OP, B, size_t,    "%zu")
+# define DEBUG_ASSERT_PTR(A,       OP, B) __KASSERT_CHECK("assertion",  A, OP, B, void*,     "%#p")
+# define DEBUG_ASSERT_BIN8(A,      OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint8_t,   "%#08hhb")
+# define DEBUG_ASSERT_BIN16(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint16_t,  "%#016hb")
+# define DEBUG_ASSERT_BIN32(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint32_t,  "%#032b")
+# define DEBUG_ASSERT_BIN64(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint64_t,  "%#064qb")
+# define DEBUG_ASSERT_OCT8(A,      OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint8_t,   "%#hho")
+# define DEBUG_ASSERT_OCT16(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint16_t,  "%#ho")
+# define DEBUG_ASSERT_OCT32(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint32_t,  "%#o")
+# define DEBUG_ASSERT_OCT64(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint64_t,  "%#qo")
+# define DEBUG_ASSERT_HEX8(A,      OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint8_t,   "%#02hhX")
+# define DEBUG_ASSERT_HEX16(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint16_t,  "%#04hX")
+# define DEBUG_ASSERT_HEX32(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint32_t,  "%#08X")
+# define DEBUG_ASSERT_HEX64(A,     OP, B) __KASSERT_CHECK("assertion",  A, OP, B, uint64_t,  "%#016qX")
+# define DEBUG_ASSERT_CHAR(A,      OP, B) __KASSERT_CHECK("assertion",  A, OP, B, char,      "%c")
+# define DEBUG_ASSERT_EQUAL_STRING(A,  B) __KASSERT_CHECK_EQUAL_STRING("assertion", A, OP, B)
 #else
-# define DEBUG_ASSERT(X) ((void)X)
-# define ASSERT_EQUAL_INT8_T(A,    B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_INT16_T(A,   B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_INT32_T(A,   B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_INT64_T(A,   B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_INTMAX_T(A,  B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_SSIZE_T(A,   B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_PTRDIFF_T(A, B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_UINT8_T(A,   B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_UINT16_T(A,  B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_UINT32_T(A,  B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_UINT64_T(A,  B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_UINTMAX_T(A, B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_SIZE_T(A,    B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_PTR(A,       B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_BIN8(A,      B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_BIN16(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_BIN32(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_BIN64(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_OCT8(A,      B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_OCT16(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_OCT32(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_OCT64(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_HEX8(A,      B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_HEX16(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_HEX32(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_HEX64(A,     B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_CHAR(A,      B)    do { UNUSED(A); UNUSED(B); } while (0)
-# define ASSERT_EQUAL_STRING(A,    B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT(X)                 UNUSED((X))
+# define DEBUG_ASSERT_INT8_T(A,    OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_INT16_T(A,   OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_INT32_T(A,   OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_INT64_T(A,   OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_INTMAX_T(A,  OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_SSIZE_T(A,   OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_PTRDIFF_T(A, OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_UINT8_T(A,   OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_UINT16_T(A,  OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_UINT32_T(A,  OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_UINT64_T(A,  OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_UINTMAX_T(A, OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_SIZE_T(A,    OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_PTR(A,       OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_BIN8(A,      OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_BIN16(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_BIN32(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_BIN64(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_OCT8(A,      OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_OCT16(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_OCT32(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_OCT64(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_HEX8(A,      OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_HEX16(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_HEX32(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_HEX64(A,     OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_CHAR(A,      OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
+# define DEBUG_ASSERT_STRING(A,    OP, B)    do { UNUSED(A); UNUSED(B); } while (0)
 #endif /* ! NDEBUG */
 
 #endif /* ! REDSHIFT_LIBK_KASSERT_H */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,7 @@ extern void kernel_main(void);
 
 int sched_init(void)
 {
-    disable_interrupts();
-    /* Start main process, which uses the main kernel stack.
+    /* Start main process.
      */
     int main_id = process_spawn(
         (uintptr_t)kernel_main,
@@ -43,7 +42,7 @@ int sched_init(void)
     if (main_id < 0) {
         panic("unable to spawn main process");
     }
-    /* Start idle process, which gets its own stack allocated by process_spawn.
+    /* Start idle process
      */
     int idle_id = process_spawn(
         (uintptr_t)idle,
@@ -59,6 +58,5 @@ int sched_init(void)
     /* Add timer event and enable interrupts.
      */
     add_timer_event("sched", SCHED_PERIOD, process_switch);
-    enable_interrupts();
     return 0;
 }

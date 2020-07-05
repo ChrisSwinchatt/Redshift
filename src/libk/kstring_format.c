@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018 Chris Swinchatt.
+/* Copyright (c) 2012-2018, 2020 Chris Swinchatt <chris@swinchatt.dev>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -225,13 +225,13 @@ static int extract_int(const char** pfmt) {
     return (int)kstring_parse_intmax(buffer, 10);
 }
 
-static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list args)
+static ssize_t format_arg(char** pbuffer, const char* buf_end, const char** pfmt, va_list args)
 {
     struct format_flags flags = defaults;
-    const char* fmt = *pfmt;
-    char*   p   = *pp;
-    ssize_t ret = 0;
-    for (; p < q && *fmt != 0; ++fmt) {
+    const char* fmt    = *pfmt;
+    char*       buffer = *pbuffer;
+    ssize_t     count  = 0;
+    for (; buffer < buf_end && *fmt != 0; ++fmt) {
         switch (*fmt) {
             case '-':
                 flags.left_pad = 0;
@@ -256,7 +256,7 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
                     ++fmt;
                     flags.precision = extract_int(&fmt);
                     if (flags.precision < 0) {
-                        ret = -1;
+                        count = -1;
                         goto out;
                     }
                     --fmt; /* fmt points to next char after extract_int, and will be incremented past it in for-loop. */
@@ -267,11 +267,21 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
                     flags.precision = 0;
                 }
                 break;
-            case 'j': flags.type_width = FMT_INTMAX;      break;
-            case 'z': flags.type_width = FMT_SIZE_T;      break;
-            case 't': flags.type_width = FMT_PTRDIFF;     break;
-            case 'L': flags.type_width = FMT_LONG_DOUBLE; break;
-            case 'q': flags.type_width = FMT_LONG_LONG;   break;
+            case 'j':
+                flags.type_width = FMT_INTMAX;
+                break;
+            case 'z':
+                flags.type_width = FMT_SIZE_T;
+                break;
+            case 't':
+                flags.type_width = FMT_PTRDIFF;
+                break;
+            case 'L':
+                flags.type_width = FMT_LONG_DOUBLE;
+                break;
+            case 'q':
+                flags.type_width = FMT_LONG_LONG;
+                break;
             case 'h':
                 if (*(fmt + 1) == 'h') {
                     flags.type_width = FMT_CHAR;
@@ -289,22 +299,22 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
             case 'b':
                 flags.type_signed = 0;
                 flags.base        = 2;
-                ret = format_number(&flags, &p, q, args);
+                count = format_number(&flags, &buffer, buf_end, args);
                 goto out;
             case 'd': case 'i':
                 flags.type_signed = 1;
                 flags.base        = 10;
-                ret = format_number(&flags, &p, q, args);
+                count = format_number(&flags, &buffer, buf_end, args);
                 goto out;
             case 'o':
                 flags.type_signed = 0;
                 flags.base        = 8;
-                ret = format_number(&flags, &p, q, args);
+                count = format_number(&flags, &buffer, buf_end, args);
                 goto out;
             case 'u':
                 flags.type_signed = 0;
                 flags.base        = 10;
-                ret = format_number(&flags, &p, q, args);
+                count = format_number(&flags, &buffer, buf_end, args);
                 goto out;
             case 'X':
                 flags.hex_upper = 1;
@@ -312,67 +322,81 @@ static ssize_t format_arg(char** pp, const char* q, const char** pfmt, va_list a
             case 'x':
                 flags.type_signed = 0;
                 flags.base        = 16;
-                ret = format_number(&flags, &p, q, args);
+                count = format_number(&flags, &buffer, buf_end, args);
                 goto out;
-            case 'c': ret = format_char(&flags, &p, q, args);    goto out;
-            case 's': ret = format_string(&flags, &p, q, args);  goto out;
-            case 'p': ret = format_pointer(&flags, &p, q, args); goto out;
+            case 'c':
+                count = format_char(&flags, &buffer, buf_end, args);
+                goto out;
+            case 's':
+                count = format_string(&flags, &buffer, buf_end, args);
+                goto out;
+            case 'p':
+                count = format_pointer(&flags, &buffer, buf_end, args);
+                goto out;
             case 'n':
             {
                 ssize_t* pcount = va_arg(args, ssize_t*);
                 if (pcount == NULL) {
-                    ret = -1;
+                    count = -1;
                 }
-                *pcount = *pp - p;
+                *pcount = *pbuffer - buffer;
                 goto out;
             }
             default:
                 if (kchar_is_digit(*fmt)) {
                     flags.field_width = extract_int(&fmt);
                     if (flags.field_width < 0) {
-                        ret = -1;
+                        count = -1;
                         goto out;
                     }
-                    --fmt; /* fmt points to next char after extract_int, and will be incremented past it in for-loop. */
+                    fmt--; /* fmt points to next char after extract_int, and will be incremented past it in for-loop. */
                 } else {
-                    ret = -1;
+                    count = -1;
                     goto out; /* Unexpected token. */
                 }
                 break;
         }
     }
 out:
-    *pfmt = fmt;
-    *pp   = p;
-    return ret;
+    *pfmt    = fmt;
+    *pbuffer = buffer;
+    return count;
 }
 
 ssize_t kstring_vformat(char* buffer, size_t size, const char* fmt, va_list args)
 {
-    char* p = buffer;
-    const char* q = buffer + size;
-    int count = 0;
-    for (; p < q && *fmt != 0; ++fmt) {
-        if (*fmt == '%' && *(fmt + 1) != '%') {
-            ++fmt;
-            if (format_arg(&p, q, &fmt, args) < 0) {
-                return -1;
+    const char* buf_end = buffer + size;
+    ssize_t count = 0;
+    while (buffer < buf_end && *fmt != 0) {
+        if (*fmt == '%') {
+            fmt++;
+            if (*fmt == '%')
+            {
+                *buffer++ = '%';
+                fmt++;
+                continue;
             }
+
+            ssize_t result = format_arg(&buffer, buf_end, &fmt, args);
+            if (result < 0) {
+                goto out;
+            }
+
+            count += result;
         } else {
-            if (buffer && (unsigned)count < size) {
-                *p++ = *fmt;
-            }
+            *buffer++ = *fmt++;
         }
     }
-    *p = 0;
-    return p - buffer;
+out:
+    *buffer = 0;
+    return count;
 }
 
 ssize_t kstring_format(char* buffer, size_t size, const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    int ret = kstring_vformat(buffer, size, fmt, ap);
+    ssize_t ret = kstring_vformat(buffer, size, fmt, ap);
     va_end(ap);
     return ret;
 }
