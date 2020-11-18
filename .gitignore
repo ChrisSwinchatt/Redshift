@@ -10,3 +10,5 @@ GPATH
 GRTAGS
 GTAGS
 .vscode/
+out
+bin/
